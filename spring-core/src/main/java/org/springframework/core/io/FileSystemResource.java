@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * 基于文件系统的 Resource 的实现
  * {@link Resource} implementation for {@code java.io.File} and
  * {@code java.nio.file.Path} handles with a file system target.
  * Supports resolution as a {@code File} and also as a {@code URL}.
@@ -77,8 +78,11 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 */
 	public FileSystemResource(String path) {
 		Assert.notNull(path, "Path must not be null");
+		//处理一些简单的相对路径
 		this.path = StringUtils.cleanPath(path);
+		//创建 File 对象
 		this.file = new File(path);
+		//获取 Path
 		this.filePath = this.file.toPath();
 	}
 
@@ -162,6 +166,8 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 */
 	@Override
 	public boolean isReadable() {
+		//判断是否可读, 且是非目录
+		//先通过文件判断, 如果文件不存在, 则通过文件路径判断
 		return (this.file != null ? this.file.canRead() && !this.file.isDirectory() :
 				Files.isReadable(this.filePath) && !Files.isDirectory(this.filePath));
 	}
