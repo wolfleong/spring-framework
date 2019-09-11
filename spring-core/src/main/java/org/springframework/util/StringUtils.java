@@ -638,6 +638,11 @@ public abstract class StringUtils {
 	}
 
 	/**
+	 * 主要处理以下三种情况:
+	 * - 将 window 的文件目录符变成普通的, \\ => /
+	 * - 处理 path/../abc/a  , 带 .. 的情况
+	 * - 处理 path/./abc , 带 . 情况
+	 *
 	 * Normalize the path by suppressing sequences like "path/.." and
 	 * inner simple dots.
 	 * <p>The result is convenient for path comparison. For other uses,
@@ -646,70 +651,98 @@ public abstract class StringUtils {
 	 * @return the normalized path
 	 */
 	public static String cleanPath(String path) {
+		//如果字符串为 null 或者空
 		if (!hasLength(path)) {
+			//直接返回
 			return path;
 		}
+		//将 \\ 替换成 /
 		String pathToUse = replace(path, WINDOWS_FOLDER_SEPARATOR, FOLDER_SEPARATOR);
 
+		//如果字符串没有 .
 		// Shortcut if there is no work to do
 		if (pathToUse.indexOf('.') == -1) {
+			//直接返回
 			return pathToUse;
 		}
 
+		//获取 : 索引位置, 即前缀索引
 		// Strip prefix from path to analyze, to not treat it as part of the
 		// first path element. This is necessary to correctly parse paths like
 		// "file:core/../core/io/Resource.class", where the ".." should just
 		// strip the first "core" directory while keeping the "file:" prefix.
 		int prefixIndex = pathToUse.indexOf(':');
+		//前缀
 		String prefix = "";
+		//如果索引不为 -1  , 则表明有前缀索引
 		if (prefixIndex != -1) {
+			//获取前缀
 			prefix = pathToUse.substring(0, prefixIndex + 1);
+			//如果前缀中有 / , 则还原
 			if (prefix.contains(FOLDER_SEPARATOR)) {
 				prefix = "";
 			}
 			else {
+				//获取文件路径
 				pathToUse = pathToUse.substring(prefixIndex + 1);
 			}
 		}
+		//如果 pathToUse 是以 / 开头的
 		if (pathToUse.startsWith(FOLDER_SEPARATOR)) {
+			//前缀则加上 /
 			prefix = prefix + FOLDER_SEPARATOR;
+			// pathToUse 忽略掉 /
 			pathToUse = pathToUse.substring(1);
 		}
 
+		//将 pathToUse 用文件路径切割
 		String[] pathArray = delimitedListToStringArray(pathToUse, FOLDER_SEPARATOR);
+		//缓存文件目录名
 		LinkedList<String> pathElements = new LinkedList<>();
+		//记录指向上层目录的层数
 		int tops = 0;
 
+		//反序遍历文件目录
 		for (int i = pathArray.length - 1; i >= 0; i--) {
+			//获取文件目录
 			String element = pathArray[i];
+			//如果是当前目录 . , 指向当前目录, 不处理, 相当于忽略
 			if (CURRENT_PATH.equals(element)) {
 				// Points to current directory - drop it.
 			}
+			//如果是指向上层上当 ..
 			else if (TOP_PATH.equals(element)) {
+				//记录一层上层目录
 				// Registering top path found.
 				tops++;
 			}
 			else {
+				//如果发现有指向上层目录
 				if (tops > 0) {
+					//忽略当前目录, 并且将上层目录层数 - 1
 					// Merging path element with element corresponding to top path.
 					tops--;
 				}
 				else {
+					//如果是正常的文件目录
 					// Normal path element found.
 					pathElements.add(0, element);
 				}
 			}
 		}
 
+		//如果有上层目录没有处理完, 即没有目录可以往上替换, 则保留 ..
 		// Remaining top paths need to be retained.
 		for (int i = 0; i < tops; i++) {
 			pathElements.add(0, TOP_PATH);
 		}
+		//如果只有一个空字符串的path, 且前缀不是以 / 结束的, 则显示指向当前目录, 如: prefix=file: , pathElements=[""] 处理完后 => pathElements=[".",""]
 		// If nothing else left, at least explicitly point to current path.
 		if (pathElements.size() == 1 && "".equals(pathElements.getLast()) && !prefix.endsWith(FOLDER_SEPARATOR)) {
 			pathElements.add(0, CURRENT_PATH);
 		}
 
+		//拼接前缀, 并且将所有目录以目录割符拼接起来
 		return prefix + collectionToDelimitedString(pathElements, FOLDER_SEPARATOR);
 	}
 
@@ -1284,6 +1317,7 @@ public abstract class StringUtils {
 	}
 
 	/**
+	 * 指定分割符, 将集合的字符串列表拼接成一个字符串
 	 * Convert a {@code Collection} into a delimited {@code String} (e.g. CSV).
 	 * <p>Useful for {@code toString()} implementations.
 	 * @param coll the {@code Collection} to convert (potentially {@code null} or empty)
@@ -1295,6 +1329,7 @@ public abstract class StringUtils {
 	}
 
 	/**
+	 * 默认用逗号拼接字符串
 	 * Convert a {@code Collection} into a delimited {@code String} (e.g., CSV).
 	 * <p>Useful for {@code toString()} implementations.
 	 * @param coll the {@code Collection} to convert (potentially {@code null} or empty)
