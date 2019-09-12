@@ -30,6 +30,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ResourceUtils;
 
 /**
+ * URL 形式的 文件资源
  * Subclass of {@link UrlResource} which assumes file resolution, to the degree
  * of implementing the {@link WritableResource} interface for it. This resource
  * variant also caches resolved {@link File} handles from {@link #getFile()}.
@@ -45,6 +46,9 @@ import org.springframework.util.ResourceUtils;
  */
 public class FileUrlResource extends UrlResource implements WritableResource {
 
+	/**
+	 * URL 表示的文件
+	 */
 	@Nullable
 	private volatile File file;
 
@@ -77,25 +81,36 @@ public class FileUrlResource extends UrlResource implements WritableResource {
 
 	@Override
 	public File getFile() throws IOException {
+		//获取缓存 File 对象
 		File file = this.file;
+		//如果对象不为 null
 		if (file != null) {
+			//直接返回
 			return file;
 		}
+		//通过父类, 获取文件对象
 		file = super.getFile();
+		//缓存起来
 		this.file = file;
+		//返回
 		return file;
 	}
 
 	@Override
 	public boolean isWritable() {
 		try {
+			//获取 URL
 			URL url = getURL();
+			//判断是否文件类型
 			if (ResourceUtils.isFileURL(url)) {
+				//获取文件
 				// Proceed with file system resolution
 				File file = getFile();
+				//判断是否可写
 				return (file.canWrite() && !file.isDirectory());
 			}
 			else {
+				//非文件类型的 URL 默认都是可写的
 				return true;
 			}
 		}
@@ -106,19 +121,23 @@ public class FileUrlResource extends UrlResource implements WritableResource {
 
 	@Override
 	public OutputStream getOutputStream() throws IOException {
+		//创建文件的输出流
 		return Files.newOutputStream(getFile().toPath());
 	}
 
 	@Override
 	public WritableByteChannel writableChannel() throws IOException {
+		//创建 WritableByteChannel
 		return FileChannel.open(getFile().toPath(), StandardOpenOption.WRITE);
 	}
 
 	@Override
 	public Resource createRelative(String relativePath) throws MalformedURLException {
+		//如果有 '/' 开头, 则截掉
 		if (relativePath.startsWith("/")) {
 			relativePath = relativePath.substring(1);
 		}
+		//创建 FileUrlResource
 		return new FileUrlResource(new URL(getURL(), relativePath));
 	}
 

@@ -20,6 +20,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * ClassRelativeResourceLoader 扩展的功能是, 可以根据给定的 class 所有包或都所在包下加载资源
  * {@link ResourceLoader} implementation that interprets plain resource paths
  * as relative to a given {@code java.lang.Class}.
  *
@@ -30,6 +31,9 @@ import org.springframework.util.StringUtils;
  */
 public class ClassRelativeResourceLoader extends DefaultResourceLoader {
 
+	/**
+	 * 指定的类
+	 */
 	private final Class<?> clazz;
 
 
@@ -40,11 +44,13 @@ public class ClassRelativeResourceLoader extends DefaultResourceLoader {
 	public ClassRelativeResourceLoader(Class<?> clazz) {
 		Assert.notNull(clazz, "Class must not be null");
 		this.clazz = clazz;
+		//获取 clazz 的 ClassLoader 来设置
 		setClassLoader(clazz.getClassLoader());
 	}
 
 	@Override
 	protected Resource getResourceByPath(String path) {
+		//根据 path 创建 ClassRelativeContextResource
 		return new ClassRelativeContextResource(path, this.clazz);
 	}
 
@@ -69,7 +75,9 @@ public class ClassRelativeResourceLoader extends DefaultResourceLoader {
 
 		@Override
 		public Resource createRelative(String relativePath) {
+			//获取 clazz 类的文件路径, 并拼接上相对路径
 			String pathToUse = StringUtils.applyRelativePath(getPath(), relativePath);
+			//创建 ClassRelativeContextResource
 			return new ClassRelativeContextResource(pathToUse, this.clazz);
 		}
 	}

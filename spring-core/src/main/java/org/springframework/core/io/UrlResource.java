@@ -32,6 +32,7 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * URL 和 URI 资源
  * {@link Resource} implementation for {@code java.net.URL} locators.
  * Supports resolution as a {@code URL} and also as a {@code File} in
  * case of the {@code "file:"} protocol.
@@ -54,6 +55,7 @@ public class UrlResource extends AbstractFileResolvingResource {
 	private final URL url;
 
 	/**
+	 * 做 StringUtils.cleanPath(path) 的 URL
 	 * Cleaned URL (with normalized path), used for comparisons.
 	 */
 	private final URL cleanedUrl;
@@ -125,8 +127,11 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 */
 	public UrlResource(String protocol, String location, @Nullable String fragment) throws MalformedURLException  {
 		try {
+			//创建 URI
 			this.uri = new URI(protocol, location, fragment);
+			//转换成 URL
 			this.url = this.uri.toURL();
+			//预处理后的 URL
 			this.cleanedUrl = getCleanedUrl(this.url, this.uri.toString());
 		}
 		catch (URISyntaxException ex) {
@@ -138,6 +143,7 @@ public class UrlResource extends AbstractFileResolvingResource {
 
 
 	/**
+	 * 将原来的 URL 的 path 进行转换处理
 	 * Determine a cleaned URL for the given original URL.
 	 * @param originalUrl the original URL
 	 * @param originalPath the original URL path
@@ -145,15 +151,19 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 * @see org.springframework.util.StringUtils#cleanPath
 	 */
 	private URL getCleanedUrl(URL originalUrl, String originalPath) {
+		//转换 path
 		String cleanedPath = StringUtils.cleanPath(originalPath);
+		//如果转换过的 cleanedPath 跟原来的 originalPath 不一样
 		if (!cleanedPath.equals(originalPath)) {
 			try {
+				//创建新的 URL 返回
 				return new URL(cleanedPath);
 			}
 			catch (MalformedURLException ex) {
 				// Cleaned URL path cannot be converted to URL -> take original URL.
 			}
 		}
+		//否则, 返回原来的 URL
 		return originalUrl;
 	}
 
@@ -167,9 +177,12 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public InputStream getInputStream() throws IOException {
+		//打开 connection
 		URLConnection con = this.url.openConnection();
+		//设置必要的缓存
 		ResourceUtils.useCachesIfNecessary(con);
 		try {
+			//获取输入流
 			return con.getInputStream();
 		}
 		catch (IOException ex) {
@@ -220,6 +233,7 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public File getFile() throws IOException {
+		//主要是判断 uri 是否存在, 如果存在, 则通过 uri 来获取, 否则通过 url 来获取
 		if (this.uri != null) {
 			return super.getFile(this.uri);
 		}
@@ -235,9 +249,12 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public Resource createRelative(String relativePath) throws MalformedURLException {
+		//如果 relativePath 以 '/' 为前缀
 		if (relativePath.startsWith("/")) {
+			//将 '/' 截掉
 			relativePath = relativePath.substring(1);
 		}
+		//创建 UrlResource
 		return new UrlResource(new URL(this.url, relativePath));
 	}
 
@@ -264,6 +281,7 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public boolean equals(@Nullable Object other) {
+		//主要对比 cleanedUrl 是否相等
 		return (this == other || (other instanceof UrlResource &&
 				this.cleanedUrl.equals(((UrlResource) other).cleanedUrl)));
 	}
@@ -273,6 +291,7 @@ public class UrlResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public int hashCode() {
+		//返回  cleanedUrl 的 hashCode()
 		return this.cleanedUrl.hashCode();
 	}
 

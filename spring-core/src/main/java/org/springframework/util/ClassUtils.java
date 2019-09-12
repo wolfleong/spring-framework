@@ -181,17 +181,23 @@ public abstract class ClassUtils {
 	public static ClassLoader getDefaultClassLoader() {
 		ClassLoader cl = null;
 		try {
+			//获取当前线程的类加载器
 			cl = Thread.currentThread().getContextClassLoader();
 		}
 		catch (Throwable ex) {
+			//如果报异常, 继续往下找
 			// Cannot access thread context ClassLoader - falling back...
 		}
+		//如果找不到类加载器
 		if (cl == null) {
+			//获取当前类的类加载器
 			// No thread context class loader -> use class loader of this class.
 			cl = ClassUtils.class.getClassLoader();
+			//如果还是找不到
 			if (cl == null) {
 				// getClassLoader() returning null indicates the bootstrap ClassLoader
 				try {
+					//获取系统的类加载器
 					cl = ClassLoader.getSystemClassLoader();
 				}
 				catch (Throwable ex) {
@@ -609,6 +615,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 获取类的包名转成路径
 	 * Given an input class object, return a string which consists of the
 	 * class's package name as a pathname, i.e., all dots ('.') are replaced by
 	 * slashes ('/'). Neither a leading nor trailing slash is added. The result
@@ -623,15 +630,22 @@ public abstract class ClassUtils {
 	 * @see Class#getResource
 	 */
 	public static String classPackageAsResourcePath(@Nullable Class<?> clazz) {
+		//如果 clazz 为 null
 		if (clazz == null) {
+			//返回空
 			return "";
 		}
+		//获取全类名
 		String className = clazz.getName();
+		//获取包名与类名分割的索引
 		int packageEndIndex = className.lastIndexOf(PACKAGE_SEPARATOR);
+		//如果索引不等于 -1
 		if (packageEndIndex == -1) {
 			return "";
 		}
+		//截取包名
 		String packageName = className.substring(0, packageEndIndex);
+		//将点替换成下划线
 		return packageName.replace(PACKAGE_SEPARATOR, PATH_SEPARATOR);
 	}
 

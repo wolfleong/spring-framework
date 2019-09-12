@@ -28,6 +28,10 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 加载类路径下的资源
+ * - class.getResource(path) 其中的 path 有两种形式, path不以’/'开头时，默认是从此类所在的包下取资源, path  以’/'开头时，则是从ClassPath根下获取
+ * - class.getClassLoader().getResource(), path 不以 '/' 开头跟上面 path 以 '/' 开头的处理样, 从 classPath 根下获取, 以 path 开头返回 null
+ *
  * {@link Resource} implementation for class path resources. Uses either a
  * given {@link ClassLoader} or a given {@link Class} for loading resources.
  *
@@ -43,16 +47,26 @@ import org.springframework.util.StringUtils;
  */
 public class ClassPathResource extends AbstractFileResolvingResource {
 
+	/**
+	 * 资源路径
+	 */
 	private final String path;
 
+	/**
+	 * 类加载器
+	 */
 	@Nullable
 	private ClassLoader classLoader;
 
+	/**
+	 * 类
+	 */
 	@Nullable
 	private Class<?> clazz;
 
 
 	/**
+	 * 根据指定资源路径创建 ClassPathResource
 	 * Create a new {@code ClassPathResource} for {@code ClassLoader} usage.
 	 * A leading slash will be removed, as the ClassLoader resource access
 	 * methods will not accept it.
@@ -67,6 +81,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	}
 
 	/**
+	 * 根据资源路径和类加载器创建
 	 * Create a new {@code ClassPathResource} for {@code ClassLoader} usage.
 	 * A leading slash will be removed, as the ClassLoader resource access
 	 * methods will not accept it.
@@ -77,11 +92,15 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	public ClassPathResource(String path, @Nullable ClassLoader classLoader) {
 		Assert.notNull(path, "Path must not be null");
+		//处理一下 path
 		String pathToUse = StringUtils.cleanPath(path);
+		//如果是以 / 为前缀
 		if (pathToUse.startsWith("/")) {
+			//截掉 / , 为什么呢, 主要是因为 classLoader.getResource() 不支持以 / 开头的路径
 			pathToUse = pathToUse.substring(1);
 		}
 		this.path = pathToUse;
+		//如果加载器为 null, 则获取默认的类加载器
 		this.classLoader = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
 	}
 
@@ -128,6 +147,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	@Nullable
 	public final ClassLoader getClassLoader() {
+		//如果 clazz 不为 null, 则获取类的加载器, 否则返回指定的 classLoader
 		return (this.clazz != null ? this.clazz.getClassLoader() : this.classLoader);
 	}
 
@@ -148,13 +168,18 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	@Nullable
 	protected URL resolveURL() {
+		//如查类不为null
 		if (this.clazz != null) {
+			//用这个类
 			return this.clazz.getResource(this.path);
 		}
+		//如果 classLoader 不为 null
 		else if (this.classLoader != null) {
+			//用 classLoader 来获取 path 的资源
 			return this.classLoader.getResource(this.path);
 		}
 		else {
+			//如果没有指定的 classLoader , 则用系统的ClassLoader 来获取 path 的资源
 			return ClassLoader.getSystemResource(this.path);
 		}
 	}
@@ -167,15 +192,21 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	@Override
 	public InputStream getInputStream() throws IOException {
 		InputStream is;
+		//如果 class 不为 null
 		if (this.clazz != null) {
+			//通过 class 获取 path 的 inputStream
 			is = this.clazz.getResourceAsStream(this.path);
 		}
+		//如果 classLoader 不为 null
 		else if (this.classLoader != null) {
+			//通过 classLoader 来获取 path 的 inputStream
 			is = this.classLoader.getResourceAsStream(this.path);
 		}
 		else {
+			//没有指定的 classLoader, 则用系统的
 			is = ClassLoader.getSystemResourceAsStream(this.path);
 		}
+		//如果最终都找不到 path 的 inputStream 则报错
 		if (is == null) {
 			throw new FileNotFoundException(getDescription() + " cannot be opened because it does not exist");
 		}
@@ -190,7 +221,9 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public URL getURL() throws IOException {
+		//获取资源的 URL
 		URL url = resolveURL();
+		//判断非空
 		if (url == null) {
 			throw new FileNotFoundException(getDescription() + " cannot be resolved to URL because it does not exist");
 		}
@@ -204,7 +237,9 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public Resource createRelative(String relativePath) {
+		//拼接基本 path 相对 relativePath 的路径
 		String pathToUse = StringUtils.applyRelativePath(this.path, relativePath);
+		//如果 class 不为 null, 则创建基于 class 的ClassPathResource, 否则创建基于 ClassLoader 的 ClassPathResource
 		return (this.clazz != null ? new ClassPathResource(pathToUse, this.clazz) :
 				new ClassPathResource(pathToUse, this.classLoader));
 	}
@@ -217,6 +252,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	@Override
 	@Nullable
 	public String getFilename() {
+		//获取文件名
 		return StringUtils.getFilename(this.path);
 	}
 
@@ -225,17 +261,28 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public String getDescription() {
+		//创建一个 StringBuilder
 		StringBuilder builder = new StringBuilder("class path resource [");
+		//获取文件路径
 		String pathToUse = this.path;
+		//如果 class 不为 null, 且 pathToUse 不以 '/' 开头, 则 path 表示相对路径
+		//如果 path 是相对路径, 则获取包路径. 如果 path 是绝对路径, 则不用拼接包路径
 		if (this.clazz != null && !pathToUse.startsWith("/")) {
+			//添加包路径
 			builder.append(ClassUtils.classPackageAsResourcePath(this.clazz));
+			//添加 '/'
 			builder.append('/');
 		}
+		//如果 path 是以 '/' 开始
 		if (pathToUse.startsWith("/")) {
+			//截掉 '/'
 			pathToUse = pathToUse.substring(1);
 		}
+		//将当前的 path
 		builder.append(pathToUse);
+		//添加 ']'
 		builder.append(']');
+		//转字符串
 		return builder.toString();
 	}
 
@@ -245,13 +292,17 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public boolean equals(@Nullable Object other) {
+		//如果引用一样, 则返回true
 		if (this == other) {
 			return true;
 		}
+		//如果不是 ClassPathResource 对象, 则返回 false
 		if (!(other instanceof ClassPathResource)) {
 			return false;
 		}
+		//如果是 ClassPathResource 强转
 		ClassPathResource otherRes = (ClassPathResource) other;
+		// path 和 clazz 和 classLoader 都相等才算相等
 		return (this.path.equals(otherRes.path) &&
 				ObjectUtils.nullSafeEquals(this.classLoader, otherRes.classLoader) &&
 				ObjectUtils.nullSafeEquals(this.clazz, otherRes.clazz));
@@ -263,6 +314,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	 */
 	@Override
 	public int hashCode() {
+		//返回 path 的 hashCode()
 		return this.path.hashCode();
 	}
 

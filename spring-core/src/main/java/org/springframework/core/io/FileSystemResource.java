@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * 基于文件系统的 Resource 的实现
+ * 基于文件系统的 Resource 的实现, 只与 File 打交道
  * {@link Resource} implementation for {@code java.io.File} and
  * {@code java.nio.file.Path} handles with a file system target.
  * Supports resolution as a {@code File} and also as a {@code URL}.
