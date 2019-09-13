@@ -31,6 +31,11 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 默认的资源加载器, 主要处理四种情况
+ * - 以 / 开头的, 创建 ClassPathContextResource
+ * - 以 classpath: 开头的, 创建 ClassPathResource
+ * - 其他会尝试创建 URL 对象, 如果是指定文件协议的 file://..., 则创建 FileUrlResource, 否则创建 UrlResource
+ * - 如果创建 URL 报错的话, 创建 ClassPathContextResource
  * Default implementation of the {@link ResourceLoader} interface.
  * Used by {@link ResourceEditor}, and serves as base class for
  * {@link org.springframework.context.support.AbstractApplicationContext}.

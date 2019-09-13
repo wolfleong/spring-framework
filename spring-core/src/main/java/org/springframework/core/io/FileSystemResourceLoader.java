@@ -17,6 +17,7 @@
 package org.springframework.core.io;
 
 /**
+ * 文件系统资源加载器
  * {@link ResourceLoader} implementation that resolves plain paths as
  * file system resources rather than as class path resources
  * (the latter is {@link DefaultResourceLoader}'s default strategy).
@@ -48,9 +49,11 @@ public class FileSystemResourceLoader extends DefaultResourceLoader {
 	 */
 	@Override
 	protected Resource getResourceByPath(String path) {
+		//去除 path 前面的 '/'
 		if (path.startsWith("/")) {
 			path = path.substring(1);
 		}
+		//创建文件系统资源
 		return new FileSystemContextResource(path);
 	}
 
