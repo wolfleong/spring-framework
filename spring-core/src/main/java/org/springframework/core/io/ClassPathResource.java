@@ -28,7 +28,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * 加载类路径下的资源
+ * 加载类路径下的资源, 主要是两种 api 的类资源加载, 分为有指定 class 和指定 classLoader 来加载
  * - class.getResource(path) 其中的 path 有两种形式, path不以’/'开头时，默认是从此类所在的包下取资源, path  以’/'开头时，则是从ClassPath根下获取
  * - class.getClassLoader().getResource(), path 不以 '/' 开头跟上面 path 以 '/' 开头的处理样, 从 classPath 根下获取, 以 path 开头返回 null
  *
@@ -239,7 +239,7 @@ public class ClassPathResource extends AbstractFileResolvingResource {
 	public Resource createRelative(String relativePath) {
 		//拼接基本 path 相对 relativePath 的路径
 		String pathToUse = StringUtils.applyRelativePath(this.path, relativePath);
-		//如果 class 不为 null, 则创建基于 class 的ClassPathResource, 否则创建基于 ClassLoader 的 ClassPathResource
+		//如果 class 不为 null, 则创建基于 class 的 ClassPathResource, 否则创建基于 ClassLoader 的 ClassPathResource
 		return (this.clazz != null ? new ClassPathResource(pathToUse, this.clazz) :
 				new ClassPathResource(pathToUse, this.classLoader));
 	}

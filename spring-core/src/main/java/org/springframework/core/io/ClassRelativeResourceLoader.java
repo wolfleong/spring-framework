@@ -20,7 +20,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * ClassRelativeResourceLoader 扩展的功能是, 可以根据给定的 class 所有包或都所在包下加载资源
+ * ClassRelativeResourceLoader 扩展的功能是, 可以根据给定的 class 所有包或者所在包下加载资源
  * {@link ResourceLoader} implementation that interprets plain resource paths
  * as relative to a given {@code java.lang.Class}.
  *
@@ -56,6 +56,7 @@ public class ClassRelativeResourceLoader extends DefaultResourceLoader {
 
 
 	/**
+	 * 指定类路径(类所有的包下)下的资源, 指定类的
 	 * ClassPathResource that explicitly expresses a context-relative path
 	 * through implementing the ContextResource interface.
 	 */

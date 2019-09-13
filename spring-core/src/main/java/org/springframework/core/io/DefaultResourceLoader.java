@@ -204,7 +204,7 @@ public class DefaultResourceLoader implements ResourceLoader {
 
 
 	/**
-	 * todo wolfleong 不知道作用, 感觉跟 ClassPathResource 是一毛一样的. 难道实现 ContextResource 只是表示一个标识?
+	 * 这个实现主要是, 用于处理 classLoader 来加载的资源
 	 * ClassPathResource that explicitly expresses a context-relative path
 	 * through implementing the ContextResource interface.
 	 */
