@@ -1171,6 +1171,7 @@ public abstract class StringUtils {
 	}
 
 	/**
+	 * 将字符串按分割符分词成为字符串数组
 	 * Tokenize the given {@code String} into a {@code String} array via a
 	 * {@link StringTokenizer}.
 	 * <p>The given {@code delimiters} string can consist of any number of
@@ -1192,21 +1193,31 @@ public abstract class StringUtils {
 	public static String[] tokenizeToStringArray(
 			@Nullable String str, String delimiters, boolean trimTokens, boolean ignoreEmptyTokens) {
 
+		//如果给定字符串为 null
 		if (str == null) {
+			//返回空数组
 			return EMPTY_STRING_ARRAY;
 		}
 
+		//创建 StringTokenizer
 		StringTokenizer st = new StringTokenizer(str, delimiters);
+		//分词结果
 		List<String> tokens = new ArrayList<>();
+		//如果结果
 		while (st.hasMoreTokens()) {
+			//获取分出来的结果
 			String token = st.nextToken();
+			//如果要 trim
 			if (trimTokens) {
+				//去除空白
 				token = token.trim();
 			}
+			//不忽略空白话, 直接保存, 如果忽略空白, 则要字符串不为空
 			if (!ignoreEmptyTokens || token.length() > 0) {
 				tokens.add(token);
 			}
 		}
+		//将列表变数组
 		return toStringArray(tokens);
 	}
 

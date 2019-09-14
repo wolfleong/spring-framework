@@ -72,9 +72,13 @@ import org.springframework.lang.Nullable;
  */
 public class AntPathMatcher implements PathMatcher {
 
+	//默认路径分割符
 	/** Default path separator: "/". */
 	public static final String DEFAULT_PATH_SEPARATOR = "/";
 
+	/**
+	 * 缓存关闭阈值
+	 */
 	private static final int CACHE_TURNOFF_THRESHOLD = 65536;
 
 	private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\{[^/]+?\\}");
@@ -82,17 +86,35 @@ public class AntPathMatcher implements PathMatcher {
 	private static final char[] WILDCARD_CHARS = { '*', '?', '{' };
 
 
+	/**
+	 * 路径分割符
+	 */
 	private String pathSeparator;
 
+	/**
+	 * 路径分割缓存
+	 */
 	private PathSeparatorPatternCache pathSeparatorPatternCache;
 
+	/**
+	 * 是否区分大小写
+	 */
 	private boolean caseSensitive = true;
 
+	/**
+	 * 是否去除空白字符
+	 */
 	private boolean trimTokens = false;
 
+	/**
+	 * true 则激活无限模式缓存. false 完全关闭模式缓存
+	 */
 	@Nullable
 	private volatile Boolean cachePatterns;
 
+	/**
+	 * pattern 分词的缓存, key 为 pattern, val 为分词后的字符串数组
+	 */
 	private final Map<String, String[]> tokenizedPatternCache = new ConcurrentHashMap<>(256);
 
 	final Map<String, AntPathStringMatcher> stringMatcherCache = new ConcurrentHashMap<>(256);
@@ -102,7 +124,9 @@ public class AntPathMatcher implements PathMatcher {
 	 * Create a new instance with the {@link #DEFAULT_PATH_SEPARATOR}.
 	 */
 	public AntPathMatcher() {
+		//默认路径分割符
 		this.pathSeparator = DEFAULT_PATH_SEPARATOR;
+		//创建 PathSeparatorPatternCache
 		this.pathSeparatorPatternCache = new PathSeparatorPatternCache(DEFAULT_PATH_SEPARATOR);
 	}
 
@@ -169,19 +193,27 @@ public class AntPathMatcher implements PathMatcher {
 
 	@Override
 	public boolean isPattern(@Nullable String path) {
+		//如果 path 为 null, 则返回false
 		if (path == null) {
 			return false;
 		}
+		//记录是否有路径变量
 		boolean uriVar = false;
+		//遍历字符串
 		for (int i = 0; i < path.length(); i++) {
+			//获取字符
 			char c = path.charAt(i);
+			//如果字符中有 * 或 ? , 则返回true
 			if (c == '*' || c == '?') {
 				return true;
 			}
+			//如果有 { 则记录
 			if (c == '{') {
+				//记录
 				uriVar = true;
 				continue;
 			}
+			//如果有 } , 且 uriVar 为 true , 则表明有路径变量
 			if (c == '}' && uriVar) {
 				return true;
 			}
@@ -210,10 +242,12 @@ public class AntPathMatcher implements PathMatcher {
 	protected boolean doMatch(String pattern, @Nullable String path, boolean fullMatch,
 			@Nullable Map<String, String> uriTemplateVariables) {
 
+		//path为 null, 或 path 和 pattern 前缀不一样, 则返回 false
 		if (path == null || path.startsWith(this.pathSeparator) != pattern.startsWith(this.pathSeparator)) {
 			return false;
 		}
 
+		//对 pattern 进行分词, 获取 pattern 的数组
 		String[] pattDirs = tokenizePattern(pattern);
 		if (fullMatch && this.caseSensitive && !isPotentialMatch(path, pattDirs)) {
 			return false;
@@ -388,6 +422,7 @@ public class AntPathMatcher implements PathMatcher {
 	}
 
 	/**
+	 * tokenizePattern 与 tokenizePath 的区别是 , tokenizePattern 多了缓存处理
 	 * Tokenize the given path pattern into parts, based on this matcher's settings.
 	 * <p>Performs caching based on {@link #setCachePatterns}, delegating to
 	 * {@link #tokenizePath(String)} for the actual tokenization algorithm.
@@ -396,23 +431,33 @@ public class AntPathMatcher implements PathMatcher {
 	 */
 	protected String[] tokenizePattern(String pattern) {
 		String[] tokenized = null;
+		//获取是否缓存 pattern
 		Boolean cachePatterns = this.cachePatterns;
+		//如果 cachePatterns 为 null 或者为 true
 		if (cachePatterns == null || cachePatterns.booleanValue()) {
+			//根据 pattern 从缓存中获取 tokenized
 			tokenized = this.tokenizedPatternCache.get(pattern);
 		}
+		//如果 tokenized 为 null
 		if (tokenized == null) {
+			//将 pattern 分词
 			tokenized = tokenizePath(pattern);
+			//如果 cachePatterns 为 null 且 缓存个数已经达到阀值
 			if (cachePatterns == null && this.tokenizedPatternCache.size() >= CACHE_TURNOFF_THRESHOLD) {
 				// Try to adapt to the runtime situation that we're encountering:
 				// There are obviously too many different patterns coming in here...
 				// So let's turn off the cache since the patterns are unlikely to be reoccurring.
+				//关闭缓存并且清空缓存
 				deactivatePatternCache();
+				//返回当前 tokenized
 				return tokenized;
 			}
+			//如果有开缓存, 则将结果添加到缓存
 			if (cachePatterns == null || cachePatterns.booleanValue()) {
 				this.tokenizedPatternCache.put(pattern, tokenized);
 			}
 		}
+		//返回分词结果
 		return tokenized;
 	}
 
@@ -422,6 +467,7 @@ public class AntPathMatcher implements PathMatcher {
 	 * @return the tokenized path parts
 	 */
 	protected String[] tokenizePath(String path) {
+		//按分割符分词
 		return StringUtils.tokenizeToStringArray(path, this.pathSeparator, this.trimTokens, true);
 	}
 

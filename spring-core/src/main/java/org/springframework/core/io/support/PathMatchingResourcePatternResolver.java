@@ -201,8 +201,14 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	}
 
 
+	/**
+	 * 内置的 ResourceLoader 资源定位器
+	 */
 	private final ResourceLoader resourceLoader;
 
+	/**
+	 * Ant 路径匹配器
+	 */
 	private PathMatcher pathMatcher = new AntPathMatcher();
 
 
@@ -212,6 +218,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @see org.springframework.core.io.DefaultResourceLoader
 	 */
 	public PathMatchingResourcePatternResolver() {
+		//创建一个默认的 ResourceLoader
 		this.resourceLoader = new DefaultResourceLoader();
 	}
 
@@ -234,6 +241,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @see org.springframework.core.io.DefaultResourceLoader
 	 */
 	public PathMatchingResourcePatternResolver(@Nullable ClassLoader classLoader) {
+		//用指定的 classLoader 创建 DefaultResourceLoader
 		this.resourceLoader = new DefaultResourceLoader(classLoader);
 	}
 
@@ -271,12 +279,15 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 
 	@Override
 	public Resource getResource(String location) {
+		//调用 ResourceLoader 来获取资源
 		return getResourceLoader().getResource(location);
 	}
 
 	@Override
 	public Resource[] getResources(String locationPattern) throws IOException {
+		//判断 locationPattern 非 null
 		Assert.notNull(locationPattern, "Location pattern must not be null");
+		//如果以 "classpath*:" 开头
 		if (locationPattern.startsWith(CLASSPATH_ALL_URL_PREFIX)) {
 			// a class path resource (multiple resources for same name possible)
 			if (getPathMatcher().isPattern(locationPattern.substring(CLASSPATH_ALL_URL_PREFIX.length()))) {

@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.Map;
 
 /**
+ * 路径匹配接口
  * Strategy interface for {@code String}-based path matching.
  *
  * <p>Used by {@link org.springframework.core.io.support.PathMatchingResourcePatternResolver},
@@ -36,6 +37,7 @@ import java.util.Map;
 public interface PathMatcher {
 
 	/**
+	 * 判断传入的 path 是否可以作为 pattern 使用
 	 * Does the given {@code path} represent a pattern that can be matched
 	 * by an implementation of this interface?
 	 * <p>If the return value is {@code false}, then the {@link #match}
@@ -47,6 +49,7 @@ public interface PathMatcher {
 	boolean isPattern(String path);
 
 	/**
+	 * 使用 pattern 匹配 path
 	 * Match the given {@code path} against the given {@code pattern},
 	 * according to this PathMatcher's matching strategy.
 	 * @param pattern the pattern to match against
@@ -57,6 +60,7 @@ public interface PathMatcher {
 	boolean match(String pattern, String path);
 
 	/**
+	 * 是否开始部分匹配
 	 * Match the given {@code path} against the corresponding part of the given
 	 * {@code pattern}, according to this PathMatcher's matching strategy.
 	 * <p>Determines whether the pattern at least matches as far as the given base
@@ -69,6 +73,7 @@ public interface PathMatcher {
 	boolean matchStart(String pattern, String path);
 
 	/**
+	 * 提取path中匹配到的部分,如pattern(myroot/*.html),path(myroot/myfile.html),返回myfile.html
 	 * Given a pattern and a full path, determine the pattern-mapped part.
 	 * <p>This method is supposed to find out which part of the path is matched
 	 * dynamically through an actual pattern, that is, it strips off a statically
@@ -91,6 +96,7 @@ public interface PathMatcher {
 	String extractPathWithinPattern(String pattern, String path);
 
 	/**
+	 * 提取path中匹配到的部分,只是这边还需跟占位符配对为map, 如pattern(/hotels/{hotel}),path(/hotels/1),解析出"hotel"->"1"
 	 * Given a pattern and a full path, extract the URI template variables. URI template
 	 * variables are expressed through curly brackets ('{' and '}').
 	 * <p>For example: For pattern "/hotels/{hotel}" and path "/hotels/1", this method will
@@ -102,6 +108,7 @@ public interface PathMatcher {
 	Map<String, String> extractUriTemplateVariables(String pattern, String path);
 
 	/**
+	 * 获取一个比较器
 	 * Given a full path, returns a {@link Comparator} suitable for sorting patterns
 	 * in order of explicitness for that path.
 	 * <p>The full algorithm used depends on the underlying implementation,
@@ -114,6 +121,7 @@ public interface PathMatcher {
 	Comparator<String> getPatternComparator(String path);
 
 	/**
+	 * 合并pattern, pattern1然后pattern2
 	 * Combines two patterns into a new pattern that is returned.
 	 * <p>The full algorithm used for combining the two pattern depends on the underlying implementation.
 	 * @param pattern1 the first pattern
