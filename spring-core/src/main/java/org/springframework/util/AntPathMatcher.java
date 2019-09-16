@@ -253,65 +253,97 @@ public class AntPathMatcher implements PathMatcher {
 			return false;
 		}
 
+		//对 path 进行分词, 获取 path 的数组
 		String[] pathDirs = tokenizePath(path);
 		int pattIdxStart = 0;
 		int pattIdxEnd = pattDirs.length - 1;
 		int pathIdxStart = 0;
 		int pathIdxEnd = pathDirs.length - 1;
 
+		//从前面开始遍历
 		// Match all elements up to the first **
 		while (pattIdxStart <= pattIdxEnd && pathIdxStart <= pathIdxEnd) {
+			//获取第一个 pattern
 			String pattDir = pattDirs[pattIdxStart];
+			//如果是 **
 			if ("**".equals(pattDir)) {
+				//退出
 				break;
 			}
+			//如果不是 ** , 则匹配
 			if (!matchStrings(pattDir, pathDirs[pathIdxStart], uriTemplateVariables)) {
+				//不匹配, 返回 false
 				return false;
 			}
+			//索引自增, 处理下一个
 			pattIdxStart++;
 			pathIdxStart++;
 		}
 
+		//走到这步, 有三种情况 pattIdxStart > pattIdxEnd 或 pathIdxStart > pathIdxEnd 或遇到 **
+		//如果 path 遍历完了
 		if (pathIdxStart > pathIdxEnd) {
+			//如果同时, pattern 也遍历完了, 那就是 path 和 pattern 一样长
 			// Path is exhausted, only match if rest of pattern is * or **'s
 			if (pattIdxStart > pattIdxEnd) {
+				//那判断最后一个字符是不是 /, 如果是, 则都要以 / 结速
 				return (pattern.endsWith(this.pathSeparator) == path.endsWith(this.pathSeparator));
 			}
+			//如果非全匹配
 			if (!fullMatch) {
+				//返回 true
 				return true;
 			}
+			//如果 pattern 刚好到最后一个, 且 pattern 最后一个是 * 且 path 以 / 结束, 如 /ab/*, /ab/
 			if (pattIdxStart == pattIdxEnd && pattDirs[pattIdxStart].equals("*") && path.endsWith(this.pathSeparator)) {
 				return true;
 			}
+			//遍历剩下的 pattern
 			for (int i = pattIdxStart; i <= pattIdxEnd; i++) {
+				//只要有一个不是 ** , 就返回 false
 				if (!pattDirs[i].equals("**")) {
 					return false;
 				}
 			}
+			//最后返回 true , 肯定是 /ab/**, /ab/ 还有 /ab/**/**, /ab/ 这种情况
 			return true;
 		}
+		//如果 pattern 先遍历完了, 则表示, 没有匹配上, 因为
 		else if (pattIdxStart > pattIdxEnd) {
 			// String not exhausted, but pattern is. Failure.
 			return false;
 		}
+		//遇到 **, 退出的循环
 		else if (!fullMatch && "**".equals(pattDirs[pattIdxStart])) {
 			// Path start definitely matches due to "**" part in pattern.
 			return true;
 		}
 
+		//从后面开始遍历, 直到 ** 为止
 		// up to last '**'
 		while (pattIdxStart <= pattIdxEnd && pathIdxStart <= pathIdxEnd) {
+			//获取 pattern
 			String pattDir = pattDirs[pattIdxEnd];
+			//如果遇到 ** , 则退出
 			if (pattDir.equals("**")) {
 				break;
 			}
+			//如果不匹配, 则返回false
 			if (!matchStrings(pattDir, pathDirs[pathIdxEnd], uriTemplateVariables)) {
 				return false;
 			}
+			//自减, 处理下一个
 			pattIdxEnd--;
 			pathIdxEnd--;
 		}
+		//退出循环时, 有三种情况
+		// 但是有一种情况是永远不可以出现的, pattIdxStart > pattIdxEnd, 因为最差的情况时,
+		// 当 pattIdxStart == pattIdxEnd 时, pattern 为 **, 如: /a/**/b/c, /a/e/f/t/b/c
+		//当 pathIdxStart > pathIdxEnd 时, 也就是 path 后面的路径比 pattern 少, 如:  /a/**/b/c, /a/b/c 或 /a/**/**/b/c, /a/b/c
 		if (pathIdxStart > pathIdxEnd) {
+			// 如:  /a/**/**/b/c, /a/b/c
+			//按上面的, pattIdxStart = 1, pattIdxEnd = 2, pathIdxStart = 1, pathIdxEnd = 0
+			//遍历 pattern , 索引在 1 到 2 之间必须要全部为 ** 才行, 否则为 false
 			// String is exhausted
 			for (int i = pattIdxStart; i <= pattIdxEnd; i++) {
 				if (!pattDirs[i].equals("**")) {
@@ -321,46 +353,70 @@ public class AntPathMatcher implements PathMatcher {
 			return true;
 		}
 
+		//下来这里的情况只有一种, 上面的 while 遇到 ** 退出了
+		//如果 pattern 只有一个 ** , 那么 pattIdxStart 肯定等于 pattIdxEnd
+		// 当 pattIdxStart != pattIdxEnd 时, 即表明 pattern 不止有一个 **
 		while (pattIdxStart != pattIdxEnd && pathIdxStart <= pathIdxEnd) {
+			//记录除正向第一个 ** 外的 ** 的索引, pattIdxStart 为第一个 ** 的索引
 			int patIdxTmp = -1;
+			//从 pattIdxStart 下一个开始遍历, 直到有一个 **
 			for (int i = pattIdxStart + 1; i <= pattIdxEnd; i++) {
 				if (pattDirs[i].equals("**")) {
 					patIdxTmp = i;
 					break;
 				}
 			}
+			//当前一个 ** 跟下一个 ** 是挨着的, 即 **/**
 			if (patIdxTmp == pattIdxStart + 1) {
+				//pattIdxStart 加 1, 下一次循环
 				// '**/**' situation, so skip one
 				pattIdxStart++;
 				continue;
 			}
+			//这种情况就是, /a/**/c/d/**/f/g 和 /a/b/c/d/e/f/g
+			//两个 **, 中间的 pattern 和 path 的长度
 			// Find the pattern between padIdxStart & padIdxTmp in str between
 			// strIdxStart & strIdxEnd
+			//获取两个 ** 中间 path 的长度
 			int patLength = (patIdxTmp - pattIdxStart - 1);
+			//获取两个 ** 位置的 path 的长度
 			int strLength = (pathIdxEnd - pathIdxStart + 1);
 			int foundIdx = -1;
 
+			//为什么取 strLength 与 patLength 的差值呢, 因为要在 str 中做 pattern 的窗口移动,
+			// strLength 每比 pattern 多一个 path, 就多一次窗口比较的次数, 也就是窗口数
 			strLoop:
 			for (int i = 0; i <= strLength - patLength; i++) {
+				//以 pattern  中的 path 的个数来做窗口移动
 				for (int j = 0; j < patLength; j++) {
+					//获取 ** 后一个 pattern
 					String subPat = pattDirs[pattIdxStart + j + 1];
+					//获取 ** 位置的 path
 					String subStr = pathDirs[pathIdxStart + i + j];
+					//比较, 如果不相等, 则切换窗口
 					if (!matchStrings(subPat, subStr, uriTemplateVariables)) {
+						//去下一个窗口
 						continue strLoop;
 					}
 				}
+				//只要找到一个窗口就直接退出
 				foundIdx = pathIdxStart + i;
 				break;
 			}
 
+			//如果没有找到, 则返回 false
 			if (foundIdx == -1) {
 				return false;
 			}
 
+			//记录下一个 ** pattern 的索引
 			pattIdxStart = patIdxTmp;
+			//记录下一个 ** 的 path 的索引
 			pathIdxStart = foundIdx + patLength;
 		}
 
+		//当 pathIdxStart > pathIdxEnd 会进入这里, /a/**/c/d/**/**/f/g 和 /a/c/d/f/g todo wolfleong 但相不到什么情况会进入这里
+		//当 pattIdxStart == pattIdxEnd 会直接进入这里
 		for (int i = pattIdxStart; i <= pattIdxEnd; i++) {
 			if (!pattDirs[i].equals("**")) {
 				return false;
