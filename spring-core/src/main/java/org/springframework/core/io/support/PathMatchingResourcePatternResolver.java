@@ -584,9 +584,9 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @see #retrieveMatchingFiles
 	 */
 	protected String determineRootDir(String location) {
-		//获取 : 的索引加 1
+		//获取 : 的后一位
 		int prefixEnd = location.indexOf(':') + 1;
-		//获取路径的长度
+		//根目录结束位置
 		int rootDirEnd = location.length();
 		//
 		while (rootDirEnd > prefixEnd && getPathMatcher().isPattern(location.substring(prefixEnd, rootDirEnd))) {
