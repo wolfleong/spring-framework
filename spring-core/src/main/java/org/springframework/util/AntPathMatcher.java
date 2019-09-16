@@ -117,6 +117,9 @@ public class AntPathMatcher implements PathMatcher {
 	 */
 	private final Map<String, String[]> tokenizedPatternCache = new ConcurrentHashMap<>(256);
 
+	/**
+	 * AntPathStringMatcher 的缓存
+	 */
 	final Map<String, AntPathStringMatcher> stringMatcherCache = new ConcurrentHashMap<>(256);
 
 
@@ -232,6 +235,10 @@ public class AntPathMatcher implements PathMatcher {
 	}
 
 	/**
+	 * 具体的思路是:
+	 * 1 先正向匹配, 直接到 ** 为止
+	 * 2 再从后面反向匹配, 直到 ** 为止
+	 * 3 再两个 ** 中间的内容
 	 * Actually match the given {@code path} against the given {@code pattern}.
 	 * @param pattern the pattern to match against
 	 * @param path the path to test
@@ -415,7 +422,7 @@ public class AntPathMatcher implements PathMatcher {
 			pathIdxStart = foundIdx + patLength;
 		}
 
-		//当 pathIdxStart > pathIdxEnd 会进入这里, /a/**/c/d/**/**/f/g 和 /a/c/d/f/g todo wolfleong 但相不到什么情况会进入这里
+		//当 pathIdxStart > pathIdxEnd 会进入这里,如:  /a/**/c/d/**/**/f/g 和 /a/c/d/f/g
 		//当 pattIdxStart == pattIdxEnd 会直接进入这里
 		for (int i = pattIdxStart; i <= pattIdxEnd; i++) {
 			if (!pattDirs[i].equals("**")) {
@@ -426,6 +433,9 @@ public class AntPathMatcher implements PathMatcher {
 		return true;
 	}
 
+	/**
+	 * todo wolfleong 看不懂, 不知道是干嘛的
+	 */
 	private boolean isPotentialMatch(String path, String[] pattDirs) {
 		if (!this.trimTokens) {
 			int pos = 0;
@@ -468,6 +478,9 @@ public class AntPathMatcher implements PathMatcher {
 		return skipped;
 	}
 
+	/**
+	 * 判断字符是否为通配符
+	 */
 	private boolean isWildcardChar(char c) {
 		for (char candidate : WILDCARD_CHARS) {
 			if (c == candidate) {
@@ -528,6 +541,7 @@ public class AntPathMatcher implements PathMatcher {
 	}
 
 	/**
+	 * 匹配 pattern 与 str 是否正确
 	 * Test whether or not a string matches against a pattern.
 	 * @param pattern the pattern to match against (never {@code null})
 	 * @param str the String which must be matched against the pattern (never {@code null})
@@ -536,6 +550,7 @@ public class AntPathMatcher implements PathMatcher {
 	private boolean matchStrings(String pattern, String str,
 			@Nullable Map<String, String> uriTemplateVariables) {
 
+		//获取 pattern 的正则, 对字符串进行匹配
 		return getStringMatcher(pattern).matchStrings(str, uriTemplateVariables);
 	}
 
@@ -555,18 +570,25 @@ public class AntPathMatcher implements PathMatcher {
 	protected AntPathStringMatcher getStringMatcher(String pattern) {
 		AntPathStringMatcher matcher = null;
 		Boolean cachePatterns = this.cachePatterns;
+		//如果开启缓存, 则从缓存中获取
 		if (cachePatterns == null || cachePatterns.booleanValue()) {
 			matcher = this.stringMatcherCache.get(pattern);
 		}
+		//如果缓存中没有
 		if (matcher == null) {
+			//创建一个 AntPathStringMatcher
 			matcher = new AntPathStringMatcher(pattern, this.caseSensitive);
+			//如果 cachePatterns 是 null 且 缓存个数已经超出配置的最大值
 			if (cachePatterns == null && this.stringMatcherCache.size() >= CACHE_TURNOFF_THRESHOLD) {
+				//清空缓存
 				// Try to adapt to the runtime situation that we're encountering:
 				// There are obviously too many different patterns coming in here...
 				// So let's turn off the cache since the patterns are unlikely to be reoccurring.
 				deactivatePatternCache();
+				//返回
 				return matcher;
 			}
+			//有开启缓存, 则添加到缓存中
 			if (cachePatterns == null || cachePatterns.booleanValue()) {
 				this.stringMatcherCache.put(pattern, matcher);
 			}
@@ -589,34 +611,50 @@ public class AntPathMatcher implements PathMatcher {
 	 */
 	@Override
 	public String extractPathWithinPattern(String pattern, String path) {
+		//对 pattern 进行分词
 		String[] patternParts = StringUtils.tokenizeToStringArray(pattern, this.pathSeparator, this.trimTokens, true);
+		//对 path 进行分词
 		String[] pathParts = StringUtils.tokenizeToStringArray(path, this.pathSeparator, this.trimTokens, true);
+		//存储结果
 		StringBuilder builder = new StringBuilder();
+		//构建 path 是否已经开始
 		boolean pathStarted = false;
 
+		//遍历 patternParts
 		for (int segment = 0; segment < patternParts.length; segment++) {
+			//获取 patternPart
 			String patternPart = patternParts[segment];
+			//如果 patternPart 有 * 或 ?
 			if (patternPart.indexOf('*') > -1 || patternPart.indexOf('?') > -1) {
+				//从
 				for (; segment < pathParts.length; segment++) {
+					//pathStarted 为 true, 或者 segment 是第一个且 pattern 不以 / 开始
 					if (pathStarted || (segment == 0 && !pattern.startsWith(this.pathSeparator))) {
 						builder.append(this.pathSeparator);
 					}
+					//将指定的 pathParts 添加到 builder
 					builder.append(pathParts[segment]);
+					//设置构建 path 已经开始
 					pathStarted = true;
 				}
 			}
 		}
 
+		//builder 转字符串
 		return builder.toString();
 	}
 
 	@Override
 	public Map<String, String> extractUriTemplateVariables(String pattern, String path) {
+		//变量 Map
 		Map<String, String> variables = new LinkedHashMap<>();
+		//进行全匹配
 		boolean result = doMatch(pattern, path, true, variables);
+		//如果匹配不成功, 则报异常
 		if (!result) {
 			throw new IllegalStateException("Pattern \"" + pattern + "\" is not a match for \"" + path + "\"");
 		}
+		//返回得到的变量
 		return variables;
 	}
 
@@ -650,37 +688,48 @@ public class AntPathMatcher implements PathMatcher {
 	 */
 	@Override
 	public String combine(String pattern1, String pattern2) {
+		//如果两个 pattern 都是空串, 则返回空串
 		if (!StringUtils.hasText(pattern1) && !StringUtils.hasText(pattern2)) {
 			return "";
 		}
+		//如果 pattern1 是空串, 则返回 pattern2
 		if (!StringUtils.hasText(pattern1)) {
 			return pattern2;
 		}
+		//如果 pattern2 是空串, 则返回 pattern1
 		if (!StringUtils.hasText(pattern2)) {
 			return pattern1;
 		}
 
+		//pattern1 包括变量
 		boolean pattern1ContainsUriVar = (pattern1.indexOf('{') != -1);
+		// pattern1 不等于 pattern2, 然后 pattern1 没有变量, 且 pattern2 是可以匹配 pattern2 的
 		if (!pattern1.equals(pattern2) && !pattern1ContainsUriVar && match(pattern1, pattern2)) {
 			// /* + /hotel -> /hotel ; "/*.*" + "/*.html" -> /*.html
 			// However /user + /user -> /usr/user ; /{foo} + /bar -> /{foo}/bar
+			//直接返回 pattern2
 			return pattern2;
 		}
 
+		//如果 pattern1 是以 /* 结束的, 则直接去掉 *, 然后拼接 pattern2
 		// /hotels/* + /booking -> /hotels/booking
 		// /hotels/* + booking -> /hotels/booking
 		if (pattern1.endsWith(this.pathSeparatorPatternCache.getEndsOnWildCard())) {
 			return concat(pattern1.substring(0, pattern1.length() - 2), pattern2);
 		}
 
+		//如果 pattern1 是以 /** 结束的, 则直接拼接 pattern2
 		// /hotels/** + /booking -> /hotels/**/booking
 		// /hotels/** + booking -> /hotels/**/booking
 		if (pattern1.endsWith(this.pathSeparatorPatternCache.getEndsOnDoubleWildCard())) {
 			return concat(pattern1, pattern2);
 		}
 
+		// pattern1 是否存在 *.
 		int starDotPos1 = pattern1.indexOf("*.");
+		//如果 pattern1 有变量或没有 *. 或路径分割符为 .
 		if (pattern1ContainsUriVar || starDotPos1 == -1 || this.pathSeparator.equals(".")) {
+			//直接拼接 pattern1 和 pattern2
 			// simply concatenate the two patterns
 			return concat(pattern1, pattern2);
 		}
@@ -736,18 +785,31 @@ public class AntPathMatcher implements PathMatcher {
 
 
 	/**
+	 * 找到路径中的"?"和"*"通配符，然后转换为Java正则的任意字符"."和".*"。生成另一个正则表达式去匹配查找到的文件的路径。如果匹配则返回true。
 	 * Tests whether or not a string matches against a pattern via a {@link Pattern}.
 	 * <p>The pattern may contain special characters: '*' means zero or more characters; '?' means one and
 	 * only one character; '{' and '}' indicate a URI template pattern. For example <tt>/users/{user}</tt>.
 	 */
 	protected static class AntPathStringMatcher {
 
+		/**
+		 * 查找的 pattern 的正则
+		 */
 		private static final Pattern GLOB_PATTERN = Pattern.compile("\\?|\\*|\\{((?:\\{[^/]+?\\}|[^/{}]|\\\\[{}])+?)\\}");
 
+		/**
+		 * 变量正则, 主要用于替代 {}
+		 */
 		private static final String DEFAULT_VARIABLE_PATTERN = "(.*)";
 
+		/**
+		 * 替换后的真正的正则
+		 */
 		private final Pattern pattern;
 
+		/**
+		 * 保存着变量
+		 */
 		private final List<String> variableNames = new LinkedList<>();
 
 		public AntPathStringMatcher(String pattern) {
@@ -756,20 +818,30 @@ public class AntPathMatcher implements PathMatcher {
 
 		public AntPathStringMatcher(String pattern, boolean caseSensitive) {
 			StringBuilder patternBuilder = new StringBuilder();
+			//用正则去查找 pattern 中的 ? , . , .. , {} 等字符
 			Matcher matcher = GLOB_PATTERN.matcher(pattern);
 			int end = 0;
+			//如果有找到
 			while (matcher.find()) {
+				//将匹配到的 group 前面的字符串转译
 				patternBuilder.append(quote(pattern, end, matcher.start()));
+				//获取匹配到的 group
 				String match = matcher.group();
+				//如果是 ? , 则添加到 .
 				if ("?".equals(match)) {
 					patternBuilder.append('.');
 				}
+				//如果是 * , 则添加 .*
 				else if ("*".equals(match)) {
 					patternBuilder.append(".*");
 				}
+				//如果是 {}
 				else if (match.startsWith("{") && match.endsWith("}")) {
+					//获取中间的 : 的索引
 					int colonIdx = match.indexOf(':');
+					// : 不存在
 					if (colonIdx == -1) {
+						//插入一个组的正则
 						patternBuilder.append(DEFAULT_VARIABLE_PATTERN);
 						this.variableNames.add(matcher.group(1));
 					}
@@ -778,17 +850,25 @@ public class AntPathMatcher implements PathMatcher {
 						patternBuilder.append('(');
 						patternBuilder.append(variablePattern);
 						patternBuilder.append(')');
+						//获取变量名
 						String variableName = match.substring(1, colonIdx);
+						//添加变量名到列表
 						this.variableNames.add(variableName);
 					}
 				}
+				//缓存结束的索引
 				end = matcher.end();
 			}
+			//将 end 后面的字符进行转译
 			patternBuilder.append(quote(pattern, end, pattern.length()));
+			//如果区分大小写, 则调用区分大小写的正则
 			this.pattern = (caseSensitive ? Pattern.compile(patternBuilder.toString()) :
 					Pattern.compile(patternBuilder.toString(), Pattern.CASE_INSENSITIVE));
 		}
 
+		/**
+		 * 给指定字符串进行正则的转译, 把一些特殊规则的正则转正真正的字符,如: .*
+		 */
 		private String quote(String s, int start, int end) {
 			if (start == end) {
 				return "";
@@ -801,9 +881,13 @@ public class AntPathMatcher implements PathMatcher {
 		 * @return {@code true} if the string matches against the pattern, or {@code false} otherwise.
 		 */
 		public boolean matchStrings(String str, @Nullable Map<String, String> uriTemplateVariables) {
+			//用正则匹配 str
 			Matcher matcher = this.pattern.matcher(str);
+			//如果能匹配上
 			if (matcher.matches()) {
+				//如果获妈变量的模版不为空
 				if (uriTemplateVariables != null) {
+					//指定变量数和匹配到的group数不对等, 抛异常
 					// SPR-8455
 					if (this.variableNames.size() != matcher.groupCount()) {
 						throw new IllegalArgumentException("The number of capturing groups in the pattern segment " +
@@ -811,15 +895,21 @@ public class AntPathMatcher implements PathMatcher {
 								"which can occur if capturing groups are used in a URI template regex. " +
 								"Use non-capturing groups instead.");
 					}
+					//遍历匹配到的组, 注意group的下标是从1开始的
 					for (int i = 1; i <= matcher.groupCount(); i++) {
+						//获取变量名
 						String name = this.variableNames.get(i - 1);
+						//获取组的值
 						String value = matcher.group(i);
+						//添加到 uriTemplateVariables 中
 						uriTemplateVariables.put(name, value);
 					}
 				}
+				//返回正确
 				return true;
 			}
 			else {
+				//匹配不上, 返回false
 				return false;
 			}
 		}
