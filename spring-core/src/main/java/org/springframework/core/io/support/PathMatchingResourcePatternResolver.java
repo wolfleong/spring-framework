@@ -289,12 +289,14 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 		Assert.notNull(locationPattern, "Location pattern must not be null");
 		//如果以 "classpath*:" 开头
 		if (locationPattern.startsWith(CLASSPATH_ALL_URL_PREFIX)) {
+			//如果是 locationPattern 是 pattern 匹配模式
 			// a class path resource (multiple resources for same name possible)
 			if (getPathMatcher().isPattern(locationPattern.substring(CLASSPATH_ALL_URL_PREFIX.length()))) {
 				// a class path resource pattern
 				return findPathMatchingResources(locationPattern);
 			}
 			else {
+				//获取所有 classPath 的资源
 				// all class path resources with the given name
 				return findAllClassPathResources(locationPattern.substring(CLASSPATH_ALL_URL_PREFIX.length()));
 			}
@@ -316,6 +318,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	}
 
 	/**
+	 * 返回 classes 路径下和所有 jar 包中的所有相匹配的资源
 	 * Find all class location resources with the given location via the ClassLoader.
 	 * Delegates to {@link #doFindAllClassPathResources(String)}.
 	 * @param location the absolute path within the classpath
@@ -326,17 +329,23 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 */
 	protected Resource[] findAllClassPathResources(String location) throws IOException {
 		String path = location;
+		//去掉首个 /
 		if (path.startsWith("/")) {
 			path = path.substring(1);
 		}
+		//获取 classPath 的 jar 资源
 		Set<Resource> result = doFindAllClassPathResources(path);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Resolved classpath location [" + location + "] to resources " + result);
 		}
+		//变结果变成数组
 		return result.toArray(new Resource[0]);
 	}
 
 	/**
+	 * 注意:
+	 * - ClassLoader.getResources()  是返回当前类加载器路径上的所有重复资源以及父类加载器上的所有重复资源
+	 * - ClassLoader.getResource()  是返回类路径上碰到的第一个资源
 	 * Find all class location resources with the given path via the ClassLoader.
 	 * Called by {@link #findAllClassPathResources(String)}.
 	 * @param path the absolute path within the classpath (never a leading slash)
@@ -344,13 +353,20 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @since 4.1.1
 	 */
 	protected Set<Resource> doFindAllClassPathResources(String path) throws IOException {
+		//保存 Resource 结果
 		Set<Resource> result = new LinkedHashSet<>(16);
+		//获取 classLoader
 		ClassLoader cl = getClassLoader();
+		//获取 path 下的资源
 		Enumeration<URL> resourceUrls = (cl != null ? cl.getResources(path) : ClassLoader.getSystemResources(path));
+		//如果有更多的值
 		while (resourceUrls.hasMoreElements()) {
+			//获取资源
 			URL url = resourceUrls.nextElement();
+			//将 url 转成 Resource
 			result.add(convertClassLoaderURL(url));
 		}
+		//如果 path 是空串
 		if ("".equals(path)) {
 			// The above result is likely to be incomplete, i.e. only containing file system references.
 			// We need to have pointers to each of the jar files on the classpath as well...
@@ -360,6 +376,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	}
 
 	/**
+	 * 将 URL 转成 UrlResource
 	 * Convert the given URL as returned from the ClassLoader into a {@link Resource}.
 	 * <p>The default implementation simply creates a {@link UrlResource} instance.
 	 * @param url a URL as returned from the ClassLoader
@@ -379,14 +396,19 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @since 4.1.1
 	 */
 	protected void addAllClassLoaderJarRoots(@Nullable ClassLoader classLoader, Set<Resource> result) {
+		//如果 classLoader 是 URLClassLoader
 		if (classLoader instanceof URLClassLoader) {
 			try {
+				//遍历所有的 url, 这里获取的 url 有可能是带有 /
 				for (URL url : ((URLClassLoader) classLoader).getURLs()) {
 					try {
+						//如果 url 是 jar 包的资源, 则创建 UrlResource, 否则创建拼接 jar 协议头
 						UrlResource jarResource = (ResourceUtils.URL_PROTOCOL_JAR.equals(url.getProtocol()) ?
 								new UrlResource(url) :
 								new UrlResource(ResourceUtils.JAR_URL_PREFIX + url + ResourceUtils.JAR_URL_SEPARATOR));
+						//如果资源存在
 						if (jarResource.exists()) {
+							//加入到结果中
 							result.add(jarResource);
 						}
 					}
@@ -406,6 +428,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 			}
 		}
 
+		//如果是 SystemClassLoader
 		if (classLoader == ClassLoader.getSystemClassLoader()) {
 			// "java.class.path" manifest evaluation...
 			addClassPathManifestEntries(result);
@@ -413,6 +436,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 
 		if (classLoader != null) {
 			try {
+				//获取父加载器的资源
 				// Hierarchy traversal...
 				addAllClassLoaderJarRoots(classLoader.getParent(), result);
 			}
@@ -426,6 +450,8 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	}
 
 	/**
+	 * 从指定的 classPath 中获取所有的 jar 资源
+	 * 注意: 只有 jar:file:/a/b.jar!/ 这种路径才能创建 URL 对象
 	 * Determine jar file references from the "java.class.path." manifest property and add them
 	 * to the given set of resources in the form of pointers to the root of the jar file content.
 	 * @param result the set of resources to add jar roots to
@@ -433,20 +459,29 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 */
 	protected void addClassPathManifestEntries(Set<Resource> result) {
 		try {
+			//获取指定的 classPath
 			String javaClassPathProperty = System.getProperty("java.class.path");
+			//用配置的
 			for (String path : StringUtils.delimitedListToStringArray(
 					javaClassPathProperty, System.getProperty("path.separator"))) {
 				try {
+					//获取文件的绝对路径
 					String filePath = new File(path).getAbsolutePath();
+					//获取 : 的索引位置
 					int prefixIndex = filePath.indexOf(':');
+					//如果有 : 且索引为 1, 则有可能是 window 的盘符
 					if (prefixIndex == 1) {
+						//将第一个字母大写
 						// Possibly "c:" drive prefix on Windows, to be upper-cased for proper duplicate detection
 						filePath = StringUtils.capitalize(filePath);
 					}
+					//拼接成 jar 协议的路径, 并且创建 UrlResource 资源,
 					UrlResource jarResource = new UrlResource(ResourceUtils.JAR_URL_PREFIX +
 							ResourceUtils.FILE_URL_PREFIX + filePath + ResourceUtils.JAR_URL_SEPARATOR);
+					//如果 result 没有包括这个资源, 且 filePath 和 result 中的没有重复, 且 资源存在
 					// Potentially overlapping with URLClassLoader.getURLs() result above!
 					if (!result.contains(jarResource) && !hasDuplicate(filePath, result) && jarResource.exists()) {
+						//加入到结果当中
 						result.add(jarResource);
 					}
 				}
@@ -474,21 +509,27 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * {@code false} to proceed with adding a corresponding resource to the current result
 	 */
 	private boolean hasDuplicate(String filePath, Set<Resource> result) {
+		//如果 result 为空, 则返回 false
 		if (result.isEmpty()) {
 			return false;
 		}
+		//获取可能重复的 path
+		//todo wolfleong 为什么要这么处理, 不太懂
 		String duplicatePath = (filePath.startsWith("/") ? filePath.substring(1) : "/" + filePath);
 		try {
+			//如果结果包括对应的资源, 则重复
 			return result.contains(new UrlResource(ResourceUtils.JAR_URL_PREFIX + ResourceUtils.FILE_URL_PREFIX +
 					duplicatePath + ResourceUtils.JAR_URL_SEPARATOR));
 		}
 		catch (MalformedURLException ex) {
+			//报异常则表示不重复
 			// Ignore: just for testing against duplicate.
 			return false;
 		}
 	}
 
 	/**
+	 * 获取匹配的资源
 	 * Find all resources that match the given location pattern via the
 	 * Ant-style PathMatcher. Supports resources in jar files and zip files
 	 * and in the file system.
@@ -543,8 +584,11 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @see #retrieveMatchingFiles
 	 */
 	protected String determineRootDir(String location) {
+		//获取 : 的索引加 1
 		int prefixEnd = location.indexOf(':') + 1;
+		//获取路径的长度
 		int rootDirEnd = location.length();
+		//
 		while (rootDirEnd > prefixEnd && getPathMatcher().isPattern(location.substring(prefixEnd, rootDirEnd))) {
 			rootDirEnd = location.lastIndexOf('/', rootDirEnd - 2) + 1;
 		}

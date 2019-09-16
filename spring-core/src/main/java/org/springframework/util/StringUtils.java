@@ -511,6 +511,7 @@ public abstract class StringUtils {
 	}
 
 	/**
+	 * 第一个字符大写
 	 * Capitalize a {@code String}, changing the first letter to
 	 * upper case as per {@link Character#toUpperCase(char)}.
 	 * No other letters are changed.
@@ -532,6 +533,9 @@ public abstract class StringUtils {
 		return changeFirstCharacterCase(str, false);
 	}
 
+	/**
+	 * 改变第一个字母的大小写
+	 */
 	private static String changeFirstCharacterCase(String str, boolean capitalize) {
 		if (!hasLength(str)) {
 			return str;
