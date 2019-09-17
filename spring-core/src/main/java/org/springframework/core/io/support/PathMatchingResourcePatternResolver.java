@@ -182,6 +182,10 @@ import org.springframework.util.StringUtils;
  */
 public class PathMatchingResourcePatternResolver implements ResourcePatternResolver {
 
+	/**
+	 * PathMatchingResourcePatternResolver 是一个集大成者的 ResourceLoader , 因为它即实现了 Resource getResource(String location) 方法，
+	 * 也实现了 Resource[] getResources(String locationPattern) 方法. 也就是既可以返回单个资源, 也可以返回多个资源
+	 */
 	private static final Log logger = LogFactory.getLog(PathMatchingResourcePatternResolver.class);
 
 	@Nullable
