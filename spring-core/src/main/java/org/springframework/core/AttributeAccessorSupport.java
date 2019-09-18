@@ -25,6 +25,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * AttributeAccessor 接口的基础实现类, 方便子类扩展
  * Support class for {@link AttributeAccessor AttributeAccessors}, providing
  * a base implementation of all methods. To be extended by subclasses.
  *
@@ -37,6 +38,7 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("serial")
 public abstract class AttributeAccessorSupport implements AttributeAccessor, Serializable {
 
+	//为什么用 LinkedHashMap 而不是 HashMap 呢, 主要是为了遍历时候可以按照插入的顺序获取
 	/** Map with String keys and Object values. */
 	private final Map<String, Object> attributes = new LinkedHashMap<>();
 
@@ -45,8 +47,10 @@ public abstract class AttributeAccessorSupport implements AttributeAccessor, Ser
 	public void setAttribute(String name, @Nullable Object value) {
 		Assert.notNull(name, "Name must not be null");
 		if (value != null) {
+			//值不为 null, 添加属性
 			this.attributes.put(name, value);
 		}
+		//如果值为 null, 则删除属性
 		else {
 			removeAttribute(name);
 		}
@@ -79,6 +83,7 @@ public abstract class AttributeAccessorSupport implements AttributeAccessor, Ser
 
 
 	/**
+	 * 从给定的 AttributeAccessor 复制属性到当前的 AttributeAccessor
 	 * Copy the attributes from the supplied AttributeAccessor to this accessor.
 	 * @param source the AttributeAccessor to copy from
 	 */

@@ -138,69 +138,144 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	public static final String INFER_METHOD = "(inferred)";
 
 
+	/**
+	 * class 对象
+	 */
 	@Nullable
 	private volatile Object beanClass;
 
+	/**
+	 * bean的作用域
+	 */
 	@Nullable
 	private String scope = SCOPE_DEFAULT;
 
+	/**
+	 * 该对象是否为抽象的
+	 */
 	private boolean abstractFlag = false;
 
+	/**
+	 * 是否懒加载, 也叫延迟加载
+	 */
 	@Nullable
 	private Boolean lazyInit;
 
+	/**
+	 * 注入模式(默认id注入，还有通过名称、类型注入)
+	 */
 	private int autowireMode = AUTOWIRE_NO;
 
+	/**
+	 * 依赖检查, 有四种类型(不检查、检查对象、检查属性、全部检查)
+	 */
 	private int dependencyCheck = DEPENDENCY_CHECK_NONE;
 
+	/**
+	 * 所依赖的对象名称数组
+	 */
 	@Nullable
 	private String[] dependsOn;
 
+	/**
+	 * 是否允许自动注入
+	 */
 	private boolean autowireCandidate = true;
 
+	/**
+	 * 是否优先注入
+	 */
 	private boolean primary = false;
 
+	/**
+	 * 已经注入的对象
+	 */
 	private final Map<String, AutowireCandidateQualifier> qualifiers = new LinkedHashMap<>();
 
 	@Nullable
 	private Supplier<?> instanceSupplier;
 
+	/**
+	 * 是否允许非public访问
+	 */
 	private boolean nonPublicAccessAllowed = true;
 
+	/**
+	 * 允许构造和析构(销毁)
+	 */
 	private boolean lenientConstructorResolution = true;
 
+	/**
+	 * 对应工厂类名
+	 */
 	@Nullable
 	private String factoryBeanName;
 
+	/**
+	 * 对应工厂方法名
+	 */
 	@Nullable
 	private String factoryMethodName;
 
+	/**
+	 * 参数属性列表(实现了BeanMetadataElement来进行参数信息存储)
+	 */
 	@Nullable
 	private ConstructorArgumentValues constructorArgumentValues;
 
+	/**
+	 * 注入的properties文件信息列表(properties文件是存储键值对信息的文件)
+	 */
 	@Nullable
 	private MutablePropertyValues propertyValues;
 
+	/**
+	 * 重写的方法列表
+	 */
 	@Nullable
 	private MethodOverrides methodOverrides;
 
+	/**
+	 * 初始化方法
+	 */
 	@Nullable
 	private String initMethodName;
 
+	/**
+	 * 销毁方法
+	 */
 	@Nullable
 	private String destroyMethodName;
 
+	/**
+	 * 是否强制执行初始化方法(实例化成功后执行该方法)
+	 */
 	private boolean enforceInitMethod = true;
 
+	/**
+	 * 是否强制执行销毁方法
+	 */
 	private boolean enforceDestroyMethod = true;
 
+	/**
+	 * 是否为合成对象
+	 */
 	private boolean synthetic = false;
 
+	/**
+	 * 角色信息
+	 */
 	private int role = BeanDefinition.ROLE_APPLICATION;
 
+	/**
+	 * 描述而已
+	 */
 	@Nullable
 	private String description;
 
+	/**
+	 * 加载来源的资源
+	 */
 	@Nullable
 	private Resource resource;
 
@@ -849,6 +924,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 */
 	@Override
 	public ConstructorArgumentValues getConstructorArgumentValues() {
+		//获取构造器参数 ConstructorArgumentValues 时, 如果为 null , 则初始化一个
 		if (this.constructorArgumentValues == null) {
 			this.constructorArgumentValues = new ConstructorArgumentValues();
 		}
@@ -860,6 +936,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 */
 	@Override
 	public boolean hasConstructorArgumentValues() {
+		//不为 null 也不为 空
 		return (this.constructorArgumentValues != null && !this.constructorArgumentValues.isEmpty());
 	}
 
@@ -875,6 +952,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 */
 	@Override
 	public MutablePropertyValues getPropertyValues() {
+		//如果为 null, 则初始化 MutablePropertyValues
 		if (this.propertyValues == null) {
 			this.propertyValues = new MutablePropertyValues();
 		}
@@ -1092,6 +1170,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
+	 * 校验这个 BeanDefinition
 	 * Validate this bean definition.
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
@@ -1102,6 +1181,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 					"the static factory method must create the instance");
 		}
 
+		//如果有 beanClass
 		if (hasBeanClass()) {
 			prepareMethodOverrides();
 		}

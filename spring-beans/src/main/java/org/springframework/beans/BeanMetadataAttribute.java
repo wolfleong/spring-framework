@@ -21,6 +21,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 标准的entity，这个类为 BeanDefinition 提供了键值对形式的属性(attribute)的封装 ，除了键值对外，还保留了对元数据的跟踪.
  * Holder for a key-value style attribute that is part of a bean definition.
  * Keeps track of the definition source in addition to the key-value pair.
  *

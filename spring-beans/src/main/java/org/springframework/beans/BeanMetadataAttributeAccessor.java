@@ -20,6 +20,8 @@ import org.springframework.core.AttributeAccessorSupport;
 import org.springframework.lang.Nullable;
 
 /**
+ * 继承 AttributeAccessorSupport , 将 kv 属性值封装成 BeanMetadataAttribute 保存, 并提供相关访问的方法, 即 BeanMetadataAttribute 的访问器.
+ * - 相当于 AttributeAccessor 增强的封装
  * Extension of {@link org.springframework.core.AttributeAccessorSupport},
  * holding attributes as {@link BeanMetadataAttribute} objects in order
  * to keep track of the definition source.
@@ -83,6 +85,7 @@ public class BeanMetadataAttributeAccessor extends AttributeAccessorSupport impl
 	@Override
 	@Nullable
 	public Object removeAttribute(String name) {
+		//删除 BeanMetadataAttribute 并返回 value 值
 		BeanMetadataAttribute attribute = (BeanMetadataAttribute) super.removeAttribute(name);
 		return (attribute != null ? attribute.getValue() : null);
 	}
