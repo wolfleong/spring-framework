@@ -31,6 +31,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.xml.XmlValidationModeDetector;
 
 /**
+ * DocumentLoader 接口的默认实现
  * Spring's default {@link DocumentLoader} implementation.
  *
  * <p>Simply loads {@link Document documents} using the standard JAXP-configured
@@ -64,16 +65,20 @@ public class DefaultDocumentLoader implements DocumentLoader {
 	/**
 	 * Load the {@link Document} at the supplied {@link InputSource} using the standard JAXP-configured
 	 * XML parser.
+	 * @param namespaceAware 是否支持命名空间
 	 */
 	@Override
 	public Document loadDocument(InputSource inputSource, EntityResolver entityResolver,
 			ErrorHandler errorHandler, int validationMode, boolean namespaceAware) throws Exception {
 
+		//创建 DocumentBuilderFactory
 		DocumentBuilderFactory factory = createDocumentBuilderFactory(validationMode, namespaceAware);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Using JAXP provider [" + factory.getClass().getName() + "]");
 		}
+		//创建 DocumentBuilder
 		DocumentBuilder builder = createDocumentBuilder(factory, entityResolver, errorHandler);
+		//解析 XML InputSource 返回 Document 对象
 		return builder.parse(inputSource);
 	}
 
@@ -88,15 +93,22 @@ public class DefaultDocumentLoader implements DocumentLoader {
 	protected DocumentBuilderFactory createDocumentBuilderFactory(int validationMode, boolean namespaceAware)
 			throws ParserConfigurationException {
 
+		//创建 DocumentBuilderFactory 实例
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		//设置是否支持命名空间
 		factory.setNamespaceAware(namespaceAware);
 
+		//如果校验模式非禁用
 		if (validationMode != XmlValidationModeDetector.VALIDATION_NONE) {
+			//设置校验
 			factory.setValidating(true);
+			//如果是 XSD 校验
 			if (validationMode == XmlValidationModeDetector.VALIDATION_XSD) {
+				//则必须支持命名空间
 				// Enforce namespace aware for XSD...
 				factory.setNamespaceAware(true);
 				try {
+					//设置 SCHEMA_LANGUAGE_ATTRIBUTE
 					factory.setAttribute(SCHEMA_LANGUAGE_ATTRIBUTE, XSD_SCHEMA_LANGUAGE);
 				}
 				catch (IllegalArgumentException ex) {
@@ -128,11 +140,15 @@ public class DefaultDocumentLoader implements DocumentLoader {
 			@Nullable EntityResolver entityResolver, @Nullable ErrorHandler errorHandler)
 			throws ParserConfigurationException {
 
+		//用 DocumentBuilderFactory 创建 DocumentBuilder
 		DocumentBuilder docBuilder = factory.newDocumentBuilder();
+		//如果解析器不为 null, 设置解析器
 		if (entityResolver != null) {
 			docBuilder.setEntityResolver(entityResolver);
 		}
+		//如果错误处理器不为 null
 		if (errorHandler != null) {
+			//则设置错误处理器
 			docBuilder.setErrorHandler(errorHandler);
 		}
 		return docBuilder;
