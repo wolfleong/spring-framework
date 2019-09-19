@@ -29,6 +29,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
 
 /**
+ * Spring Bean dtd 解码器, 用来从 classpath 或者 jar 文件中加载 dtd.
  * {@link EntityResolver} implementation for the Spring beans DTD,
  * to load the DTD from the Spring class path (or JAR file).
  *
@@ -59,22 +60,33 @@ public class BeansDtdResolver implements EntityResolver {
 					"] and system ID [" + systemId + "]");
 		}
 
+		//https://www.springframework.org/dtd/spring-beans-2.0.dtd
+		//如果 systemId 不为 null, 且 systemId 以 .dtd 结尾
 		if (systemId != null && systemId.endsWith(DTD_EXTENSION)) {
+			//获取最后一个 / 的索引
 			int lastPathSeparator = systemId.lastIndexOf('/');
+			//获取 dtd 的名称的索引
 			int dtdNameStart = systemId.indexOf(DTD_NAME, lastPathSeparator);
+			//如果索引不等于 -1
 			if (dtdNameStart != -1) {
+				// 拼接名称后缀
 				String dtdFile = DTD_NAME + DTD_EXTENSION;
 				if (logger.isTraceEnabled()) {
 					logger.trace("Trying to locate [" + dtdFile + "] in Spring jar on classpath");
 				}
 				try {
+					//创建 ClassPathResource , 因为 spring-beans.dtd 就是当前类的同样的的包中, 只不过是在 resources 声明的
 					Resource resource = new ClassPathResource(dtdFile, getClass());
+					//创建 InputSource
 					InputSource source = new InputSource(resource.getInputStream());
+					//设置 publicId
 					source.setPublicId(publicId);
+					//设置 systemId
 					source.setSystemId(systemId);
 					if (logger.isTraceEnabled()) {
 						logger.trace("Found beans DTD [" + systemId + "] in classpath: " + dtdFile);
 					}
+					//返回 InputSource
 					return source;
 				}
 				catch (FileNotFoundException ex) {
@@ -85,6 +97,7 @@ public class BeansDtdResolver implements EntityResolver {
 			}
 		}
 
+		//使用默认行为，从网络上下载
 		// Fall back to the parser's default behavior.
 		return null;
 	}

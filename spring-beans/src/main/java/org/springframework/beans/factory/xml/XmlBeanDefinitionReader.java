@@ -261,17 +261,24 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	}
 
 	/**
+	 * 获取 EntityResolver 解析器. EntityResolver 的作用就是，通过实现它，应用可以自定义如何寻找【验证文件】的逻辑
 	 * Return the EntityResolver to use, building a default resolver
 	 * if none specified.
 	 */
 	protected EntityResolver getEntityResolver() {
+		//如果没有指定的 entityResolver
 		if (this.entityResolver == null) {
+			//获取指定的 ResourceLoader
 			// Determine default EntityResolver to use.
 			ResourceLoader resourceLoader = getResourceLoader();
+			//如果 resourceLoader 不为 null
 			if (resourceLoader != null) {
+				//创建 ResourceEntityResolver
 				this.entityResolver = new ResourceEntityResolver(resourceLoader);
 			}
+			//如果 resourceLoader 为 null
 			else {
+				// 则创建 DelegatingEntityResolver
 				this.entityResolver = new DelegatingEntityResolver(getBeanClassLoader());
 			}
 		}
