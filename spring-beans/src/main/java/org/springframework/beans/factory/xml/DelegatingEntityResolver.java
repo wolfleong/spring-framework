@@ -26,6 +26,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 根据 systemId 不同的后缀, 使用不同的 EntityResolver 来解析
  * {@link EntityResolver} implementation that delegates to a {@link BeansDtdResolver}
  * and a {@link PluggableSchemaResolver} for DTDs and XML schemas, respectively.
  *
@@ -82,15 +83,19 @@ public class DelegatingEntityResolver implements EntityResolver {
 	public InputSource resolveEntity(@Nullable String publicId, @Nullable String systemId)
 			throws SAXException, IOException {
 
+		//如果 systemId 不为 null
 		if (systemId != null) {
+			//如果是 dtd 后缀, 则用 BeansDtdResolver
 			if (systemId.endsWith(DTD_SUFFIX)) {
 				return this.dtdResolver.resolveEntity(publicId, systemId);
 			}
+			//如果是 xsd 后缀, 则用 PluggableSchemaResolver
 			else if (systemId.endsWith(XSD_SUFFIX)) {
 				return this.schemaResolver.resolveEntity(publicId, systemId);
 			}
 		}
 
+		//默认返回 null
 		// Fall back to the parser's default behavior.
 		return null;
 	}

@@ -75,16 +75,23 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 	public InputSource resolveEntity(@Nullable String publicId, @Nullable String systemId)
 			throws SAXException, IOException {
 
+		//调用父类的方法进行解析
 		InputSource source = super.resolveEntity(publicId, systemId);
 
+		//如果解析失败, 则用 resourceLoader 进行解析
 		if (source == null && systemId != null) {
 			String resourcePath = null;
 			try {
+				//utf8 解码 systemId
 				String decodedSystemId = URLDecoder.decode(systemId, "UTF-8");
+				//获取 systemId 的 url
 				String givenUrl = new URL(decodedSystemId).toString();
+				// 解析文件资源的相对路径（相对于系统根路径）
 				String systemRootUrl = new File("").toURI().toURL().toString();
+				//如果 givenUrl 是以 systemRootUrl 开头的
 				// Try relative to resource base if currently in system root.
 				if (givenUrl.startsWith(systemRootUrl)) {
+					//则获取相对资源路径
 					resourcePath = givenUrl.substring(systemRootUrl.length());
 				}
 			}
@@ -93,29 +100,39 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Could not resolve XML entity [" + systemId + "] against system root URL", ex);
 				}
+				//如果报异常则, 直接用 systemId 做 resourcePath
 				// No URL (or no resolvable URL) -> try relative to resource base.
 				resourcePath = systemId;
 			}
+			//如果资源路径不为 null
 			if (resourcePath != null) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Trying to locate XML entity [" + systemId + "] as resource [" + resourcePath + "]");
 				}
+				//用 resourceLoader 加载 resourcePath
 				Resource resource = this.resourceLoader.getResource(resourcePath);
+				//创建 InputSource
 				source = new InputSource(resource.getInputStream());
+				//设置
 				source.setPublicId(publicId);
 				source.setSystemId(systemId);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Found XML entity [" + systemId + "]: " + resource);
 				}
 			}
+			//如果 systemId 以 dtd 结尾或 xsd 结尾
 			else if (systemId.endsWith(DTD_SUFFIX) || systemId.endsWith(XSD_SUFFIX)) {
 				// External dtd/xsd lookup via https even for canonical http declaration
 				String url = systemId;
+				//如果 url 是 http的
 				if (url.startsWith("http:")) {
+					//转成 https
 					url = "https:" + url.substring(5);
 				}
 				try {
+					//创建 URL 并打开流, 创建 InputSource
 					source = new InputSource(new URL(url).openStream());
+					//设置
 					source.setPublicId(publicId);
 					source.setSystemId(systemId);
 				}
@@ -123,6 +140,7 @@ public class ResourceEntityResolver extends DelegatingEntityResolver {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Could not resolve XML entity [" + systemId + "] through URL [" + url + "]", ex);
 					}
+					//如果报异常, 则设置 null 做默认
 					// Fall back to the parser's default behavior.
 					source = null;
 				}
