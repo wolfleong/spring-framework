@@ -19,6 +19,7 @@ package org.springframework.core;
 import org.springframework.util.Assert;
 
 /**
+ * 可以指定名称的 ThreadLocal
  * {@link ThreadLocal} subclass that exposes a specified name
  * as {@link #toString()} result (allowing for introspection).
  *
@@ -29,6 +30,9 @@ import org.springframework.util.Assert;
  */
 public class NamedThreadLocal<T> extends ThreadLocal<T> {
 
+	/**
+	 * 名称
+	 */
 	private final String name;
 
 

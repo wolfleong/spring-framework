@@ -44,11 +44,20 @@ import org.springframework.util.ObjectUtils;
  */
 public class EncodedResource implements InputStreamSource {
 
+	/**
+	 * 包装的 Resource
+	 */
 	private final Resource resource;
 
+	/**
+	 * 编码
+	 */
 	@Nullable
 	private final String encoding;
 
+	/**
+	 * 字符集
+	 */
 	@Nullable
 	private final Charset charset;
 
@@ -124,6 +133,7 @@ public class EncodedResource implements InputStreamSource {
 	 * @see #getInputStream()
 	 */
 	public boolean requiresReader() {
+		//如果有编码或字符集, 则表示需要转换 InputStream 为 Reader
 		return (this.encoding != null || this.charset != null);
 	}
 
@@ -136,13 +146,16 @@ public class EncodedResource implements InputStreamSource {
 	 * @see #getInputStream()
 	 */
 	public Reader getReader() throws IOException {
+		//如果字符集不为 null, 创建指定字符集的 Reader
 		if (this.charset != null) {
 			return new InputStreamReader(this.resource.getInputStream(), this.charset);
 		}
+		//如果 encoding != null , 则 InputStreamReader
 		else if (this.encoding != null) {
 			return new InputStreamReader(this.resource.getInputStream(), this.encoding);
 		}
 		else {
+			//没指定 charset 也没有 encoding, 直接创建 Reader
 			return new InputStreamReader(this.resource.getInputStream());
 		}
 	}
