@@ -48,6 +48,7 @@ public class FailFastProblemReporter implements ProblemReporter {
 	 * @param logger the {@link Log logger} that is to be used to report warnings
 	 */
 	public void setLogger(@Nullable Log logger) {
+		//如果指定 logger 对象为不 null, 则使用, 如果为 null, 则创建一个
 		this.logger = (logger != null ? logger : LogFactory.getLog(getClass()));
 	}
 
@@ -59,6 +60,7 @@ public class FailFastProblemReporter implements ProblemReporter {
 	 */
 	@Override
 	public void fatal(Problem problem) {
+		//至命错误, 直接报异常
 		throw new BeanDefinitionParsingException(problem);
 	}
 
@@ -69,6 +71,7 @@ public class FailFastProblemReporter implements ProblemReporter {
 	 */
 	@Override
 	public void error(Problem problem) {
+		//报异常
 		throw new BeanDefinitionParsingException(problem);
 	}
 
@@ -78,6 +81,7 @@ public class FailFastProblemReporter implements ProblemReporter {
 	 */
 	@Override
 	public void warning(Problem problem) {
+		//打警告日志
 		logger.warn(problem, problem.getRootCause());
 	}
 

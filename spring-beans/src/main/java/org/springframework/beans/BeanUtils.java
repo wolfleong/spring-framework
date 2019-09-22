@@ -71,15 +71,20 @@ public abstract class BeanUtils {
 	private static final Set<Class<?>> unknownEditorTypes =
 			Collections.newSetFromMap(new ConcurrentReferenceHashMap<>(64));
 
+	/**
+	 * 保存五个基本类型的默认值的映射
+	 */
 	private static final Map<Class<?>, Object> DEFAULT_TYPE_VALUES;
 
 	static {
+		//初始化基本类型的默认值
 		Map<Class<?>, Object> values = new HashMap<>();
 		values.put(boolean.class, false);
 		values.put(byte.class, (byte) 0);
 		values.put(short.class, (short) 0);
 		values.put(int.class, 0);
 		values.put(long.class, (long) 0);
+		//处理成不可变
 		DEFAULT_TYPE_VALUES = Collections.unmodifiableMap(values);
 	}
 
@@ -128,10 +133,12 @@ public abstract class BeanUtils {
 	 */
 	public static <T> T instantiateClass(Class<T> clazz) throws BeanInstantiationException {
 		Assert.notNull(clazz, "Class must not be null");
+		//如果给定的 class 是接口, 抛异常
 		if (clazz.isInterface()) {
 			throw new BeanInstantiationException(clazz, "Specified class is an interface");
 		}
 		try {
+			//根据声明的构造器, 创建对象
 			return instantiateClass(clazz.getDeclaredConstructor());
 		}
 		catch (NoSuchMethodException ex) {
@@ -166,6 +173,7 @@ public abstract class BeanUtils {
 	}
 
 	/**
+	 * 根据构造器和参数列表创建对象
 	 * Convenience method to instantiate a class using the given constructor.
 	 * <p>Note that this method tries to set the constructor accessible if given a
 	 * non-accessible (that is, non-public) constructor, and supports Kotlin classes
@@ -180,23 +188,35 @@ public abstract class BeanUtils {
 	public static <T> T instantiateClass(Constructor<T> ctor, Object... args) throws BeanInstantiationException {
 		Assert.notNull(ctor, "Constructor must not be null");
 		try {
+			//设置构造器权限为可以访问, 如果没有权限的话
 			ReflectionUtils.makeAccessible(ctor);
+			//这里主要判断是否支持 kotlin 反射, 然后 构造器的声明类型是否是 kotlin 类, 如果是调用 kotlin 的创建实例
+			//todo wolfleong kotlin 相关的东西, 有机会再了解
 			if (KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isKotlinType(ctor.getDeclaringClass())) {
 				return KotlinDelegate.instantiateClass(ctor, args);
 			}
 			else {
+				//获取参数类型数组
 				Class<?>[] parameterTypes = ctor.getParameterTypes();
+				//确保参数个数不能少于参数类型个数
 				Assert.isTrue(args.length <= parameterTypes.length, "Can't specify more arguments than constructor parameters");
+				//根据参数个数长度, 创建数组
 				Object[] argsWithDefaultValues = new Object[args.length];
+				//遍历参数列表
 				for (int i = 0 ; i < args.length; i++) {
+					//如果对应位置的参数为 null
 					if (args[i] == null) {
+						//获取参数类型
 						Class<?> parameterType = parameterTypes[i];
+						//如果是基本类型, 则根据 class 获取默认值, 否则设置为 null
 						argsWithDefaultValues[i] = (parameterType.isPrimitive() ? DEFAULT_TYPE_VALUES.get(parameterType) : null);
 					}
+					//如果参数不为 null, 则获取
 					else {
 						argsWithDefaultValues[i] = args[i];
 					}
 				}
+				//根据参数调用构造器
 				return ctor.newInstance(argsWithDefaultValues);
 			}
 		}

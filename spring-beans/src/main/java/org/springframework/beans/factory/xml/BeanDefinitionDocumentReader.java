@@ -21,6 +21,7 @@ import org.w3c.dom.Document;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 
 /**
+ * 这个接口主要是为了将 Document 转化成 Spring Bean Definition 的过程
  * SPI for parsing an XML document that contains Spring bean definitions.
  * Used by {@link XmlBeanDefinitionReader} for actually parsing a DOM document.
  *
@@ -37,6 +38,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 public interface BeanDefinitionDocumentReader {
 
 	/**
+	 * 从 Document 中读取 Bean Definition , 并且注册
 	 * Read bean definitions from the given DOM document and
 	 * register them with the registry in the given reader context.
 	 * @param doc the DOM document

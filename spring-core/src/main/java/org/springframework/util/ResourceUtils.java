@@ -102,17 +102,21 @@ public abstract class ResourceUtils {
 	 * @see java.net.URL
 	 */
 	public static boolean isUrl(@Nullable String resourceLocation) {
+		//如果 resourceLocation 是空, 则返回 false
 		if (resourceLocation == null) {
 			return false;
 		}
+		//如果是 classpath: 开头, 则返回 true
 		if (resourceLocation.startsWith(CLASSPATH_URL_PREFIX)) {
 			return true;
 		}
 		try {
+			//如果能创建 URL 则返回 true
 			new URL(resourceLocation);
 			return true;
 		}
 		catch (MalformedURLException ex) {
+			//报异常则返回 false
 			return false;
 		}
 	}
@@ -397,6 +401,7 @@ public abstract class ResourceUtils {
 	}
 
 	/**
+	 * 替换空格为 %20, 并且创建 URI 对象
 	 * Create a URI instance for the given location String,
 	 * replacing spaces with "%20" URI encoding first.
 	 * @param location the location String to convert into a URI instance

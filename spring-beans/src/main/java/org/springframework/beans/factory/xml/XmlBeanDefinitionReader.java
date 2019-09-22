@@ -110,6 +110,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	private boolean namespaceAware = false;
 
+	/**
+	 * BeanDefinitionDocumentReader的默认实现类
+	 */
 	private Class<? extends BeanDefinitionDocumentReader> documentReaderClass =
 			DefaultBeanDefinitionDocumentReader.class;
 
@@ -548,23 +551,31 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see BeanDefinitionDocumentReader#registerBeanDefinitions
 	 */
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
+		//创建 BeanDefinitionDocumentReader 对象
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
+		//获取注册器, 然后统计已经存在的 BeanDefinition 的数量
 		int countBefore = getRegistry().getBeanDefinitionCount();
+		//创建 XmlReaderContext 对象
+		//注册 BeanDefinition
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
+		//计算出已经添加的 BeanDefinition 的个数
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
 
 	/**
+	 * 创建 BeanDefinitionDocumentReader
 	 * Create the {@link BeanDefinitionDocumentReader} to use for actually
 	 * reading bean definitions from an XML document.
 	 * <p>The default implementation instantiates the specified "documentReaderClass".
 	 * @see #setDocumentReaderClass
 	 */
 	protected BeanDefinitionDocumentReader createBeanDefinitionDocumentReader() {
+		//根据 documentReaderClass 创建 BeanDefinitionDocumentReader 对象
 		return BeanUtils.instantiateClass(this.documentReaderClass);
 	}
 
 	/**
+	 * 创建 XmlReaderContext 对象
 	 * Create the {@link XmlReaderContext} to pass over to the document reader.
 	 */
 	public XmlReaderContext createReaderContext(Resource resource) {

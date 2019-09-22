@@ -20,6 +20,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 表示 bean 定义配置的问题
  * Represents a problem with a bean definition configuration.
  * Mainly serves as common argument passed into a {@link ProblemReporter}.
  *
@@ -32,13 +33,22 @@ import org.springframework.util.Assert;
  */
 public class Problem {
 
+	/**
+	 * 错误信息
+	 */
 	private final String message;
 
+	/**
+	 *
+	 */
 	private final Location location;
 
 	@Nullable
 	private final ParseState parseState;
 
+	/**
+	 * 异常对象
+	 */
 	@Nullable
 	private final Throwable rootCause;
 

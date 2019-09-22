@@ -22,6 +22,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 主要表示在解析期间一个 import 资源被处理了
  * Representation of an import that has been processed during the parsing process.
  *
  * @author Juergen Hoeller
@@ -30,8 +31,14 @@ import org.springframework.util.Assert;
  */
 public class ImportDefinition implements BeanMetadataElement {
 
+	/**
+	 * 指定导入的路径
+	 */
 	private final String importedResource;
 
+	/**
+	 * 实际导入的资源
+	 */
 	@Nullable
 	private final Resource[] actualResources;
 
