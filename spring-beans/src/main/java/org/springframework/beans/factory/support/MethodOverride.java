@@ -24,6 +24,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 方法复盖
  * Object representing the override of a method on a managed object by the IoC
  * container.
  *
@@ -37,8 +38,14 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class MethodOverride implements BeanMetadataElement {
 
+	/**
+	 * 复盖的方法名
+	 */
 	private final String methodName;
 
+	/**
+	 * 是否重载, 默认是 true
+	 */
 	private boolean overloaded = true;
 
 	@Nullable
@@ -46,6 +53,7 @@ public abstract class MethodOverride implements BeanMetadataElement {
 
 
 	/**
+	 * 用方法名创建 MethodOverride
 	 * Construct a new override for the given method.
 	 * @param methodName the name of the method to override
 	 */

@@ -31,8 +31,14 @@ import org.springframework.util.Assert;
  */
 public class RuntimeBeanReference implements BeanReference {
 
+	/**
+	 * beanName
+	 */
 	private final String beanName;
 
+	/**
+	 *  bean 类型
+	 */
 	@Nullable
 	private final Class<?> beanType;
 

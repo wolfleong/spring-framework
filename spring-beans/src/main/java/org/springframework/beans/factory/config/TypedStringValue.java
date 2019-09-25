@@ -23,6 +23,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 指定类型的值的封装
  * Holder for a typed String value. Can be added to bean definitions
  * in order to explicitly specify a target type for a String value,
  * for example for collection elements.
@@ -37,22 +38,38 @@ import org.springframework.util.ObjectUtils;
  */
 public class TypedStringValue implements BeanMetadataElement {
 
+	/**
+	 * String 值
+	 */
 	@Nullable
 	private String value;
 
+	/**
+	 * 目标类型
+	 */
 	@Nullable
 	private volatile Object targetType;
 
+	/**
+	 * source 对象
+	 */
 	@Nullable
 	private Object source;
 
+	/**
+	 * 原始字符串类型
+	 */
 	@Nullable
 	private String specifiedTypeName;
 
+	/**
+	 * 是否动态
+	 */
 	private volatile boolean dynamic;
 
 
 	/**
+	 * 创建 value 创建 TypedStringValue
 	 * Create a new {@link TypedStringValue} for the given String value.
 	 * @param value the String value
 	 */
@@ -114,10 +131,13 @@ public class TypedStringValue implements BeanMetadataElement {
 	 * Return the type to convert to.
 	 */
 	public Class<?> getTargetType() {
+		//获取值类型
 		Object targetTypeValue = this.targetType;
+		//如果不是 Class 类型, 则直接报错
 		if (!(targetTypeValue instanceof Class)) {
 			throw new IllegalStateException("Typed String value does not carry a resolved target type");
 		}
+		//强转
 		return (Class<?>) targetTypeValue;
 	}
 
@@ -133,11 +153,16 @@ public class TypedStringValue implements BeanMetadataElement {
 	 */
 	@Nullable
 	public String getTargetTypeName() {
+		//获取类型字符串
 		Object targetTypeValue = this.targetType;
+		//如果是 Class 类型
 		if (targetTypeValue instanceof Class) {
+			//获取全类名
 			return ((Class<?>) targetTypeValue).getName();
 		}
+		//不是 Class 类型
 		else {
+			//强转返回
 			return (String) targetTypeValue;
 		}
 	}
@@ -159,12 +184,17 @@ public class TypedStringValue implements BeanMetadataElement {
 	 */
 	@Nullable
 	public Class<?> resolveTargetType(@Nullable ClassLoader classLoader) throws ClassNotFoundException {
+		//获取类型字符串
 		String typeName = getTargetTypeName();
+		//如果是 null, 则返回 null
 		if (typeName == null) {
 			return null;
 		}
+		//用指定 ClassLoader 加载类型
 		Class<?> resolvedClass = ClassUtils.forName(typeName, classLoader);
+		//缓存
 		this.targetType = resolvedClass;
+		//返回
 		return resolvedClass;
 	}
 

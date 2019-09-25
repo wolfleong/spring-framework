@@ -73,6 +73,7 @@ public abstract class DomUtils {
 	}
 
 	/**
+	 * 根据子元素名称, 查询子元素列表
 	 * Retrieves all child elements of the given DOM element that match the given element name.
 	 * Only look at the direct child level of the given element; do not go into further depth
 	 * (in contrast to the DOM API's {@code getElementsByTagName} method).
@@ -87,6 +88,7 @@ public abstract class DomUtils {
 	}
 
 	/**
+	 * 从子元素中获取给定标签名的元素
 	 * Utility method that returns the first child element identified by its name.
 	 * @param ele the DOM element to analyze
 	 * @param childEleName the child element name to look for
@@ -96,10 +98,14 @@ public abstract class DomUtils {
 	public static Element getChildElementByTagName(Element ele, String childEleName) {
 		Assert.notNull(ele, "Element must not be null");
 		Assert.notNull(childEleName, "Element name must not be null");
+		//获取所有子节点
 		NodeList nl = ele.getChildNodes();
+		//遍历子节点
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
+			//如果节点是 Element 且名称匹配
 			if (node instanceof Element && nodeNameMatch(node, childEleName)) {
+				//直接返回
 				return (Element) node;
 			}
 		}
@@ -114,7 +120,9 @@ public abstract class DomUtils {
 	 */
 	@Nullable
 	public static String getChildElementValueByTagName(Element ele, String childEleName) {
+		//获取指定标签名的子节点
 		Element child = getChildElementByTagName(ele, childEleName);
+		//如果找到, 则获取子节点的文本, 还则返回 null
 		return (child != null ? getTextValue(child) : null);
 	}
 
@@ -137,6 +145,7 @@ public abstract class DomUtils {
 	}
 
 	/**
+	 * 获取指定节点下的文本
 	 * Extracts the text value from the given DOM element, ignoring XML comments.
 	 * <p>Appends all CharacterData nodes and EntityReference nodes into a single
 	 * String value, excluding Comment nodes. Only exposes actual user-specified
@@ -148,9 +157,12 @@ public abstract class DomUtils {
 	public static String getTextValue(Element valueEle) {
 		Assert.notNull(valueEle, "Element must not be null");
 		StringBuilder sb = new StringBuilder();
+		//获取子节点列表
 		NodeList nl = valueEle.getChildNodes();
+		//遍历
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node item = nl.item(i);
+			//如果节点是 CharacterData 但不是 Comment(注释) , 也不是 EntityReference(不知道上什么鬼) 类型的, 则加到字符串序列中
 			if ((item instanceof CharacterData && !(item instanceof Comment)) || item instanceof EntityReference) {
 				sb.append(item.getNodeValue());
 			}

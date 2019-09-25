@@ -39,12 +39,21 @@ public class ManagedMap<K, V> extends LinkedHashMap<K, V> implements Mergeable, 
 	@Nullable
 	private Object source;
 
+	/**
+	 * key 类型
+	 */
 	@Nullable
 	private String keyTypeName;
 
+	/**
+	 * value 类型
+	 */
 	@Nullable
 	private String valueTypeName;
 
+	/**
+	 * 是否可以合并
+	 */
 	private boolean mergeEnabled;
 
 
@@ -116,18 +125,24 @@ public class ManagedMap<K, V> extends LinkedHashMap<K, V> implements Mergeable, 
 	@Override
 	@SuppressWarnings("unchecked")
 	public Object merge(@Nullable Object parent) {
+		//不可以合并, 报错
 		if (!this.mergeEnabled) {
 			throw new IllegalStateException("Not allowed to merge when the 'mergeEnabled' property is set to 'false'");
 		}
+		// parent 为 null, 返回当前对象
 		if (parent == null) {
 			return this;
 		}
+		// parent 不是 Map 报错
 		if (!(parent instanceof Map)) {
 			throw new IllegalArgumentException("Cannot merge with object of type [" + parent.getClass() + "]");
 		}
+		//创建 ManagedMap
 		Map<K, V> merged = new ManagedMap<>();
+		//合并两者
 		merged.putAll((Map<K, V>) parent);
 		merged.putAll(this);
+		//返回
 		return merged;
 	}
 

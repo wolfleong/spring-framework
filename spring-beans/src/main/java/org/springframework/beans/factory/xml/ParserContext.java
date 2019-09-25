@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.lang.Nullable;
 
 /**
+ * 解析上下文
  * Context that gets passed along a bean definition parsing process,
  * encapsulating all relevant configuration as well as state.
  * Nested inside an {@link XmlReaderContext}.
@@ -85,6 +86,9 @@ public final class ParserContext {
 		return (this.containingBeanDefinition != null);
 	}
 
+	/**
+	 * 返回是否默认懒加载
+	 */
 	public boolean isDefaultLazyInit() {
 		return BeanDefinitionParserDelegate.TRUE_VALUE.equals(this.delegate.getDefaults().getLazyInit());
 	}

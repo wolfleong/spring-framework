@@ -33,14 +33,21 @@ import org.springframework.util.ObjectUtils;
  */
 public class LookupOverride extends MethodOverride {
 
+	/**
+	 * 要查找的 beanName
+	 */
 	@Nullable
 	private final String beanName;
 
+	/**
+	 * 代理的方法
+	 */
 	@Nullable
 	private Method method;
 
 
 	/**
+	 * 根据方法名和 beanName 创建
 	 * Construct a new LookupOverride.
 	 * @param methodName the name of the method to override
 	 * @param beanName the name of the bean in the current {@code BeanFactory}
@@ -52,6 +59,7 @@ public class LookupOverride extends MethodOverride {
 	}
 
 	/**
+	 * 根据方法名和 beanName 创建对象
 	 * Construct a new LookupOverride.
 	 * @param method the method to override
 	 * @param beanName the name of the bean in the current {@code BeanFactory}
@@ -82,10 +90,14 @@ public class LookupOverride extends MethodOverride {
 	 */
 	@Override
 	public boolean matches(Method method) {
+		//如果当前 LookupOverride 中的 method 不为 null
 		if (this.method != null) {
+			//则比较两个方法是否相等
 			return method.equals(this.method);
 		}
+		//当前 LookupOverride 中的 method 为 null
 		else {
+			//方法名相同, 非重载方法或抽象方法或方法没有方法参数
 			return (method.getName().equals(getMethodName()) && (!isOverloaded() ||
 					Modifier.isAbstract(method.getModifiers()) || method.getParameterCount() == 0));
 		}

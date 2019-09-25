@@ -24,6 +24,7 @@ import org.springframework.beans.Mergeable;
 import org.springframework.lang.Nullable;
 
 /**
+ * 标签集合类
  * Tag collection class used to hold managed List elements, which may
  * include runtime bean references (to be resolved into bean objects).
  *
@@ -39,9 +40,15 @@ public class ManagedList<E> extends ArrayList<E> implements Mergeable, BeanMetad
 	@Nullable
 	private Object source;
 
+	/**
+	 * 元素类型
+	 */
 	@Nullable
 	private String elementTypeName;
 
+	/**
+	 * 是否可以合并
+	 */
 	private boolean mergeEnabled;
 
 
@@ -98,18 +105,24 @@ public class ManagedList<E> extends ArrayList<E> implements Mergeable, BeanMetad
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<E> merge(@Nullable Object parent) {
+		//如果不可以合并, 则报错
 		if (!this.mergeEnabled) {
 			throw new IllegalStateException("Not allowed to merge when the 'mergeEnabled' property is set to 'false'");
 		}
+		//如果 parent 为 null
 		if (parent == null) {
+			//返回当前列表
 			return this;
 		}
+		//如果 parent 不是 List, 报错
 		if (!(parent instanceof List)) {
 			throw new IllegalArgumentException("Cannot merge with object of type [" + parent.getClass() + "]");
 		}
+		//创建 ManagedList
 		List<E> merged = new ManagedList<>();
 		merged.addAll((List<E>) parent);
 		merged.addAll(this);
+		//返回
 		return merged;
 	}
 

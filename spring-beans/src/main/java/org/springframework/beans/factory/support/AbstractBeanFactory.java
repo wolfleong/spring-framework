@@ -1814,12 +1814,15 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	}
 
 	/**
+	 * 判断给定的 beanName 是否已经使用
+	 * todo wolfleong 有点复杂, 后面看
 	 * Determine whether the given bean name is already in use within this factory,
 	 * i.e. whether there is a local bean or alias registered under this name or
 	 * an inner bean created with this name.
 	 * @param beanName the name to check
 	 */
 	public boolean isBeanNameInUse(String beanName) {
+		//如果是别名或
 		return isAlias(beanName) || containsLocalBean(beanName) || hasDependentBean(beanName);
 	}
 

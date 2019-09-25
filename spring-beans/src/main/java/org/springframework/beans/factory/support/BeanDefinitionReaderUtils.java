@@ -45,6 +45,7 @@ public abstract class BeanDefinitionReaderUtils {
 
 
 	/**
+	 * 创建一个 GenericBeanDefinition 实现的 BeanDefinition
 	 * Create a new GenericBeanDefinition for the given parent name and class name,
 	 * eagerly loading the bean class if a ClassLoader has been specified.
 	 * @param parentName the name of the parent bean, if any
@@ -57,20 +58,29 @@ public abstract class BeanDefinitionReaderUtils {
 	public static AbstractBeanDefinition createBeanDefinition(
 			@Nullable String parentName, @Nullable String className, @Nullable ClassLoader classLoader) throws ClassNotFoundException {
 
+		//创建 GenericBeanDefinition
 		GenericBeanDefinition bd = new GenericBeanDefinition();
+		//设置父 beanName
 		bd.setParentName(parentName);
+		//如果 className 不为 null
 		if (className != null) {
+			//如果 classLoader 不为 null
 			if (classLoader != null) {
+				//通过 classLoader 加载类, 然后设置 beanClass
 				bd.setBeanClass(ClassUtils.forName(className, classLoader));
 			}
+			//如果 classLoader 为 nulll
 			else {
+				//直接设置 beanClassName
 				bd.setBeanClassName(className);
 			}
 		}
+		//返回创建 BeanDefinition
 		return bd;
 	}
 
 	/**
+	 * 生成一个唯一 beanName, 顶层的 bean , 非内嵌的
 	 * Generate a bean name for the given top-level bean definition,
 	 * unique within the given bean factory.
 	 * @param beanDefinition the bean definition to generate a bean name for
@@ -88,6 +98,7 @@ public abstract class BeanDefinitionReaderUtils {
 	}
 
 	/**
+	 * 根据给定的 BeanDefinition , 生成唯一的 beanName
 	 * Generate a bean name for the given bean definition, unique within the
 	 * given bean factory.
 	 * @param definition the bean definition to generate a bean name for
@@ -104,33 +115,48 @@ public abstract class BeanDefinitionReaderUtils {
 			BeanDefinition definition, BeanDefinitionRegistry registry, boolean isInnerBean)
 			throws BeanDefinitionStoreException {
 
+		//获取 beanClass  作为 beanName
 		String generatedBeanName = definition.getBeanClassName();
+		//如果没有 beanName
 		if (generatedBeanName == null) {
+			//如果父名称为不为 null
 			if (definition.getParentName() != null) {
+				//用 `${parentName}$child` 来作为 beanName
 				generatedBeanName = definition.getParentName() + "$child";
 			}
+			//如果 factoryBeanName 不为 null
 			else if (definition.getFactoryBeanName() != null) {
+				//用 `${parentName}$created` 作为 beanName
 				generatedBeanName = definition.getFactoryBeanName() + "$created";
 			}
 		}
+		//如果 beanName 为空, 则报异常
 		if (!StringUtils.hasText(generatedBeanName)) {
 			throw new BeanDefinitionStoreException("Unnamed bean definition specifies neither " +
 					"'class' nor 'parent' nor 'factory-bean' - can't generate bean name");
 		}
 
+		//用生成 beanName 作为id
 		String id = generatedBeanName;
+		//是 innnerBean
 		if (isInnerBean) {
+			//给 id 拼接后缀, 如 : com.wl.MyBean#23D45E
 			// Inner bean: generate identity hashcode suffix.
 			id = generatedBeanName + GENERATED_BEAN_NAME_SEPARATOR + ObjectUtils.getIdentityHexString(definition);
 		}
+		//如果不是内嵌的 bean
 		else {
+			//将 beanName 处理成唯一的, 主要是在后面增加数字
 			// Top-level bean: use plain class name with unique suffix if necessary.
 			return uniqueBeanName(generatedBeanName, registry);
 		}
+		//返回
 		return id;
 	}
 
 	/**
+	 * 检查 beanName 是否唯一
+	 * - 如果不唯一, 则一直在后面加数字, 直接到唯一就返回
 	 * Turn the given bean name into a unique bean name for the given bean factory,
 	 * appending a unique counter as suffix if necessary.
 	 * @param beanName the original bean name
@@ -143,6 +169,7 @@ public abstract class BeanDefinitionReaderUtils {
 		String id = beanName;
 		int counter = -1;
 
+		//增加后缀, 直到 id 唯一
 		// Increase counter until the id is unique.
 		while (counter == -1 || registry.containsBeanDefinition(id)) {
 			counter++;

@@ -120,6 +120,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	private ReaderEventListener eventListener = new EmptyReaderEventListener();
 
+	/**
+	 * SourceExtractor 默认是 NullSourceExtractor
+	 */
 	private SourceExtractor sourceExtractor = new NullSourceExtractor();
 
 	@Nullable

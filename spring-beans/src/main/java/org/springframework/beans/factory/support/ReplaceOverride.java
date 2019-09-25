@@ -37,8 +37,14 @@ import org.springframework.util.ObjectUtils;
  */
 public class ReplaceOverride extends MethodOverride {
 
+	/**
+	 * 要代替的 beanName
+	 */
 	private final String methodReplacerBeanName;
 
+	/**
+	 * 方法参数类型, 如果是重载方法就更要指定了
+	 */
 	private List<String> typeIdentifiers = new LinkedList<>();
 
 
@@ -62,6 +68,7 @@ public class ReplaceOverride extends MethodOverride {
 	}
 
 	/**
+	 * 添加参数类型
 	 * Add a fragment of a class string, like "Exception"
 	 * or "java.lang.Exc", to identify a parameter type.
 	 * @param identifier a substring of the fully qualified class name
@@ -72,20 +79,27 @@ public class ReplaceOverride extends MethodOverride {
 
 	@Override
 	public boolean matches(Method method) {
+		//如果方法名不同, 则不匹配
 		if (!method.getName().equals(getMethodName())) {
 			return false;
 		}
+		//如果是非重载方法, 则匹配
 		if (!isOverloaded()) {
 			// Not overloaded: don't worry about arg type matching...
 			return true;
 		}
+		//参数个数对应不上, 不匹配
 		// If we get here, we need to insist on precise argument matching...
 		if (this.typeIdentifiers.size() != method.getParameterCount()) {
 			return false;
 		}
+		//获取方法参数类型
 		Class<?>[] parameterTypes = method.getParameterTypes();
+		//遍历方法参数
 		for (int i = 0; i < this.typeIdentifiers.size(); i++) {
+			//获取指定位置的参数类型名
 			String identifier = this.typeIdentifiers.get(i);
+			//类型名称对不上, 不匹配
 			if (!parameterTypes[i].getName().contains(identifier)) {
 				return false;
 			}

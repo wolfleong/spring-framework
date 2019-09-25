@@ -24,6 +24,7 @@ import java.util.Set;
 import org.springframework.lang.Nullable;
 
 /**
+ * 方法复盖列表
  * Set of method overrides, determining which, if any, methods on a
  * managed object the Spring IoC container will override at runtime.
  *
@@ -37,8 +38,15 @@ import org.springframework.lang.Nullable;
  */
 public class MethodOverrides {
 
+	/**
+	 * 记录着所有 MethodOverride
+	 */
 	private final Set<MethodOverride> overrides = Collections.synchronizedSet(new LinkedHashSet<>(2));
 
+	/**
+	 * 标记是否修改
+	 * todo wolfleong 为什么要这个参数
+	 */
 	private volatile boolean modified = false;
 
 
@@ -57,16 +65,21 @@ public class MethodOverrides {
 
 
 	/**
+	 * 根据给定的 MethodOverrides , 复制到当前的 MethodOverrides 下
 	 * Copy all given method overrides into this object.
 	 */
 	public void addOverrides(@Nullable MethodOverrides other) {
+		//如果 MethodOverrides 不为 null
 		if (other != null) {
+			//设置 modified 为 true
 			this.modified = true;
+			//合并当前 other.overrides
 			this.overrides.addAll(other.overrides);
 		}
 	}
 
 	/**
+	 * 添加一个 MethodOverride
 	 * Add the given method override.
 	 */
 	public void addOverride(MethodOverride override) {
@@ -75,6 +88,7 @@ public class MethodOverrides {
 	}
 
 	/**
+	 * 获取所有的 methodOverrides
 	 * Return all method overrides contained by this object.
 	 * @return a Set of MethodOverride objects
 	 * @see MethodOverride
@@ -98,16 +112,22 @@ public class MethodOverrides {
 	 */
 	@Nullable
 	public MethodOverride getOverride(Method method) {
+		//如果没有修改过
 		if (!this.modified) {
+			//则返回 null
 			return null;
 		}
 		synchronized (this.overrides) {
 			MethodOverride match = null;
+			//遍历所有的 MethodOverride
 			for (MethodOverride candidate : this.overrides) {
+				//如果方法匹配则赋值
 				if (candidate.matches(method)) {
+					//暂存
 					match = candidate;
 				}
 			}
+			//返回最后一个匹配 method 的 MethodOverride
 			return match;
 		}
 	}

@@ -20,6 +20,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 数组类型的列表
  * Tag collection class used to hold managed array elements, which may
  * include runtime bean references (to be resolved into bean objects).
  *
@@ -29,6 +30,7 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class ManagedArray extends ManagedList<Object> {
 
+	//解析后的类型
 	/** Resolved element type for runtime creation of the target array. */
 	@Nullable
 	volatile Class<?> resolvedElementType;

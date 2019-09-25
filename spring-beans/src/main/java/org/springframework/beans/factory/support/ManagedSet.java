@@ -24,6 +24,7 @@ import org.springframework.beans.Mergeable;
 import org.springframework.lang.Nullable;
 
 /**
+ * 可管理的 Set 集合
  * Tag collection class used to hold managed Set values, which may
  * include runtime bean references (to be resolved into bean objects).
  *
@@ -38,9 +39,15 @@ public class ManagedSet<E> extends LinkedHashSet<E> implements Mergeable, BeanMe
 	@Nullable
 	private Object source;
 
+	/**
+	 * 元素类型
+	 */
 	@Nullable
 	private String elementTypeName;
 
+	/**
+	 * 是否可以合并
+	 */
 	private boolean mergeEnabled;
 
 
@@ -97,18 +104,25 @@ public class ManagedSet<E> extends LinkedHashSet<E> implements Mergeable, BeanMe
 	@Override
 	@SuppressWarnings("unchecked")
 	public Set<E> merge(@Nullable Object parent) {
+		//如果不能并合, 则报错
 		if (!this.mergeEnabled) {
 			throw new IllegalStateException("Not allowed to merge when the 'mergeEnabled' property is set to 'false'");
 		}
+		//如果 parent 为 null, 则返回当前对象
 		if (parent == null) {
 			return this;
 		}
+		//如果 parent 不是 set , 则报错
 		if (!(parent instanceof Set)) {
 			throw new IllegalArgumentException("Cannot merge with object of type [" + parent.getClass() + "]");
 		}
+		//创建 ManagedSet
 		Set<E> merged = new ManagedSet<>();
+		//添加要合并的对象
 		merged.addAll((Set<E>) parent);
+		//添加当前对象
 		merged.addAll(this);
+		//返回合并后的结果
 		return merged;
 	}
 

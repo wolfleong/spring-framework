@@ -193,6 +193,7 @@ public abstract class CollectionUtils {
 	}
 
 	/**
+	 * 找出两个集合的交集的第一个元纱
 	 * Return the first element in '{@code candidates}' that is contained in
 	 * '{@code source}'. If no element in '{@code candidates}' is present in
 	 * '{@code source}' returns {@code null}. Iteration order is
@@ -204,14 +205,18 @@ public abstract class CollectionUtils {
 	@SuppressWarnings("unchecked")
 	@Nullable
 	public static <E> E findFirstMatch(Collection<?> source, Collection<E> candidates) {
+		//如果两个集合都是空, 则返回 null
 		if (isEmpty(source) || isEmpty(candidates)) {
 			return null;
 		}
+		//遍历候选的集合
 		for (Object candidate : candidates) {
+			//如果找到一样的则直接返回
 			if (source.contains(candidate)) {
 				return (E) candidate;
 			}
 		}
+		//没找到则返回 null
 		return null;
 	}
 

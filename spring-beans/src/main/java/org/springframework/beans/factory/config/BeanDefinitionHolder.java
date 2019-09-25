@@ -39,10 +39,19 @@ import org.springframework.util.StringUtils;
  */
 public class BeanDefinitionHolder implements BeanMetadataElement {
 
+	/**
+	 * BeanDefinition 对象
+	 */
 	private final BeanDefinition beanDefinition;
 
+	/**
+	 * beanName 对象
+	 */
 	private final String beanName;
 
+	/**
+	 * 别名
+	 */
 	@Nullable
 	private final String[] aliases;
 
@@ -123,6 +132,7 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 * or the aliases stored in this bean definition.
 	 */
 	public boolean matchesName(@Nullable String candidateName) {
+		//如果 candidateName 等于 beanName 或者 candidateName 等于处理过的 beanName 或者 candidateName 在别名中存在, 则都返回 true
 		return (candidateName != null && (candidateName.equals(this.beanName) ||
 				candidateName.equals(BeanFactoryUtils.transformedBeanName(this.beanName)) ||
 				ObjectUtils.containsElement(this.aliases, candidateName)));

@@ -139,7 +139,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 
 	/**
-	 * class 对象
+	 * Class 或 字符串(全类名)
 	 */
 	@Nullable
 	private volatile Object beanClass;
@@ -468,11 +468,15 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	@Override
 	@Nullable
 	public String getBeanClassName() {
+		//获取 beanClass
 		Object beanClassObject = this.beanClass;
+		// 如果 beanClass 是类的话
 		if (beanClassObject instanceof Class) {
+			//获取全类名
 			return ((Class<?>) beanClassObject).getName();
 		}
 		else {
+			//其他对象, 则直接返回
 			return (String) beanClassObject;
 		}
 	}

@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 public class DefaultBeanNameGenerator implements BeanNameGenerator {
 
 	/**
+	 * 单例
 	 * A convenient constant for a default {@code DefaultBeanNameGenerator} instance,
 	 * as used for {@link AbstractBeanDefinitionReader} setup.
 	 * @since 5.2
