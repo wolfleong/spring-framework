@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * XML 验证模式探测器
- * 注意当遇到下面的情况是处理不了的:
+ * 注意当遇到下面的情况是处理不了的(注释弄成多行):
  * <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "https://www.springframework.org/dtd/spring-beans-2.0.dtd"><!-- trailing
  * comment -->
  * 对于这种跨行的情况是没办法正确解析的, 感觉这是这个类的 bug, 这个类也不是百分之百能处理所有的情况.(我将正确的写法写到注释里面去)

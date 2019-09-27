@@ -17,6 +17,7 @@
 package org.springframework.beans.factory.parsing;
 
 /**
+ * <Bean></Bean> 实体
  * {@link ParseState} entry representing a bean definition.
  *
  * @author Rob Harrop

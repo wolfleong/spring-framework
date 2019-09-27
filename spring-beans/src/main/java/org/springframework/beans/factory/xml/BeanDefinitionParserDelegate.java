@@ -418,6 +418,7 @@ public class BeanDefinitionParserDelegate {
 
 
 	/**
+	 * 解析 <bean></bean> 标签
 	 * Parses the supplied {@code <bean>} element. May return {@code null}
 	 * if there were errors during parse. Errors are reported to the
 	 * {@link org.springframework.beans.factory.parsing.ProblemReporter}.
@@ -554,6 +555,7 @@ public class BeanDefinitionParserDelegate {
 	public AbstractBeanDefinition parseBeanDefinitionElement(
 			Element ele, String beanName, @Nullable BeanDefinition containingBean) {
 
+		//记录当前解析的 <bean>
 		this.parseState.push(new BeanEntry(beanName));
 
 		//解析 class 属性
@@ -606,6 +608,7 @@ public class BeanDefinitionParserDelegate {
 			error("Unexpected failure during bean definition parsing", ele, ex);
 		}
 		finally {
+			//解析完成, 将当前解析实体出栈
 			this.parseState.pop();
 		}
 
@@ -815,23 +818,32 @@ public class BeanDefinitionParserDelegate {
 	 * Parse property sub-elements of the given bean element.
 	 */
 	public void parsePropertyElements(Element beanEle, BeanDefinition bd) {
+		//获取子节点列表
 		NodeList nl = beanEle.getChildNodes();
+		//遍历
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
+			//如果节点是合法的节点且是名称是 property
 			if (isCandidateElement(node) && nodeNameEquals(node, PROPERTY_ELEMENT)) {
+				//解析
 				parsePropertyElement((Element) node, bd);
 			}
 		}
 	}
 
 	/**
+	 * 解析 <qualifier></qualifier> 标签
 	 * Parse qualifier sub-elements of the given bean element.
 	 */
 	public void parseQualifierElements(Element beanEle, AbstractBeanDefinition bd) {
+		//子节点列表
 		NodeList nl = beanEle.getChildNodes();
+		//遍历
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
+			//如果节点名称是 qualifier 名称
 			if (isCandidateElement(node) && nodeNameEquals(node, QUALIFIER_ELEMENT)) {
+				//解析
 				parseQualifierElement((Element) node, bd);
 			}
 		}
@@ -929,6 +941,7 @@ public class BeanDefinitionParserDelegate {
 				}
 				else {
 					try {
+						//入栈解析位置
 						this.parseState.push(new ConstructorArgumentEntry(index));
 						//解析 ele 对应属性元素
 						Object value = parsePropertyValue(ele, bd, null);
@@ -955,6 +968,7 @@ public class BeanDefinitionParserDelegate {
 						}
 					}
 					finally {
+						//出栈
 						this.parseState.pop();
 					}
 				}
@@ -994,21 +1008,30 @@ public class BeanDefinitionParserDelegate {
 	 * Parse a property element.
 	 */
 	public void parsePropertyElement(Element ele, BeanDefinition bd) {
+		//获取 name 属性
 		String propertyName = ele.getAttribute(NAME_ATTRIBUTE);
+		//如果属性名为空, 则报错
 		if (!StringUtils.hasLength(propertyName)) {
 			error("Tag 'property' must have a 'name' attribute", ele);
+			//返回
 			return;
 		}
 		this.parseState.push(new PropertyEntry(propertyName));
 		try {
+			//如果属性已经被定义, 则报错
 			if (bd.getPropertyValues().contains(propertyName)) {
 				error("Multiple 'property' definitions for property '" + propertyName + "'", ele);
 				return;
 			}
+			//获取属性值
 			Object val = parsePropertyValue(ele, bd, propertyName);
+			//创建 PropertyValue
 			PropertyValue pv = new PropertyValue(propertyName, val);
+			//解析 property 下的 <meta> 元素
 			parseMetaElements(ele, pv);
+			//设置 source
 			pv.setSource(extractSource(ele));
+			//添加 propertyValue
 			bd.getPropertyValues().addPropertyValue(pv);
 		}
 		finally {
@@ -1020,29 +1043,46 @@ public class BeanDefinitionParserDelegate {
 	 * Parse a qualifier element.
 	 */
 	public void parseQualifierElement(Element ele, AbstractBeanDefinition bd) {
+		//获取 type 属性
 		String typeName = ele.getAttribute(TYPE_ATTRIBUTE);
+		//必须有 type 属性
 		if (!StringUtils.hasLength(typeName)) {
 			error("Tag 'qualifier' must have a 'type' attribute", ele);
 			return;
 		}
 		this.parseState.push(new QualifierEntry(typeName));
 		try {
+			//创建 AutowireCandidateQualifier
 			AutowireCandidateQualifier qualifier = new AutowireCandidateQualifier(typeName);
+			//设置 source
 			qualifier.setSource(extractSource(ele));
+			//获取 value 属性
 			String value = ele.getAttribute(VALUE_ATTRIBUTE);
+			//如果 value 有值
 			if (StringUtils.hasLength(value)) {
+				//设置
 				qualifier.setAttribute(AutowireCandidateQualifier.VALUE_KEY, value);
 			}
+			//遍历获取子节点列表
 			NodeList nl = ele.getChildNodes();
+			//遍历
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node node = nl.item(i);
+				//如果节点合法, 且名称为 attribute
 				if (isCandidateElement(node) && nodeNameEquals(node, QUALIFIER_ATTRIBUTE_ELEMENT)) {
+					//强转
 					Element attributeEle = (Element) node;
+					//获取 key
 					String attributeName = attributeEle.getAttribute(KEY_ATTRIBUTE);
+					//获取 value
 					String attributeValue = attributeEle.getAttribute(VALUE_ATTRIBUTE);
+					//如果 kv 都有值
 					if (StringUtils.hasLength(attributeName) && StringUtils.hasLength(attributeValue)) {
+						//创建 BeanMetadataAttribute
 						BeanMetadataAttribute attribute = new BeanMetadataAttribute(attributeName, attributeValue);
+						//设置 source
 						attribute.setSource(extractSource(attributeEle));
+						//添加
 						qualifier.addMetadataAttribute(attribute);
 					}
 					else {
@@ -1051,6 +1091,7 @@ public class BeanDefinitionParserDelegate {
 					}
 				}
 			}
+			//添加到 BeanDefinition 中
 			bd.addQualifier(qualifier);
 		}
 		finally {
@@ -1695,19 +1736,25 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
+		//获取 namespaceUri
 		String namespaceUri = getNamespaceURI(ele);
+		//如果 namespaceUri 为 null, 则返回 null
 		if (namespaceUri == null) {
 			return null;
 		}
+		//根据 namespaceUri 获取 NamespaceHandler
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
+		//如果 handler 为 null , 则报错
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
 			return null;
 		}
+		//用 NamespaceHandler 解析
 		return handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 	}
 
 	/**
+	 * 处理 Bean 的自定义属性或自定义子节点
 	 * Decorate the given bean definition through a namespace handler, if applicable.
 	 * @param ele the current element
 	 * @param originalDef the current bean definition
@@ -1774,7 +1821,7 @@ public class BeanDefinitionParserDelegate {
 		String namespaceUri = getNamespaceURI(node);
 		//如果 namespaceUri 不为 null 且非默认
 		if (namespaceUri != null && !isDefaultNamespace(namespaceUri)) {
-			//获取命名空间处理器
+			//根据 namespaceUri 解析出 NamespaceHandler
 			NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 			//如果 NamespaceHandler 不为 null
 			if (handler != null) {

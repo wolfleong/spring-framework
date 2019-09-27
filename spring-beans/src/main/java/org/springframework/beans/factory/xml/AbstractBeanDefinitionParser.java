@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
+ * BeanDefinitionParser 接口的抽象实现类, 提供一些模板实现
  * Abstract {@link BeanDefinitionParser} implementation providing
  * a number of convenience methods and a
  * {@link AbstractBeanDefinitionParser#parseInternal template method}
@@ -60,25 +61,38 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 	@Override
 	@Nullable
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
+		//内部解析，返回 AbstractBeanDefinition 对象
 		AbstractBeanDefinition definition = parseInternal(element, parserContext);
+		//如果 definition 不为 null 且非嵌套
 		if (definition != null && !parserContext.isNested()) {
 			try {
+				//解析 id 属性
 				String id = resolveId(element, definition, parserContext);
+				//如果 id 为空, 则报错
 				if (!StringUtils.hasText(id)) {
 					parserContext.getReaderContext().error(
 							"Id is required for element '" + parserContext.getDelegate().getLocalName(element)
 									+ "' when used as a top-level tag", element);
 				}
+				//别名
 				String[] aliases = null;
+				//如果我解析 name 属性做为别名
 				if (shouldParseNameAsAliases()) {
+					//获取 name 属性
 					String name = element.getAttribute(NAME_ATTRIBUTE);
+					//name 不为空
 					if (StringUtils.hasLength(name)) {
+						//逗号分割, 并且去前后空白
 						aliases = StringUtils.trimArrayElements(StringUtils.commaDelimitedListToStringArray(name));
 					}
 				}
+				//创建 BeanDefinitionHolder 对象
 				BeanDefinitionHolder holder = new BeanDefinitionHolder(definition, id, aliases);
+				//注册 BeanDefinitionHolder
 				registerBeanDefinition(holder, parserContext.getRegistry());
+				//如果要发送通知事件的话
 				if (shouldFireEvents()) {
+					//创建 BeanComponentDefinition
 					BeanComponentDefinition componentDefinition = new BeanComponentDefinition(holder);
 					postProcessComponentDefinition(componentDefinition);
 					parserContext.registerComponent(componentDefinition);
@@ -109,12 +123,17 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
 
+		//如果要自动生成 id
 		if (shouldGenerateId()) {
+			//生成 BeanName 做为id
 			return parserContext.getReaderContext().generateBeanName(definition);
 		}
 		else {
+			//获取 Id 属性
 			String id = element.getAttribute(ID_ATTRIBUTE);
+			//如果当 id 为空时要生成
 			if (!StringUtils.hasText(id) && shouldGenerateIdAsFallback()) {
+				//生成 beanName
 				id = parserContext.getReaderContext().generateBeanName(definition);
 			}
 			return id;

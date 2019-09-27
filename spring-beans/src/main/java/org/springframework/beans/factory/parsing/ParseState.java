@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import org.springframework.lang.Nullable;
 
 /**
+ * 主要用于跟踪解析的位置, 方便日志处理
  * Simple {@link LinkedList}-based structure for tracking the logical position during
  * a parsing process. {@link Entry entries} are added to the LinkedList at
  * each point during the parse phase in a reader-specific manner.
@@ -35,11 +36,13 @@ import org.springframework.lang.Nullable;
 public final class ParseState {
 
 	/**
+	 * Tab 字符
 	 * Tab character used when rendering the tree-style representation.
 	 */
 	private static final char TAB = '\t';
 
 	/**
+	 * 栈
 	 * Internal {@link LinkedList} storage.
 	 */
 	private final LinkedList<Entry> state;
@@ -53,6 +56,7 @@ public final class ParseState {
 	}
 
 	/**
+	 * 根据 ParseState 来创建
 	 * Create a new {@code ParseState} whose {@link LinkedList} is a {@link Object#clone clone}
 	 * of that of the passed in {@code ParseState}.
 	 */
@@ -90,6 +94,7 @@ public final class ParseState {
 	 * of this instance.
 	 */
 	public ParseState snapshot() {
+		//创建当前 ParseState 的快照
 		return new ParseState(this);
 	}
 

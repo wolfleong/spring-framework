@@ -159,6 +159,7 @@ public abstract class PropertiesLoaderUtils {
 	}
 
 	/**
+	 * 从给定的路径中加载所有的 properties, 有可能有多个
 	 * Load all properties from the specified class path resource
 	 * (in ISO-8859-1 encoding), using the given class loader.
 	 * <p>Merges properties if more than one resource of the same name
@@ -172,26 +173,38 @@ public abstract class PropertiesLoaderUtils {
 	public static Properties loadAllProperties(String resourceName, @Nullable ClassLoader classLoader) throws IOException {
 		Assert.notNull(resourceName, "Resource name must not be null");
 		ClassLoader classLoaderToUse = classLoader;
+		//如果给定的 classLoader 为 null
 		if (classLoaderToUse == null) {
+			//获取默认的 ClassLoader
 			classLoaderToUse = ClassUtils.getDefaultClassLoader();
 		}
+		//获取所有的资源
 		Enumeration<URL> urls = (classLoaderToUse != null ? classLoaderToUse.getResources(resourceName) :
 				ClassLoader.getSystemResources(resourceName));
+		//创建 Properties
 		Properties props = new Properties();
+		//如果有更多的记录
 		while (urls.hasMoreElements()) {
+			//获取 url
 			URL url = urls.nextElement();
+			//打开连接
 			URLConnection con = url.openConnection();
+			//设置缓存
 			ResourceUtils.useCachesIfNecessary(con);
+			//打开流
 			InputStream is = con.getInputStream();
 			try {
+				//如果是xml , 则从 xml 文件中加载
 				if (resourceName.endsWith(XML_FILE_EXTENSION)) {
 					props.loadFromXML(is);
 				}
 				else {
+					//加载
 					props.load(is);
 				}
 			}
 			finally {
+				//关流
 				is.close();
 			}
 		}

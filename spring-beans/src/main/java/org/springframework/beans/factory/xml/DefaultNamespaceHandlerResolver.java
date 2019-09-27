@@ -33,6 +33,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * NamespaceHandlerResolver 接口的默认实现类
  * Default implementation of the {@link NamespaceHandlerResolver} interface.
  * Resolves namespace URIs to implementation classes based on the mappings
  * contained in mapping file.
@@ -50,6 +51,7 @@ import org.springframework.util.CollectionUtils;
 public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver {
 
 	/**
+	 * NamespaceHandler 映射默认地址
 	 * The location to look for the mapping files. Can be present in multiple JAR files.
 	 */
 	public static final String DEFAULT_HANDLER_MAPPINGS_LOCATION = "META-INF/spring.handlers";
@@ -62,9 +64,11 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	@Nullable
 	private final ClassLoader classLoader;
 
+	//映射文件地址
 	/** Resource location to search for. */
 	private final String handlerMappingsLocation;
 
+	//namespaceUri 和 NamespaceHandler 的映射
 	/** Stores the mappings from namespace URI to NamespaceHandler class name / instance. */
 	@Nullable
 	private volatile Map<String, Object> handlerMappings;
@@ -115,25 +119,35 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	@Override
 	@Nullable
 	public NamespaceHandler resolve(String namespaceUri) {
+		//获取映射
 		Map<String, Object> handlerMappings = getHandlerMappings();
+		//根据 namespaceUri 获取 handler
 		Object handlerOrClassName = handlerMappings.get(namespaceUri);
+		//如果为 null, 则返回 null
 		if (handlerOrClassName == null) {
 			return null;
 		}
+		//如果是 NamespaceHandler, 则直接返回
 		else if (handlerOrClassName instanceof NamespaceHandler) {
 			return (NamespaceHandler) handlerOrClassName;
 		}
 		else {
+			//如果不是, 则转成字符串
 			String className = (String) handlerOrClassName;
 			try {
+				//加载 NamespaceHandler
 				Class<?> handlerClass = ClassUtils.forName(className, this.classLoader);
 				if (!NamespaceHandler.class.isAssignableFrom(handlerClass)) {
 					throw new FatalBeanException("Class [" + className + "] for namespace [" + namespaceUri +
 							"] does not implement the [" + NamespaceHandler.class.getName() + "] interface");
 				}
+				//创建实例
 				NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
+				//初始化
 				namespaceHandler.init();
+				//添加到映射缓存中
 				handlerMappings.put(namespaceUri, namespaceHandler);
+				//返回 NamespaceHandler 实例
 				return namespaceHandler;
 			}
 			catch (ClassNotFoundException ex) {
@@ -152,6 +166,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	 */
 	private Map<String, Object> getHandlerMappings() {
 		Map<String, Object> handlerMappings = this.handlerMappings;
+		//双重检查锁, 单例延迟加载
 		if (handlerMappings == null) {
 			synchronized (this) {
 				handlerMappings = this.handlerMappings;
@@ -160,13 +175,17 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 						logger.trace("Loading NamespaceHandler mappings from [" + this.handlerMappingsLocation + "]");
 					}
 					try {
+						//加载文件地址的配置, 不同工程下, 同一个目录的所有文件都会被加载
 						Properties mappings =
 								PropertiesLoaderUtils.loadAllProperties(this.handlerMappingsLocation, this.classLoader);
 						if (logger.isTraceEnabled()) {
 							logger.trace("Loaded NamespaceHandler mappings: " + mappings);
 						}
+						//创建一个 ConcurrentHashMap
 						handlerMappings = new ConcurrentHashMap<>(mappings.size());
+						//将配置写到 Map 中
 						CollectionUtils.mergePropertiesIntoMap(mappings, handlerMappings);
+						//缓存
 						this.handlerMappings = handlerMappings;
 					}
 					catch (IOException ex) {
@@ -176,6 +195,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 				}
 			}
 		}
+		//返回
 		return handlerMappings;
 	}
 

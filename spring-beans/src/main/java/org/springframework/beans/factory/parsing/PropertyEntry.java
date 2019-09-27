@@ -19,6 +19,7 @@ package org.springframework.beans.factory.parsing;
 import org.springframework.util.StringUtils;
 
 /**
+ * <property></property> 实体
  * {@link ParseState} entry representing a JavaBean property.
  *
  * @author Rob Harrop

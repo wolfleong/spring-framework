@@ -19,6 +19,7 @@ package org.springframework.beans.factory.parsing;
 import org.springframework.util.StringUtils;
 
 /**
+ * <qualifier></qualifier> 实体
  * {@link ParseState} entry representing an autowire candidate qualifier.
  *
  * @author Mark Fisher

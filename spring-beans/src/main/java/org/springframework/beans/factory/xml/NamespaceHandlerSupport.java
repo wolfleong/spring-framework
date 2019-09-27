@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.lang.Nullable;
 
 /**
+ * NamespaceHandler 接口的基础实现类
  * Support class for implementing custom {@link NamespaceHandler NamespaceHandlers}.
  * Parsing and decorating of individual {@link Node Nodes} is done via {@link BeanDefinitionParser}
  * and {@link BeanDefinitionDecorator} strategy interfaces, respectively.
@@ -45,18 +46,21 @@ import org.springframework.lang.Nullable;
 public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 
 	/**
+	 * 标签名与 BeanDefinitionParser 的映射缓存
 	 * Stores the {@link BeanDefinitionParser} implementations keyed by the
 	 * local name of the {@link Element Elements} they handle.
 	 */
 	private final Map<String, BeanDefinitionParser> parsers = new HashMap<>();
 
 	/**
+	 * 标签名与 BeanDefinitionDecorator 的映射缓存
 	 * Stores the {@link BeanDefinitionDecorator} implementations keyed by the
 	 * local name of the {@link Element Elements} they handle.
 	 */
 	private final Map<String, BeanDefinitionDecorator> decorators = new HashMap<>();
 
 	/**
+	 * 属性名与 BeanDefinitionDecorator 的映射缓存
 	 * Stores the {@link BeanDefinitionDecorator} implementations keyed by the local
 	 * name of the {@link Attr Attrs} they handle.
 	 */
@@ -70,7 +74,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		//获取 BeanDefinitionParser
 		BeanDefinitionParser parser = findParserForElement(element, parserContext);
+		//如果 parser 不为 null, 则解析
 		return (parser != null ? parser.parse(element, parserContext) : null);
 	}
 
@@ -80,12 +86,16 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 */
 	@Nullable
 	private BeanDefinitionParser findParserForElement(Element element, ParserContext parserContext) {
+		//获取标签名
 		String localName = parserContext.getDelegate().getLocalName(element);
+		//获取 BeanDefinitionParser
 		BeanDefinitionParser parser = this.parsers.get(localName);
+		//如果为 null, 则报错
 		if (parser == null) {
 			parserContext.getReaderContext().fatal(
 					"Cannot locate BeanDefinitionParser for element [" + localName + "]", element);
 		}
+		//返回
 		return parser;
 	}
 
@@ -110,26 +120,35 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Nullable
 	private BeanDefinitionDecorator findDecoratorForNode(Node node, ParserContext parserContext) {
 		BeanDefinitionDecorator decorator = null;
+		//获取节点名称
 		String localName = parserContext.getDelegate().getLocalName(node);
+		//如果节点是 Element 类型
 		if (node instanceof Element) {
+			//获取节点装饰器
 			decorator = this.decorators.get(localName);
 		}
+		//如果节点是 Attr 类型
 		else if (node instanceof Attr) {
+			//获取属性装饰器
 			decorator = this.attributeDecorators.get(localName);
 		}
 		else {
 			parserContext.getReaderContext().fatal(
 					"Cannot decorate based on Nodes of type [" + node.getClass().getName() + "]", node);
 		}
+		//如果装饰器为 null
 		if (decorator == null) {
+			//报错
 			parserContext.getReaderContext().fatal("Cannot locate BeanDefinitionDecorator for " +
 					(node instanceof Element ? "element" : "attribute") + " [" + localName + "]", node);
 		}
+		//返回
 		return decorator;
 	}
 
 
 	/**
+	 * 注册 BeanDefinitionParser
 	 * Subclasses can call this to register the supplied {@link BeanDefinitionParser} to
 	 * handle the specified element. The element name is the local (non-namespace qualified)
 	 * name.
@@ -139,6 +158,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	}
 
 	/**
+	 * 注册 Bean 装饰器
 	 * Subclasses can call this to register the supplied {@link BeanDefinitionDecorator} to
 	 * handle the specified element. The element name is the local (non-namespace qualified)
 	 * name.
@@ -148,6 +168,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	}
 
 	/**
+	 * 注册属装饰器
 	 * Subclasses can call this to register the supplied {@link BeanDefinitionDecorator} to
 	 * handle the specified attribute. The attribute name is the local (non-namespace qualified)
 	 * name.

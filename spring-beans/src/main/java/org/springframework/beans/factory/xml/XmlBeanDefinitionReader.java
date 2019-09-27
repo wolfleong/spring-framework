@@ -460,6 +460,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	}
 
 	/**
+	 * 在创建 Document 时, 需要知道解
 	 * Actually load the specified document using the configured DocumentLoader.
 	 * @param inputSource the SAX InputSource to read from
 	 * @param resource the resource descriptor for the XML file
@@ -587,23 +588,30 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	}
 
 	/**
+	 * 获取 NamespaceHandlerResolver
 	 * Lazily create a default NamespaceHandlerResolver, if not set before.
 	 * @see #createDefaultNamespaceHandlerResolver()
 	 */
 	public NamespaceHandlerResolver getNamespaceHandlerResolver() {
+		//如果 namespaceHandlerResolver 为 null
 		if (this.namespaceHandlerResolver == null) {
+			//创建默认
 			this.namespaceHandlerResolver = createDefaultNamespaceHandlerResolver();
 		}
+		//返回当前的 namespaceHandlerResolver
 		return this.namespaceHandlerResolver;
 	}
 
 	/**
+	 * 创建 DefaultNamespaceHandlerResolver
 	 * Create the default implementation of {@link NamespaceHandlerResolver} used if none is specified.
 	 * <p>The default implementation returns an instance of {@link DefaultNamespaceHandlerResolver}.
 	 * @see DefaultNamespaceHandlerResolver#DefaultNamespaceHandlerResolver(ClassLoader)
 	 */
 	protected NamespaceHandlerResolver createDefaultNamespaceHandlerResolver() {
+		//获取 ClassLoader
 		ClassLoader cl = (getResourceLoader() != null ? getResourceLoader().getClassLoader() : getBeanClassLoader());
+		//创建 DefaultNamespaceHandlerResolver
 		return new DefaultNamespaceHandlerResolver(cl);
 	}
 

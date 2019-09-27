@@ -19,6 +19,7 @@ package org.springframework.beans.factory.xml;
 import org.springframework.lang.Nullable;
 
 /**
+ * 根据 namespaceUri 解析出 NamespaceHandler
  * Used by the {@link org.springframework.beans.factory.xml.DefaultBeanDefinitionDocumentReader} to
  * locate a {@link NamespaceHandler} implementation for a particular namespace URI.
  *

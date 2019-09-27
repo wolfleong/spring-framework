@@ -109,6 +109,28 @@ public class PluggableSchemaResolver implements EntityResolver {
 	}
 
 
+	/**
+	 * 普及一下:
+	 * - xmlns 的全称: xml namespace
+	 * - xsi 是XML Schema Instance的缩写
+	 * - xmlns="http://www.springframework.org/schema/beans" , 这个指定 xml 的元素默认(没有前缀)命名空间是 http://www.springframework.org/schema/beans
+	 * - xmlns:前缀="命名空间" ,  为前缀指定命名空间 , 比如: xmlns:wl="http://wwww.wolfleong.com/abc/wl" ,
+	 *   指定 wl 前缀的元素的命名空间是 http://wwww.wolfleong.com/abc/wl ,  <wl:table></wl:table>
+	 * - xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" , 这个指定 xsi 的命名空间为 http://www.w3.org/2001/XMLSchema-instance ,
+	 * - xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd" 的 schemaLocation 有什么意义呢
+	 *   - 定义了XML Namespace和对应的XSD（Xml Schema Definition）文档的位置的关系
+	 *   - 它的值由一个或多个URI引用对组成，引用对内的两个URI之间以空白符分隔（空格和换行均可）。第一个URI是定义的XML Namespace的值，第二个URI给出Schema文档的位置
+	 *
+	 * <?xml version="1.0" encoding="UTF-8"?>
+	 * <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 * xmlns="http://www.springframework.org/schema/beans"
+	 * xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	 * </beans>
+	 *
+	 * @param publicId 这个参数到时是 null
+	 * @param systemId 这个 systemId 到时传入的是 'http://www.springframework.org/schema/beans/spring-beans-3.0.xsd',
+	 *                    也就是 xml 文件上命名空间指定的 schema 校验文件地址
+	 */
 	@Override
 	@Nullable
 	public InputSource resolveEntity(@Nullable String publicId, @Nullable String systemId) throws IOException {

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.lang.Nullable;
 
 /**
+ * 这个接口主要用来处理自定义 Namespace 的内容的解析, 包括自定义Bean, 或自定义Bean属性等
  * Base interface used by the {@link DefaultBeanDefinitionDocumentReader}
  * for handling custom namespaces in a Spring XML configuration file.
  *
@@ -49,6 +50,7 @@ import org.springframework.lang.Nullable;
 public interface NamespaceHandler {
 
 	/**
+	 * 创建 NamespaceHandler 的具体实例后, 会立即调用 init() 方法进行初始化, 一般用来注册 BeanDefinitionParser 等
 	 * Invoked by the {@link DefaultBeanDefinitionDocumentReader} after
 	 * construction but before any custom elements are parsed.
 	 * @see NamespaceHandlerSupport#registerBeanDefinitionParser(String, BeanDefinitionParser)
@@ -56,6 +58,7 @@ public interface NamespaceHandler {
 	void init();
 
 	/**
+	 * 解析自定义 Bean 节点为 BeanDefinition
 	 * Parse the specified {@link Element} and register any resulting
 	 * {@link BeanDefinition BeanDefinitions} with the
 	 * {@link org.springframework.beans.factory.support.BeanDefinitionRegistry}
@@ -73,6 +76,9 @@ public interface NamespaceHandler {
 	BeanDefinition parse(Element element, ParserContext parserContext);
 
 	/**
+	 * 在默认 Bean 节点中解析自定义属性或自定义子节点, 设置到 BeanDefinitionHolder 中, 主要有两种情况
+	 * - 默认 Bean 节点的自定义属性, 如: <bean myspace:myName="" myspace:myAge=""></bean>
+	 * - 默认 Bean 节点下的自定义节点, 如: <bean> <myspace:def>...</myspace:def> </bean>
 	 * Parse the specified {@link Node} and decorate the supplied
 	 * {@link BeanDefinitionHolder}, returning the decorated definition.
 	 * <p>The {@link Node} may be either an {@link org.w3c.dom.Attr} or an
