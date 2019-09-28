@@ -28,6 +28,10 @@ import org.springframework.core.Conventions;
 import org.springframework.lang.Nullable;
 
 /**
+ * 简单属性解析器, 它将特定属性直接映射到bean属性, 如:
+ * 	 <bean id = "rob" class = "..TestBean" p:name="Rob" p:spouse-ref="sally"/>
+ * 	- 这里的p:name直接对应于类TestBean上的name属性。p:spouse-ref属性对应于spouse属性，将value所对应的bean注入到该属性中
+ *
  * Simple {@code NamespaceHandler} implementation that maps custom attributes
  * directly through to bean properties. An important point to note is that this
  * {@code NamespaceHandler} does not have a corresponding schema since there
@@ -67,23 +71,34 @@ public class SimplePropertyNamespaceHandler implements NamespaceHandler {
 
 	@Override
 	public BeanDefinitionHolder decorate(Node node, BeanDefinitionHolder definition, ParserContext parserContext) {
+		//判断是不是 Attr 类型, 这里只处理标签属性
 		if (node instanceof Attr) {
+			//强转
 			Attr attr = (Attr) node;
+			//获取属性名称
 			String propertyName = parserContext.getDelegate().getLocalName(attr);
+			//获取属性值
 			String propertyValue = attr.getValue();
+			//从当前bean定义取出属性值集合
 			MutablePropertyValues pvs = definition.getBeanDefinition().getPropertyValues();
+			//如果属性已经存在, 则报错
 			if (pvs.contains(propertyName)) {
 				parserContext.getReaderContext().error("Property '" + propertyName + "' is already defined using " +
 						"both <property> and inline syntax. Only one approach may be used per property.", attr);
 			}
+			//如果属性名以 _ref 结尾, 则表示该属性值引用一个 bean , _ref 前面是 bean 名称
 			if (propertyName.endsWith(REF_SUFFIX)) {
+				//获取属性名
 				propertyName = propertyName.substring(0, propertyName.length() - REF_SUFFIX.length());
+				//创建 RuntimeBeanReference , 并添加属性
 				pvs.add(Conventions.attributeNameToPropertyName(propertyName), new RuntimeBeanReference(propertyValue));
 			}
 			else {
+				//直接添加属性值和名称
 				pvs.add(Conventions.attributeNameToPropertyName(propertyName), propertyValue);
 			}
 		}
+		//返回
 		return definition;
 	}
 

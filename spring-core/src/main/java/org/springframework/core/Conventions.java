@@ -216,31 +216,43 @@ public final class Conventions {
 	}
 
 	/**
+	 * 将 xml 的非驼峰属性转成驼峰, 如: transaction-manager => transactionManager
 	 * Convert {@code String}s in attribute name format (e.g. lowercase, hyphens
 	 * separating words) into property name format (camel-case). For example
 	 * {@code transaction-manager} becomes {@code "transactionManager"}.
 	 */
 	public static String attributeNameToPropertyName(String attributeName) {
 		Assert.notNull(attributeName, "'attributeName' must not be null");
+		//如果属性名, 不包括 -, 则直接返回
 		if (!attributeName.contains("-")) {
 			return attributeName;
 		}
+		//将属性名变成字符数组
 		char[] chars = attributeName.toCharArray();
+		//创建一个字符数组保存处理后的结果
 		char[] result = new char[chars.length -1]; // not completely accurate but good guess
+		//记录当前索引
 		int currPos = 0;
+		//下一个字符是否大写
 		boolean upperCaseNext = false;
+		//遍历字符
 		for (char c : chars) {
+			//如果有 - , 则将 upperCaseNext 设置 true
 			if (c == '-') {
 				upperCaseNext = true;
 			}
 			else if (upperCaseNext) {
+				//将字符变大写, 放进结果
 				result[currPos++] = Character.toUpperCase(c);
+				//设置下一个字符不用大写
 				upperCaseNext = false;
 			}
 			else {
+				//保存字符
 				result[currPos++] = c;
 			}
 		}
+		//返回结果
 		return new String(result, 0, currPos);
 	}
 
