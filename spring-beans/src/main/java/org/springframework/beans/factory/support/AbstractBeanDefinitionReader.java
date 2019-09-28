@@ -68,6 +68,9 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 */
 	private Environment environment;
 
+	/**
+	 * BeanName 生成器
+	 */
 	private BeanNameGenerator beanNameGenerator = DefaultBeanNameGenerator.INSTANCE;
 
 

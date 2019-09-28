@@ -308,7 +308,7 @@ public class BeanDefinitionParserDelegate {
 	public void initDefaults(Element root, @Nullable BeanDefinitionParserDelegate parent) {
 		//填充默认值, 如果 parent 不为 null, 则获取 parent.defaults 对象, 如果 parent 为 null, 则返回 null
 		populateDefaults(this.defaults, (parent != null ? parent.defaults : null), root);
-		//填充完成, 通知一个 默认注册事件
+		//填充完成, 通知一个默认注册事件
 		this.readerContext.fireDefaultsRegistered(this.defaults);
 	}
 

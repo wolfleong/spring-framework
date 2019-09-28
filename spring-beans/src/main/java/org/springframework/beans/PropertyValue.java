@@ -43,22 +43,39 @@ import org.springframework.util.ObjectUtils;
 @SuppressWarnings("serial")
 public class PropertyValue extends BeanMetadataAttributeAccessor implements Serializable {
 
+	/**
+	 * 属性名
+	 */
 	private final String name;
 
+	/**
+	 * 值
+	 */
 	@Nullable
 	private final Object value;
 
+	/**
+	 * 属性值是否为 Optional
+	 */
 	private boolean optional = false;
 
+	/**
+	 * 是否转换成真正的类型
+	 */
 	private boolean converted = false;
 
+	/**
+	 * 转换后的值
+	 */
 	@Nullable
 	private Object convertedValue;
 
+	//属性值是否需要进行类型转换，如果转换前后对象都是同一个，说明不用转换
 	/** Package-visible field that indicates whether conversion is necessary. */
 	@Nullable
 	volatile Boolean conversionNecessary;
 
+	//缓存解析后的属性名称，如 attr['info']['name']
 	/** Package-visible field for caching the resolved property path tokens. */
 	@Nullable
 	transient volatile Object resolvedTokens;
@@ -105,7 +122,9 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 		this.optional = original.isOptional();
 		this.conversionNecessary = original.conversionNecessary;
 		this.resolvedTokens = original.resolvedTokens;
+		//设置 source
 		setSource(original);
+		//复制附属对象
 		copyAttributesFrom(original);
 	}
 
@@ -129,6 +148,7 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	}
 
 	/**
+	 * 获取最原始的 PropertyValue, 这里
 	 * Return the original PropertyValue instance for this value holder.
 	 * @return the original PropertyValue (either a source of this
 	 * value holder or this value holder itself).
@@ -136,6 +156,8 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	public PropertyValue getOriginalPropertyValue() {
 		PropertyValue original = this;
 		Object source = getSource();
+		//一直往上找, 直到  source 不是 PropertyValue 为止
+		//todo wolfleong 这里有个疑问, 会出现 source != original 的情况吗
 		while (source instanceof PropertyValue && source != original) {
 			original = (PropertyValue) source;
 			source = original.getSource();
@@ -170,11 +192,14 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	}
 
 	/**
+	 * 设置已经转换后的值
 	 * Set the converted value of this property value,
 	 * after processed type conversion.
 	 */
 	public synchronized void setConvertedValue(@Nullable Object value) {
+		//设置已经转换
 		this.converted = true;
+		//设置值
 		this.convertedValue = value;
 	}
 

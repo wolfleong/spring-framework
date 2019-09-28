@@ -135,7 +135,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
-		//记录老的 BeanDefinitionParserDelegate 对象
+		//记录老的 BeanDefinitionParserDelegate 对象, 主要是解析嵌套 <beans> 的时候用到
 		BeanDefinitionParserDelegate parent = this.delegate;
 		// 创建 BeanDefinitionParserDelegate 对象, 并进行设置到 delegate
 		this.delegate = createDelegate(getReaderContext(), root, parent);

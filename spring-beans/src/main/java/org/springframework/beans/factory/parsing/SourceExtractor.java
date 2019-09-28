@@ -20,6 +20,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
 
 /**
+ * 允许工具控制源元数据如何附加到bean定义元数据的简单策略。
  * Simple strategy allowing tools to control how source metadata is attached
  * to the bean definition metadata.
  *

@@ -63,11 +63,13 @@ public interface PropertyValues extends Iterable<PropertyValue> {
 	}
 
 	/**
+	 * 返回一个 PropertyValue 对象数组
 	 * Return an array of the PropertyValue objects held in this object.
 	 */
 	PropertyValue[] getPropertyValues();
 
 	/**
+	 * 返回给定 属性名的 PropertyValue对象
 	 * Return the property value with the given name, if any.
 	 * @param propertyName the name to search for
 	 * @return the property value, or {@code null} if none
@@ -76,6 +78,7 @@ public interface PropertyValues extends Iterable<PropertyValue> {
 	PropertyValue getPropertyValue(String propertyName);
 
 	/**
+	 * 返回自上一个PropertyValues以来的更改。 subClass 应该覆盖equals
 	 * Return the changes since the previous PropertyValues.
 	 * Subclasses should also override {@code equals}.
 	 * @param old old property values
@@ -86,6 +89,7 @@ public interface PropertyValues extends Iterable<PropertyValue> {
 	PropertyValues changesSince(PropertyValues old);
 
 	/**
+	 * 返回是否包含给定propertyName的property value
 	 * Is there a property value (or other processing entry) for this property?
 	 * @param propertyName the name of the property we're interested in
 	 * @return whether there is a property value for this property
@@ -93,6 +97,7 @@ public interface PropertyValues extends Iterable<PropertyValue> {
 	boolean contains(String propertyName);
 
 	/**
+	 * 这个 PropertyValues 不包括任何 PropertyValue
 	 * Does this holder not contain any PropertyValue objects at all?
 	 */
 	boolean isEmpty();

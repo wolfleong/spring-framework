@@ -36,6 +36,9 @@ import org.springframework.lang.Nullable;
  */
 public class BeanComponentDefinition extends BeanDefinitionHolder implements ComponentDefinition {
 
+	/**
+	 * BeanDefinition 内部的 BeanDefinition, 按源码来看, 在 <property></property> 中定义的 <bean></bean> 才算
+	 */
 	private BeanDefinition[] innerBeanDefinitions;
 
 	private BeanReference[] beanReferences;

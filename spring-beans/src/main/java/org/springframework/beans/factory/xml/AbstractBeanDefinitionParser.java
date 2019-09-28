@@ -95,11 +95,14 @@ public abstract class AbstractBeanDefinitionParser implements BeanDefinitionPars
 					//创建 BeanComponentDefinition
 					BeanComponentDefinition componentDefinition = new BeanComponentDefinition(holder);
 					postProcessComponentDefinition(componentDefinition);
+					//注册 BeanDefinition 组件
 					parserContext.registerComponent(componentDefinition);
 				}
 			}
 			catch (BeanDefinitionStoreException ex) {
+				//获取异常信息
 				String msg = ex.getMessage();
+				//处理错误信息
 				parserContext.getReaderContext().error((msg != null ? msg : ex.toString()), element);
 				return null;
 			}

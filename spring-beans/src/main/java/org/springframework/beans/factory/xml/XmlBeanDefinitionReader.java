@@ -106,6 +106,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	/** Constants instance for this class. */
 	private static final Constants constants = new Constants(XmlBeanDefinitionReader.class);
 
+	/**
+	 * 验证模式
+	 */
 	private int validationMode = VALIDATION_AUTO;
 
 	private boolean namespaceAware = false;
@@ -116,25 +119,47 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	private Class<? extends BeanDefinitionDocumentReader> documentReaderClass =
 			DefaultBeanDefinitionDocumentReader.class;
 
+	/**
+	 * 外部异常处理器, 主要解析过程中发生异常后, 可以做一些回调用处理
+	 */
 	private ProblemReporter problemReporter = new FailFastProblemReporter();
 
+	/**
+	 * 解析过程中, 事件回调通知, 也就是事件监听器
+	 * - 默认是不做任何处理
+	 */
 	private ReaderEventListener eventListener = new EmptyReaderEventListener();
 
 	/**
-	 * SourceExtractor 默认是 NullSourceExtractor
+	 * SourceExtractor 默认是 NullSourceExtractor, 也就是所有返回的 source 对象都是 null
 	 */
 	private SourceExtractor sourceExtractor = new NullSourceExtractor();
 
+	/**
+	 * NamespaceHandler 解析器, 主要用于根据命名空间来解析出对应的 NamespaceHandler
+	 */
 	@Nullable
 	private NamespaceHandlerResolver namespaceHandlerResolver;
 
+	/**
+	 * Document 加载器
+	 */
 	private DocumentLoader documentLoader = new DefaultDocumentLoader();
 
+	/**
+	 * 主要用于自定义获取本地校验文件, 不用走网络, 默认是走网络
+	 */
 	@Nullable
 	private EntityResolver entityResolver;
 
+	/**
+	 * Xml 解析的错误处理器, 默认实现为 SimpleSaxErrorHandler
+	 */
 	private ErrorHandler errorHandler = new SimpleSaxErrorHandler(logger);
 
+	/**
+	 * XML 验证模式探测器
+	 */
 	private final XmlValidationModeDetector validationModeDetector = new XmlValidationModeDetector();
 
 	/**
@@ -460,7 +485,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	}
 
 	/**
-	 * 在创建 Document 时, 需要知道解
+	 * 在创建 Document 时, 需要知道 xms 的校验模式
 	 * Actually load the specified document using the configured DocumentLoader.
 	 * @param inputSource the SAX InputSource to read from
 	 * @param resource the resource descriptor for the XML file

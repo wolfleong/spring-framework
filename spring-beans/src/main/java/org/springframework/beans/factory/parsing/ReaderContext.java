@@ -20,6 +20,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.lang.Nullable;
 
 /**
+ * 通过 bean 定义读取过程传递的上下文，封装所有相关配置和状态。
  * Context that gets passed along a bean definition reading process,
  * encapsulating all relevant configuration as well as state.
  *
@@ -29,12 +30,24 @@ import org.springframework.lang.Nullable;
  */
 public class ReaderContext {
 
+	/**
+	 * xml 文件资源
+	 */
 	private final Resource resource;
 
+	/**
+	 * 外部异常处理器
+	 */
 	private final ProblemReporter problemReporter;
 
+	/**
+	 * 解析过程中的一些事件回调
+	 */
 	private final ReaderEventListener eventListener;
 
+	/**
+	 * 数据源控制接口
+	 */
 	private final SourceExtractor sourceExtractor;
 
 
@@ -62,6 +75,7 @@ public class ReaderContext {
 	// Errors and warnings
 
 	/**
+	 * 处理致命的错误
 	 * Raise a fatal error.
 	 */
 	public void fatal(String message, @Nullable Object source) {
@@ -152,6 +166,7 @@ public class ReaderContext {
 	// Explicit parse events
 
 	/**
+	 * 通知, 初始化默认值完成事件
 	 * Fire an defaults-registered event.
 	 */
 	public void fireDefaultsRegistered(DefaultsDefinition defaultsDefinition) {
@@ -159,6 +174,7 @@ public class ReaderContext {
 	}
 
 	/**
+	 * 通知组件注册完成事件
 	 * Fire an component-registered event.
 	 */
 	public void fireComponentRegistered(ComponentDefinition componentDefinition) {
@@ -166,6 +182,7 @@ public class ReaderContext {
 	}
 
 	/**
+	 * 通知, 注册了 BeanDefinition 别名的事件
 	 * Fire an alias-registered event.
 	 */
 	public void fireAliasRegistered(String beanName, String alias, @Nullable Object source) {
@@ -180,6 +197,7 @@ public class ReaderContext {
 	}
 
 	/**
+	 * 加载 <import></import> 资源完成事件
 	 * Fire an import-processed event.
 	 */
 	public void fireImportProcessed(String importedResource, Resource[] actualResources, @Nullable Object source) {
@@ -197,6 +215,7 @@ public class ReaderContext {
 	}
 
 	/**
+	 * 用 SourceExtractor 处理数据源对象
 	 * Call the source extractor for the given source object.
 	 * @param sourceCandidate the original source object
 	 * @return the source object to store, or {@code null} for none.

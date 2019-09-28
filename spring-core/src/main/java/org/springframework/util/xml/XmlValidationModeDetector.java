@@ -26,7 +26,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
- * XML 验证模式探测器
+ * XML 验证模式探测器, 主要用于获取 xml 文件的校验类型, 主要判断是不是 dtd , 如果不是则为 xsd
  * 注意当遇到下面的情况是处理不了的(注释弄成多行):
  * <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "https://www.springframework.org/dtd/spring-beans-2.0.dtd"><!-- trailing
  * comment -->
