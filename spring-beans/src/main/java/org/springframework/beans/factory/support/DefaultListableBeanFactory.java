@@ -907,11 +907,14 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
 
+		//校验两个参数不为空
 		Assert.hasText(beanName, "Bean name must not be empty");
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
+		//如果 beanDefinition 是 AbstractBeanDefinition 类型
 		if (beanDefinition instanceof AbstractBeanDefinition) {
 			try {
+				//强转 AbstractBeanDefinition 并校验
 				((AbstractBeanDefinition) beanDefinition).validate();
 			}
 			catch (BeanDefinitionValidationException ex) {
@@ -920,11 +923,15 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		//从缓存中根据 beanName 获到 BeanDefinition
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
+		//如果不为空, 则表明已经存在
 		if (existingDefinition != null) {
+			//判断 BeanDefinition 是否允许覆盖
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
 			}
+			//todo wolfleong 不懂这个 role 的作用
 			else if (existingDefinition.getRole() < beanDefinition.getRole()) {
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (logger.isInfoEnabled()) {
@@ -933,6 +940,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							existingDefinition + "] with [" + beanDefinition + "]");
 				}
 			}
+			//覆盖 beanDefinition 与 被覆盖的 beanDefinition 不相同，打印 debug 日志
 			else if (!beanDefinition.equals(existingDefinition)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Overriding bean definition for bean '" + beanName +
@@ -941,36 +949,53 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				}
 			}
 			else {
+				//打印日志
 				if (logger.isTraceEnabled()) {
 					logger.trace("Overriding bean definition for bean '" + beanName +
 							"' with an equivalent definition: replacing [" + existingDefinition +
 							"] with [" + beanDefinition + "]");
 				}
 			}
+			//覆盖
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
+		//如果 BeanDefinition 不存在
 		else {
+			//检测创建 Bean 阶段是否已经开启，如果开启了则需要对 beanDefinitionMap 进行并发控制
 			if (hasBeanCreationStarted()) {
+				//同步处理
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				synchronized (this.beanDefinitionMap) {
+					//添加到 BeanDefinition 到 beanDefinitionMap 中。
 					this.beanDefinitionMap.put(beanName, beanDefinition);
+					//创建 updatedDefinitions 列表, 长度比原来多 1
 					List<String> updatedDefinitions = new ArrayList<>(this.beanDefinitionNames.size() + 1);
+					//添加原来的 beanName 列表
 					updatedDefinitions.addAll(this.beanDefinitionNames);
+					//添加当前新加的 beanName
 					updatedDefinitions.add(beanName);
+					//覆盖
 					this.beanDefinitionNames = updatedDefinitions;
+					//// 从 manualSingletonNames 移除 beanName
 					removeManualSingletonName(beanName);
 				}
 			}
 			else {
+				// 添加到 BeanDefinition 到 beanDefinitionMap 中。
 				// Still in startup registration phase
 				this.beanDefinitionMap.put(beanName, beanDefinition);
+				// 添加 beanName 到 beanDefinitionNames 中
 				this.beanDefinitionNames.add(beanName);
+				// 从 manualSingletonNames 移除 beanName
 				removeManualSingletonName(beanName);
 			}
 			this.frozenBeanDefinitionNames = null;
 		}
 
+		//如果 existingDefinition 不为 null 或单例 bean 集合中存在该 beanName
 		if (existingDefinition != null || containsSingleton(beanName)) {
+			//重新设置 beanName 对应的缓存
+			//todo wolfleong 不懂为什么要这么处理
 			resetBeanDefinition(beanName);
 		}
 	}
@@ -1071,6 +1096,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		clearByTypeCache();
 	}
 
+	/**
+	 * 删除 manualSingletonNames 中存在 beanName
+	 */
 	private void removeManualSingletonName(String beanName) {
 		updateManualSingletonNames(set -> set.remove(beanName), set -> set.contains(beanName));
 	}
@@ -1082,19 +1110,26 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * (if this condition does not apply, the action can be skipped)
 	 */
 	private void updateManualSingletonNames(Consumer<Set<String>> action, Predicate<Set<String>> condition) {
+		//如果 创建 Bean 阶段是否已经开启
 		if (hasBeanCreationStarted()) {
+			//同步处理
 			// Cannot modify startup-time collection elements anymore (for stable iteration)
 			synchronized (this.beanDefinitionMap) {
+				//manualSingletonNames 是否包括这个 beanName
 				if (condition.test(this.manualSingletonNames)) {
+					//复制一个新的 Set , 在这基础上处理 beanName
 					Set<String> updatedSingletons = new LinkedHashSet<>(this.manualSingletonNames);
 					action.accept(updatedSingletons);
+					//处理完后重新赋值
 					this.manualSingletonNames = updatedSingletons;
 				}
 			}
 		}
 		else {
+			//判断(判断 beanName 是否存在)
 			// Still in startup registration phase
 			if (condition.test(this.manualSingletonNames)) {
+				//如果存在, 则操作
 				action.accept(this.manualSingletonNames);
 			}
 		}

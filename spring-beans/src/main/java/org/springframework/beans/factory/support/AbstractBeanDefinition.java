@@ -263,7 +263,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	private boolean synthetic = false;
 
 	/**
-	 * 角色信息
+	 * 角色信息 todo wolfleong 这个有什么用
 	 */
 	private int role = BeanDefinition.ROLE_APPLICATION;
 
@@ -372,54 +372,80 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * </ul>
 	 */
 	public void overrideFrom(BeanDefinition other) {
+		//复盖 beanClassName
 		if (StringUtils.hasLength(other.getBeanClassName())) {
 			setBeanClassName(other.getBeanClassName());
 		}
+		//复盖 scope
 		if (StringUtils.hasLength(other.getScope())) {
 			setScope(other.getScope());
 		}
+		//设置是否抽象
 		setAbstract(other.isAbstract());
+		//复盖 factoryBeanName
 		if (StringUtils.hasLength(other.getFactoryBeanName())) {
 			setFactoryBeanName(other.getFactoryBeanName());
 		}
+		//复盖 FactoryMethodName
 		if (StringUtils.hasLength(other.getFactoryMethodName())) {
 			setFactoryMethodName(other.getFactoryMethodName());
 		}
+		//设置 role
 		setRole(other.getRole());
+		//设置 source
 		setSource(other.getSource());
+		//拷贝属性
 		copyAttributesFrom(other);
 
+		//如果 other 是 AbstractBeanDefinition 类型
 		if (other instanceof AbstractBeanDefinition) {
+			//强转
 			AbstractBeanDefinition otherAbd = (AbstractBeanDefinition) other;
+			//复盖 beanClass
 			if (otherAbd.hasBeanClass()) {
 				setBeanClass(otherAbd.getBeanClass());
 			}
+			//复盖构造参数
 			if (otherAbd.hasConstructorArgumentValues()) {
 				getConstructorArgumentValues().addArgumentValues(other.getConstructorArgumentValues());
 			}
+			//复盖 propertyValue
 			if (otherAbd.hasPropertyValues()) {
 				getPropertyValues().addPropertyValues(other.getPropertyValues());
 			}
+			//复盖 methodOverrides
 			if (otherAbd.hasMethodOverrides()) {
 				getMethodOverrides().addOverrides(otherAbd.getMethodOverrides());
 			}
+			//复盖 lazyInit
 			Boolean lazyInit = otherAbd.getLazyInit();
 			if (lazyInit != null) {
 				setLazyInit(lazyInit);
 			}
+			// autowireMode
 			setAutowireMode(otherAbd.getAutowireMode());
+			// dependencyCheck
 			setDependencyCheck(otherAbd.getDependencyCheck());
+			// dependsOn
 			setDependsOn(otherAbd.getDependsOn());
+			// autowireCandidate
 			setAutowireCandidate(otherAbd.isAutowireCandidate());
+			// primary
 			setPrimary(otherAbd.isPrimary());
+			//复制 qualifier
 			copyQualifiersFrom(otherAbd);
+			//设置 instanceSupplier
 			setInstanceSupplier(otherAbd.getInstanceSupplier());
+			//设置 nobPublcAccessAllowed
 			setNonPublicAccessAllowed(otherAbd.isNonPublicAccessAllowed());
+			//设置 lenientConstructorResolution
 			setLenientConstructorResolution(otherAbd.isLenientConstructorResolution());
+			//覆盖 initMethodName
 			if (otherAbd.getInitMethodName() != null) {
 				setInitMethodName(otherAbd.getInitMethodName());
 				setEnforceInitMethod(otherAbd.isEnforceInitMethod());
 			}
+			//设置 destroyMethodName
 			if (otherAbd.getDestroyMethodName() != null) {
 				setDestroyMethodName(otherAbd.getDestroyMethodName());
 				setEnforceDestroyMethod(otherAbd.isEnforceDestroyMethod());
@@ -992,6 +1018,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
+	 * 判断是否有 MethodOverride
 	 * Return if there are method overrides defined for this bean.
 	 * @since 5.0.2
 	 */
@@ -1179,6 +1206,8 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
 	public void validate() throws BeanDefinitionValidationException {
+		//如果 methodOverrides 和工厂方法同时存在, 则报异常
+		// 我觉得原因应该是: 工厂方法生成的实例, 没办法做代理, 因为 methodOverrides 应该是用代理实现的
 		if (hasMethodOverrides() && getFactoryMethodName() != null) {
 			throw new BeanDefinitionValidationException(
 					"Cannot combine static factory method with method overrides: " +
@@ -1186,7 +1215,9 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 		}
 
 		//如果有 beanClass
+		//只有有 beanClass 才能用反射去统计方法个数
 		if (hasBeanClass()) {
+			//校验 MethodOverride
 			prepareMethodOverrides();
 		}
 	}
@@ -1197,10 +1228,14 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
 	public void prepareMethodOverrides() throws BeanDefinitionValidationException {
+		//判断是否有 MethodOverrides
 		// Check that lookup methods exists.
 		if (hasMethodOverrides()) {
+			//获取 MethodOverride 列表
 			Set<MethodOverride> overrides = getMethodOverrides().getOverrides();
+			//同步处理
 			synchronized (overrides) {
+				//遍历逐个校验
 				for (MethodOverride mo : overrides) {
 					prepareMethodOverride(mo);
 				}
@@ -1209,6 +1244,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	}
 
 	/**
+	 * 校验 MethodOverride 是否存在, 或者是否存在多个
 	 * Validate and prepare the given method override.
 	 * Checks for existence of a method with the specified name,
 	 * marking it as not overloaded if none found.
@@ -1216,13 +1252,17 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 * @throws BeanDefinitionValidationException in case of validation failure
 	 */
 	protected void prepareMethodOverride(MethodOverride mo) throws BeanDefinitionValidationException {
+		//根据方法名统计方法的个数
 		int count = ClassUtils.getMethodCountForName(getBeanClass(), mo.getMethodName());
+		//如果为 0, 则表示这方法不存在, 报错
 		if (count == 0) {
 			throw new BeanDefinitionValidationException(
 					"Invalid method override: no method with name '" + mo.getMethodName() +
 					"' on class [" + getBeanClassName() + "]");
 		}
+		//如果 count 为 1
 		else if (count == 1) {
+			//标记未重载
 			// Mark override as not overloaded, to avoid the overhead of arg type checking.
 			mo.setOverloaded(false);
 		}

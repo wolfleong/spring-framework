@@ -53,6 +53,7 @@ public abstract class BeanFactoryUtils {
 	public static final String GENERATED_BEAN_NAME_SEPARATOR = "#";
 
 	/**
+	 * 缓存带 & 前缀名称与真正的 beanName 的关系映射, 如: &person -> person
 	 * Cache from name with factory bean prefix to stripped name without dereference.
 	 * @since 5.1
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
@@ -61,6 +62,7 @@ public abstract class BeanFactoryUtils {
 
 
 	/**
+	 * 判断是否工厂类引用( name 以 & 开头)
 	 * Return whether the given name is a factory dereference
 	 * (beginning with the factory dereference prefix).
 	 * @param name the name of the bean
@@ -72,6 +74,8 @@ public abstract class BeanFactoryUtils {
 	}
 
 	/**
+	 * 获取真正的 BeanName, 主要处理的情况是 & 开头的
+	 * - 要获取 获取 ProxyFactoryBean 本身 的实例, 获取方式如: &xxx
 	 * Return the actual bean name, stripping out the factory dereference
 	 * prefix (if any, also stripping repeated factory prefixes if found).
 	 * @param name the name of the bean
@@ -80,13 +84,17 @@ public abstract class BeanFactoryUtils {
 	 */
 	public static String transformedBeanName(String name) {
 		Assert.notNull(name, "'name' must not be null");
+		//如果不是以 & 开头的, 则表明不是获取 ProxyFactoryBean 本身
 		if (!name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX)) {
 			return name;
 		}
+		//获取真正的 BeanName , 并且添加到缓存中
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
 			do {
+				//截取 & 前缀后面的内容
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());
 			}
+			//如果有 & 开头的, 继续截取
 			while (beanName.startsWith(BeanFactory.FACTORY_BEAN_PREFIX));
 			return beanName;
 		});

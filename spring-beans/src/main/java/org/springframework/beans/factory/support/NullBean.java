@@ -20,6 +20,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.lang.Nullable;
 
 /**
+ * 代表一个空的 bean 实例
  * Internal representation of a null bean instance, e.g. for a {@code null} value
  * returned from {@link FactoryBean#getObject()} or from a factory method.
  *
