@@ -244,23 +244,33 @@ public abstract class ClassUtils {
 	public static Class<?> forName(String name, @Nullable ClassLoader classLoader)
 			throws ClassNotFoundException, LinkageError {
 
+		//类名称不能为 null
 		Assert.notNull(name, "Name must not be null");
 
+		//解析基本类型
 		Class<?> clazz = resolvePrimitiveClassName(name);
+		//如果为 null
 		if (clazz == null) {
+			//从缓存中拿
 			clazz = commonClassCache.get(name);
 		}
+		//如果解析的类型不为 null, 则直接返回
 		if (clazz != null) {
 			return clazz;
 		}
 
+		//如果是有 [] 结尾的
 		// "java.lang.String[]" style arrays
 		if (name.endsWith(ARRAY_SUFFIX)) {
+			//获取 [] 前面的内容
 			String elementClassName = name.substring(0, name.length() - ARRAY_SUFFIX.length());
+			//加载当前数组的原始类
 			Class<?> elementClass = forName(elementClassName, classLoader);
+			//创建当前数组原始类的数组, 并获取 class
 			return Array.newInstance(elementClass, 0).getClass();
 		}
 
+		//另一种数组
 		// "[Ljava.lang.String;" style arrays
 		if (name.startsWith(NON_PRIMITIVE_ARRAY_PREFIX) && name.endsWith(";")) {
 			String elementName = name.substring(NON_PRIMITIVE_ARRAY_PREFIX.length(), name.length() - 1);
@@ -268,6 +278,7 @@ public abstract class ClassUtils {
 			return Array.newInstance(elementClass, 0).getClass();
 		}
 
+		//再另一种数组
 		// "[[I" or "[[Ljava.lang.String;" style arrays
 		if (name.startsWith(INTERNAL_ARRAY_PREFIX)) {
 			String elementName = name.substring(INTERNAL_ARRAY_PREFIX.length());
@@ -276,10 +287,13 @@ public abstract class ClassUtils {
 		}
 
 		ClassLoader clToUse = classLoader;
+		//如果没有 ClassLoader
 		if (clToUse == null) {
+			//获取默认的 ClassLoader
 			clToUse = getDefaultClassLoader();
 		}
 		try {
+			//直接加载
 			return Class.forName(name, false, clToUse);
 		}
 		catch (ClassNotFoundException ex) {
@@ -447,6 +461,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 解析当前 name 是不是基本类型
 	 * Resolve the given class name as primitive class, if appropriate,
 	 * according to the JVM's naming rules for primitive classes.
 	 * <p>Also supports the JVM's internal class names for primitive arrays.
@@ -459,9 +474,11 @@ public abstract class ClassUtils {
 	@Nullable
 	public static Class<?> resolvePrimitiveClassName(@Nullable String name) {
 		Class<?> result = null;
+		//如果名称小于等于 8
 		// Most class names will be quite long, considering that they
 		// SHOULD sit in a package, so a length check is worthwhile.
 		if (name != null && name.length() <= 8) {
+			//获取基本类型, 如果有, 则直接返回
 			// Could be a primitive - likely.
 			result = primitiveTypeNameMap.get(name);
 		}

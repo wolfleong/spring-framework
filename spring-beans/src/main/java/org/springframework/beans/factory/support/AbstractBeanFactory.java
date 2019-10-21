@@ -1604,19 +1604,26 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		//获取 beanClassLoader
 		ClassLoader beanClassLoader = getBeanClassLoader();
 		ClassLoader dynamicLoader = beanClassLoader;
-		//是否是解析过的 className
+		//是否是解析过的 className , 或者有临时加载器
 		boolean freshResolve = false;
 
 		//typesToMatch 不为空
 		if (!ObjectUtils.isEmpty(typesToMatch)) {
 			// When just doing type checks (i.e. not creating an actual instance yet),
 			// use the specified temporary class loader (e.g. in a weaving scenario).
+			//获取临时的加载器
 			ClassLoader tempClassLoader = getTempClassLoader();
+			//临时加载器不为 null
 			if (tempClassLoader != null) {
+				//复盖 dynamicLoader
 				dynamicLoader = tempClassLoader;
+				//标记刷新
 				freshResolve = true;
+				//如果临时加载器为 DecoratingClassLoader
 				if (tempClassLoader instanceof DecoratingClassLoader) {
+					//强转
 					DecoratingClassLoader dcl = (DecoratingClassLoader) tempClassLoader;
+					//迭代排除 typeToMatch
 					for (Class<?> typeToMatch : typesToMatch) {
 						dcl.excludeClass(typeToMatch.getName());
 					}
@@ -1649,12 +1656,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					throw new IllegalStateException("Invalid class name expression result: " + evaluated);
 				}
 			}
-			//如果是
+			//如果 freshResolve 为 true
 			if (freshResolve) {
 				// When resolving against a temporary class loader, exit early in order
 				// to avoid storing the resolved Class in the bean definition.
+				// dynamicLoader 不为 null
 				if (dynamicLoader != null) {
 					try {
+						//加载对应的类
 						return dynamicLoader.loadClass(className);
 					}
 					catch (ClassNotFoundException ex) {
@@ -1663,6 +1672,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 						}
 					}
 				}
+				//加载 class
 				return ClassUtils.forName(className, dynamicLoader);
 			}
 		}
