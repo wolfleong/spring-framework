@@ -555,12 +555,17 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	 */
 	@Nullable
 	public Class<?> resolveBeanClass(@Nullable ClassLoader classLoader) throws ClassNotFoundException {
+		//获取 beanClassName
 		String className = getBeanClassName();
+		//如果 className == null, 则直接返回 null
 		if (className == null) {
 			return null;
 		}
+		//加载类字符串
 		Class<?> resolvedClass = ClassUtils.forName(className, classLoader);
+		//设置 beanClass
 		this.beanClass = resolvedClass;
+		//返回结果
 		return resolvedClass;
 	}
 
@@ -1262,7 +1267,7 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 		}
 		//如果 count 为 1
 		else if (count == 1) {
-			//标记未重载
+			//标记未重载, 这里算是小优化, 后续调用方法时, 如果发现 overloaded 如果是 false , 则不用进行方法参数校验
 			// Mark override as not overloaded, to avoid the overhead of arg type checking.
 			mo.setOverloaded(false);
 		}
