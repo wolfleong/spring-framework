@@ -138,6 +138,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 			@Nullable Object factoryBean, final Method factoryMethod, Object... args) {
 
 		try {
+			//设置方法可访问
 			if (System.getSecurityManager() != null) {
 				AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
 					ReflectionUtils.makeAccessible(factoryMethod);
@@ -148,20 +149,30 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 				ReflectionUtils.makeAccessible(factoryMethod);
 			}
 
+			//获取原 Method 对象
 			Method priorInvokedFactoryMethod = currentlyInvokedFactoryMethod.get();
 			try {
+				//设置新的 Method 对象到 currentlyInvokedFactoryMethod
 				currentlyInvokedFactoryMethod.set(factoryMethod);
+				//执行方法获取对象
 				Object result = factoryMethod.invoke(factoryBean, args);
+				//如果对象为 null
 				if (result == null) {
+					//创建 NullBean 对象
 					result = new NullBean();
 				}
+				//返回创建的对象
 				return result;
 			}
 			finally {
+				//如果原对象不为 null
 				if (priorInvokedFactoryMethod != null) {
+					//重新设置原 Method
 					currentlyInvokedFactoryMethod.set(priorInvokedFactoryMethod);
 				}
+				//如果原 Method 为 null
 				else {
+					//删除当前的
 					currentlyInvokedFactoryMethod.remove();
 				}
 			}

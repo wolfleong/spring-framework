@@ -1215,7 +1215,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Make sure bean class is actually resolved at this point.
 		Class<?> beanClass = resolveBeanClass(mbd, beanName);
 
-		//如果 beanClass 且 beanClass 非公开的且不允许访问非公开方法,  则报错
+		//如果 beanClass 不为 null 且 beanClass 非公开的且不允许访问非公开方法,  则报错
 		if (beanClass != null && !Modifier.isPublic(beanClass.getModifiers()) && !mbd.isNonPublicAccessAllowed()) {
 			throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 					"Bean class isn't public, and non-public access not allowed: " + beanClass.getName());

@@ -124,6 +124,7 @@ public class MethodParameter {
 	public MethodParameter(Method method, int parameterIndex, int nestingLevel) {
 		Assert.notNull(method, "Method must not be null");
 		this.executable = method;
+		//校验参数位置
 		this.parameterIndex = validateIndex(method, parameterIndex);
 		this.nestingLevel = nestingLevel;
 	}
@@ -851,8 +852,13 @@ public class MethodParameter {
 				"] does not match any parameter in the declaring executable");
 	}
 
+	/**
+	 * 校验参数位置是否正确
+	 */
 	private static int validateIndex(Executable executable, int parameterIndex) {
+		//获取参数个数
 		int count = executable.getParameterCount();
+		//参数位置必须大于等于 0 且小于个数
 		Assert.isTrue(parameterIndex >= -1 && parameterIndex < count,
 				() -> "Parameter index needs to be between -1 and " + (count - 1));
 		return parameterIndex;
