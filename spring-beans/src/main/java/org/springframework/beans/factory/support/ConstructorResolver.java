@@ -370,6 +370,7 @@ class ConstructorResolver {
 	}
 
 	/**
+	 * 用工厂方法初始化对象
 	 * Instantiate the bean using a named factory method. The method may be static, if the
 	 * bean definition parameter specifies a class, rather than a "factory-bean", or
 	 * an instance variable on a factory object itself configured using Dependency Injection.
@@ -562,7 +563,7 @@ class ConstructorResolver {
 					ConstructorArgumentValues cargs = mbd.getConstructorArgumentValues();
 					//创建 ConstructorArgumentValues 保存已经解析好的参数
 					resolvedValues = new ConstructorArgumentValues();
-					//解析构造函数的参数
+					//解析配置的构造函数参数, 根据配置做一些前置转换
 					minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 				}
 				else {
@@ -578,7 +579,7 @@ class ConstructorResolver {
 				//获取方法的参数类型
 				Class<?>[] paramTypes = candidate.getParameterTypes();
 
-				//如果构造参数类型个数大于或等于参数个数
+				//如果构造参数类型个数大于或等于参数个数, 为什么可以大于呢, 因为有些参数是可以注入的
 				if (paramTypes.length >= minNrOfArgs) {
 					//方法参数集合
 					ArgumentsHolder argsHolder;
@@ -744,7 +745,7 @@ class ConstructorResolver {
 	}
 
 	/**
-	 * 解析构造参数, 返回构造参数个数
+	 * 解析配置的构造参数, 就是根据配置的类型做一些转换, 返回构造参数个数
 	 * Resolve the constructor arguments for this bean into the resolvedValues object.
 	 * This may involve looking up other beans.
 	 * <p>This method is also used for handling invocations of static factory methods.
@@ -826,6 +827,7 @@ class ConstructorResolver {
 	}
 
 	/**
+	 * 根据构造方法参数类型和配置参数来组装构造方法所需要的参数
 	 * Create an array of arguments to invoke a constructor or factory method,
 	 * given the resolved constructor argument values.
 	 */
@@ -840,7 +842,9 @@ class ConstructorResolver {
 
 		//用参数类型个数创建 ArgumentsHolder
 		ArgumentsHolder args = new ArgumentsHolder(paramTypes.length);
+		//记录已经使用过的 ValueHolder
 		Set<ConstructorArgumentValues.ValueHolder> usedValueHolders = new HashSet<>(paramTypes.length);
+		//记录需要被依赖注入的 beanName, 也就是构造器注入
 		Set<String> autowiredBeanNames = new LinkedHashSet<>(4);
 
 		//遍历参数类型
@@ -898,6 +902,7 @@ class ConstructorResolver {
 					}
 					//获取 Source 对象
 					Object sourceHolder = valueHolder.getSource();
+					//todo wolfleong 不懂为什么要这么处理, 有什么情况下 source 不是 ValueHolder 类型的吗
 					//如果是 ValueHolder
 					if (sourceHolder instanceof ConstructorArgumentValues.ValueHolder) {
 						//获取值
@@ -959,7 +964,7 @@ class ConstructorResolver {
 	}
 
 	/**
-	 * 按执行器的参数类型将参数进行必要的转换
+	 * 将缓存中已经整理好的预备参数进行解析并且转成构造方法参数对应的类型
 	 * Resolve the prepared arguments stored in the given bean definition.
 	 */
 	private Object[] resolvePreparedArguments(String beanName, RootBeanDefinition mbd, BeanWrapper bw,
@@ -1107,27 +1112,39 @@ class ConstructorResolver {
 			this.preparedArguments = args;
 		}
 
+		/**
+		 * 获取根据给定的方法参数类型, 计算参数与方法参数类型的匹配度
+		 */
 		public int getTypeDifferenceWeight(Class<?>[] paramTypes) {
 			// If valid arguments found, determine type difference weight.
 			// Try type difference weight on both the converted arguments and
 			// the raw arguments. If the raw weight is better, use it.
 			// Decrease raw weight by 1024 to prefer it over equal converted weight.
+			//计算转换后的参数的匹配度
 			int typeDiffWeight = MethodInvoker.getTypeDifferenceWeight(paramTypes, this.arguments);
+			//计算原参数的匹配度, 为什么要减 1024 呢, 主要是同样匹配上的情况下, 为了更偏向于原参数
 			int rawTypeDiffWeight = MethodInvoker.getTypeDifferenceWeight(paramTypes, this.rawArguments) - 1024;
+			//最两个匹配度最小的
 			return Math.min(rawTypeDiffWeight, typeDiffWeight);
 		}
 
+		/**
+		 * 获取不严格的匹配度
+		 */
 		public int getAssignabilityWeight(Class<?>[] paramTypes) {
+			//只要已经解析的参数中有一个不匹配方法参数类型的, 直接返回 Integer 最大值
 			for (int i = 0; i < paramTypes.length; i++) {
 				if (!ClassUtils.isAssignableValue(paramTypes[i], this.arguments[i])) {
 					return Integer.MAX_VALUE;
 				}
 			}
+			//只要原参数中有一个不匹配方法参数类型的, 返回 Integer.MAX_VALUE - 512
 			for (int i = 0; i < paramTypes.length; i++) {
 				if (!ClassUtils.isAssignableValue(paramTypes[i], this.rawArguments[i])) {
 					return Integer.MAX_VALUE - 512;
 				}
 			}
+			//默认返回
 			return Integer.MAX_VALUE - 1024;
 		}
 
