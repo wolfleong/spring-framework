@@ -109,6 +109,7 @@ class ConstructorResolver {
 
 
 	/**
+	 * 用带参数的构造器初始化实例
 	 * "autowire constructor" (with constructor arguments by type) behavior.
 	 * Also applied if explicit constructor argument values are specified,
 	 * matching all remaining arguments with beans from the bean factory.
@@ -125,33 +126,50 @@ class ConstructorResolver {
 	public BeanWrapper autowireConstructor(String beanName, RootBeanDefinition mbd,
 			@Nullable Constructor<?>[] chosenCtors, @Nullable Object[] explicitArgs) {
 
+		//创建 BeanWrapperImpl
 		BeanWrapperImpl bw = new BeanWrapperImpl();
+		//完成初始化
 		this.beanFactory.initBeanWrapper(bw);
 
+		//可以使用的构造器
 		Constructor<?> constructorToUse = null;
+		//构造器参数封装
 		ArgumentsHolder argsHolderToUse = null;
+		//可使用的构造器的参数列表
 		Object[] argsToUse = null;
 
+		//如果传入参数不为 null
 		if (explicitArgs != null) {
+			//用传入的参数作为构造器参数
 			argsToUse = explicitArgs;
 		}
 		else {
+			//记录可能未解析完成的构造器参数
 			Object[] argsToResolve = null;
+			//同步锁
 			synchronized (mbd.constructorArgumentLock) {
+				//获取缓存的已经解析的构造器
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
+				//如果缓存的已解析构造器不为 null 且参数已经解析
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
+					//获取缓存中已经解析的参数
 					// Found a cached constructor...
 					argsToUse = mbd.resolvedConstructorArguments;
+					//如果缓存的已经解析的参数为 null
 					if (argsToUse == null) {
+						//则获取缓存的未完全解析的参数
 						argsToResolve = mbd.preparedConstructorArguments;
 					}
 				}
 			}
+			//如果 argsToResolve 不为 null
 			if (argsToResolve != null) {
+				//解析可能未完成解析的参数
 				argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve, true);
 			}
 		}
 
+		//如可使用的构造器为 null 或可使用的参数列表为 null
 		if (constructorToUse == null || argsToUse == null) {
 			// Take specified constructors, if any.
 			Constructor<?>[] candidates = chosenCtors;
