@@ -1123,6 +1123,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 判断是否存在指定类下指定方法名指定参数类型的 Method
 	 * Determine whether the given class has a public method with the given signature.
 	 * <p>Essentially translates {@code NoSuchMethodException} to "false".
 	 * @param clazz the clazz to analyze
@@ -1175,6 +1176,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 在指定类 Clazz 中获取指定方法名指定参数类型的 Method
 	 * Determine whether the given class has a public method with the given signature,
 	 * and return it if available (else return {@code null}).
 	 * <p>In case of any signature specified, only returns the method if there is a

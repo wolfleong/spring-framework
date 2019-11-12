@@ -59,13 +59,20 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
+		//如果没有配置 MethodOverrides
 		// Don't override the class with CGLIB if no overrides.
 		if (!bd.hasMethodOverrides()) {
+			//构造器
 			Constructor<?> constructorToUse;
+			//同步处理
 			synchronized (bd.constructorArgumentLock) {
+				//获取 bd 缓存中有可使用的构造器
 				constructorToUse = (Constructor<?>) bd.resolvedConstructorOrFactoryMethod;
+				//如果缓存中没有
 				if (constructorToUse == null) {
+					//获取配置的 BeanClass
 					final Class<?> clazz = bd.getBeanClass();
+					//如果 BeanClass 是接口, 则报错
 					if (clazz.isInterface()) {
 						throw new BeanInstantiationException(clazz, "Specified class is an interface");
 					}
@@ -75,8 +82,10 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 									(PrivilegedExceptionAction<Constructor<?>>) clazz::getDeclaredConstructor);
 						}
 						else {
+							//获取空参数的构造器
 							constructorToUse = clazz.getDeclaredConstructor();
 						}
+						//缓存起来
 						bd.resolvedConstructorOrFactoryMethod = constructorToUse;
 					}
 					catch (Throwable ex) {
@@ -84,8 +93,10 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					}
 				}
 			}
+			//初始化
 			return BeanUtils.instantiateClass(constructorToUse);
 		}
+		//如果有配置 MethodOverrides 则需要创建动态代理
 		else {
 			// Must generate CGLIB subclass.
 			return instantiateWithMethodInjection(bd, beanName, owner);
@@ -93,6 +104,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	}
 
 	/**
+	 * 创建动态代理实例交给子类来实现
 	 * Subclasses can override this method, which is implemented to throw
 	 * UnsupportedOperationException, if they can instantiate an object with
 	 * the Method Injection specified in the given RootBeanDefinition.
@@ -106,6 +118,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,
 			final Constructor<?> ctor, Object... args) {
 
+		//如果没有配置 MethodOverrides , 则直接初始化
 		if (!bd.hasMethodOverrides()) {
 			if (System.getSecurityManager() != null) {
 				// use own privileged to change accessibility (when security is on)
@@ -114,14 +127,17 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 					return null;
 				});
 			}
+			//根据构造器和参数初始化
 			return BeanUtils.instantiateClass(ctor, args);
 		}
 		else {
+			//如果有配置 MethodOverrides , 创建代理对象
 			return instantiateWithMethodInjection(bd, beanName, owner, ctor, args);
 		}
 	}
 
 	/**
+	 * 创建动态代理实例交给子类来实现
 	 * Subclasses can override this method, which is implemented to throw
 	 * UnsupportedOperationException, if they can instantiate an object with
 	 * the Method Injection specified in the given RootBeanDefinition.
