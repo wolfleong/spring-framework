@@ -42,6 +42,9 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 方法参数的封装, 有两种情况
+ * - 构造函数的参数
+ * - 普通方法的参数
  * Helper class that encapsulates the specification of a method parameter, i.e. a {@link Method}
  * or {@link Constructor} plus a parameter index and a nested type index for a declared generic
  * type. Useful as a specification object to pass along.
@@ -63,14 +66,25 @@ public class MethodParameter {
 
 	private static final Annotation[] EMPTY_ANNOTATION_ARRAY = new Annotation[0];
 
-
+	/**
+	 * 构造方法或普通方法
+	 */
 	private final Executable executable;
 
+	/**
+	 * 指定参数的索引
+	 */
 	private final int parameterIndex;
 
+	/**
+	 * 参数的封装
+	 */
 	@Nullable
 	private volatile Parameter parameter;
 
+	/**
+	 * 嵌套层数
+	 */
 	private int nestingLevel;
 
 	/** Map from Integer level to Integer type index. */
@@ -81,21 +95,39 @@ public class MethodParameter {
 	@Nullable
 	private volatile Class<?> containingClass;
 
+	/**
+	 * 参数类型
+	 */
 	@Nullable
 	private volatile Class<?> parameterType;
 
+	/**
+	 * 参数的泛型类型
+	 */
 	@Nullable
 	private volatile Type genericParameterType;
 
+	/**
+	 * 参数上的注解
+	 */
 	@Nullable
 	private volatile Annotation[] parameterAnnotations;
 
+	/**
+	 * 参数名称发现器
+	 */
 	@Nullable
 	private volatile ParameterNameDiscoverer parameterNameDiscoverer;
 
+	/**
+	 * 缓存的参数名
+	 */
 	@Nullable
 	private volatile String parameterName;
 
+	/**
+	 * 嵌套方法参数
+	 */
 	@Nullable
 	private volatile MethodParameter nestedMethodParameter;
 
@@ -191,6 +223,7 @@ public class MethodParameter {
 
 
 	/**
+	 * 获取方法, 如果没有则返回 null
 	 * Return the wrapped Method, if any.
 	 * <p>Note: Either Method or Constructor is available.
 	 * @return the Method, or {@code null} if none
@@ -201,6 +234,7 @@ public class MethodParameter {
 	}
 
 	/**
+	 * 返回构造器, 如果没有则返回 null
 	 * Return the wrapped Constructor, if any.
 	 * <p>Note: Either Method or Constructor is available.
 	 * @return the Constructor, or {@code null} if none
@@ -245,18 +279,24 @@ public class MethodParameter {
 	}
 
 	/**
+	 * 获取方法参数
 	 * Return the {@link Parameter} descriptor for method/constructor parameter.
 	 * @since 5.0
 	 */
 	public Parameter getParameter() {
+		//如果参数索引小于 0 , 则直接报错
 		if (this.parameterIndex < 0) {
 			throw new IllegalStateException("Cannot retrieve Parameter descriptor for method return type");
 		}
 		Parameter parameter = this.parameter;
+		//如果缓存的参数为 null
 		if (parameter == null) {
+			//从执行器中获取参数
 			parameter = getExecutable().getParameters()[this.parameterIndex];
+			//缓存
 			this.parameter = parameter;
 		}
+		//直接返回
 		return parameter;
 	}
 
@@ -395,6 +435,7 @@ public class MethodParameter {
 	}
 
 	/**
+	 * 判断是否可选
 	 * Return whether this method indicates a parameter which is not required:
 	 * either in the form of Java 8's {@link java.util.Optional}, any variant
 	 * of a parameter-level {@code Nullable} annotation (such as from JSR-305
@@ -403,6 +444,7 @@ public class MethodParameter {
 	 * @since 4.3
 	 */
 	public boolean isOptional() {
+		//类型是 Optional 或者有 @Nullable 注解
 		return (getParameterType() == Optional.class || hasNullableAnnotation() ||
 				(KotlinDetector.isKotlinReflectPresent() &&
 						KotlinDetector.isKotlinType(getContainingClass()) &&

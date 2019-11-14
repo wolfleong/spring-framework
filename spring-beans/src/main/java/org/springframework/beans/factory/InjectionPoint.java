@@ -27,6 +27,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 注入点, 主要描述三种情况
+ * - 构造函数的某个参数和注解
+ * - 成员方法的基本个参数和注解
+ * - 字段信息和注解
  * A simple descriptor for an injection point, pointing to a method/constructor
  * parameter or a field. Exposed by {@link UnsatisfiedDependencyException}.
  * Also available as an argument for factory methods, reacting to the
@@ -39,12 +43,21 @@ import org.springframework.util.ObjectUtils;
  */
 public class InjectionPoint {
 
+	/**
+	 * 包装函数参数, 包括注解
+	 */
 	@Nullable
 	protected MethodParameter methodParameter;
 
+	/**
+	 * 字段
+	 */
 	@Nullable
 	protected Field field;
 
+	/**
+	 * 字段上的注解
+	 */
 	@Nullable
 	private volatile Annotation[] fieldAnnotations;
 
@@ -117,23 +130,32 @@ public class InjectionPoint {
 	}
 
 	/**
+	 * 获取注入点的注解
 	 * Obtain the annotations associated with the wrapped field or method/constructor parameter.
 	 */
 	public Annotation[] getAnnotations() {
+		//如果包装的字段不为 null
 		if (this.field != null) {
+			//获取缓存的注解
 			Annotation[] fieldAnnotations = this.fieldAnnotations;
+			//如果注解列表为 null
 			if (fieldAnnotations == null) {
+				//获取字段上的注解
 				fieldAnnotations = this.field.getAnnotations();
+				//缓存起来
 				this.fieldAnnotations = fieldAnnotations;
 			}
+			//返回获取的注解
 			return fieldAnnotations;
 		}
 		else {
+			//获取参数上的解注列表
 			return obtainMethodParameter().getParameterAnnotations();
 		}
 	}
 
 	/**
+	 * 根据注解类型获取注解
 	 * Retrieve a field/parameter annotation of the given type, if any.
 	 * @param annotationType the annotation type to retrieve
 	 * @return the annotation instance, or {@code null} if none found
@@ -141,6 +163,7 @@ public class InjectionPoint {
 	 */
 	@Nullable
 	public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+		//如果字段对角 field 不为 null , 则从 field 中获取注解, 否则从包装的参数获取
 		return (this.field != null ? this.field.getAnnotation(annotationType) :
 				obtainMethodParameter().getParameterAnnotation(annotationType));
 	}
@@ -154,6 +177,7 @@ public class InjectionPoint {
 	}
 
 	/**
+	 * 获取成员, 构造器或普通方法或字段
 	 * Returns the wrapped member, containing the injection point.
 	 * @return the Field / Method / Constructor as Member
 	 */

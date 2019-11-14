@@ -135,6 +135,7 @@ abstract class AutowireUtils {
 	}
 
 	/**
+	 * 根据类型解析自动装配的值, 主要是 autowiringValue 有可能是 ObjectFactory
 	 * Resolve the given autowiring value against the given required type,
 	 * e.g. an {@link ObjectFactory} value to its actual object result.
 	 * @param autowiringValue the value to resolve
@@ -142,16 +143,22 @@ abstract class AutowireUtils {
 	 * @return the resolved value
 	 */
 	public static Object resolveAutowiringValue(Object autowiringValue, Class<?> requiredType) {
+		//如果 autowiringValue 是 ObjectFactory 类型且 autowiringValue 不是 requiredType 的实例
 		if (autowiringValue instanceof ObjectFactory && !requiredType.isInstance(autowiringValue)) {
+			//强转
 			ObjectFactory<?> factory = (ObjectFactory<?>) autowiringValue;
+			//如果 requiredType 是接口且 autowiringValue 实现了 Serializable 接口
 			if (autowiringValue instanceof Serializable && requiredType.isInterface()) {
+				//创建接口的代理对象
 				autowiringValue = Proxy.newProxyInstance(requiredType.getClassLoader(),
 						new Class<?>[] {requiredType}, new ObjectFactoryDelegatingInvocationHandler(factory));
 			}
 			else {
+				//普通的 ObjectFactory , 直接通过 getObject() 获取
 				return factory.getObject();
 			}
 		}
+		//返回结果
 		return autowiringValue;
 	}
 

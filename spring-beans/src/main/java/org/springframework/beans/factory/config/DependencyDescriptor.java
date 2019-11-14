@@ -42,6 +42,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 依赖描述器, 主要是增对方法参数, 构造参数或字段
  * Descriptor for a specific dependency that is about to be injected.
  * Wraps a constructor parameter, a method parameter or a field,
  * allowing unified access to their metadata.
@@ -52,31 +53,64 @@ import org.springframework.util.ObjectUtils;
 @SuppressWarnings("serial")
 public class DependencyDescriptor extends InjectionPoint implements Serializable {
 
+	/**
+	 * 声明的类
+	 */
 	private final Class<?> declaringClass;
 
+	/**
+	 * 成员方法的名称, 如果是成员方法的话
+	 */
 	@Nullable
 	private String methodName;
 
+	/**
+	 * 构造器或方法的参数列表
+	 */
 	@Nullable
 	private Class<?>[] parameterTypes;
 
+	/**
+	 * 某个参数的索引
+	 */
 	private int parameterIndex;
 
+	/**
+	 * 字段名, 如果包装的是字段的话
+	 */
 	@Nullable
 	private String fieldName;
 
+	/**
+	 * 依赖是否必要
+	 */
 	private final boolean required;
 
+	/**
+	 * 是否饥饿加载, 延迟加载
+	 */
 	private final boolean eager;
 
+	/**
+	 * 标识所包装依赖的嵌套级别
+	 */
 	private int nestingLevel = 1;
 
+	/**
+	 * 标识所包装依赖的包含者类，通常和声明类是同一个
+	 */
 	@Nullable
 	private Class<?> containingClass;
 
+	/**
+	 * ResolvableType 的缓存
+	 */
 	@Nullable
 	private transient volatile ResolvableType resolvableType;
 
+	/**
+	 * 所包装依赖 TypeDescriptor 的缓存
+	 */
 	@Nullable
 	private transient volatile TypeDescriptor typeDescriptor;
 
@@ -92,6 +126,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	}
 
 	/**
+	 * 通过方法或构造参数创建
 	 * Create a new descriptor for a method or constructor parameter.
 	 * @param methodParameter the MethodParameter to wrap
 	 * @param required whether the dependency is required
@@ -123,6 +158,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	}
 
 	/**
+	 * 通过字段创建
 	 * Create a new descriptor for a field.
 	 * @param field the field to wrap
 	 * @param required whether the dependency is required
@@ -158,6 +194,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 
 
 	/**
+	 * 获取是否必需
 	 * Return whether this dependency is required.
 	 * <p>Optional semantics are derived from Java 8's {@link java.util.Optional},
 	 * any variant of a parameter-level {@code Nullable} annotation (such as from
@@ -165,22 +202,27 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	 * type declaration in Kotlin.
 	 */
 	public boolean isRequired() {
+		//如果 required 为 false , 直接返回
 		if (!this.required) {
 			return false;
 		}
 
+		//如果字段不为 null
 		if (this.field != null) {
+			//字段非可选就是必须
 			return !(this.field.getType() == Optional.class || hasNullableAnnotation() ||
 					(KotlinDetector.isKotlinReflectPresent() &&
 							KotlinDetector.isKotlinType(this.field.getDeclaringClass()) &&
 							KotlinDelegate.isNullable(this.field)));
 		}
 		else {
+			//方法参数非可选, 就是必须
 			return !obtainMethodParameter().isOptional();
 		}
 	}
 
 	/**
+	 * 判断注解中是否有 @Nullable
 	 * Check whether the underlying field is annotated with any variant of a
 	 * {@code Nullable} annotation, e.g. {@code javax.annotation.Nullable} or
 	 * {@code edu.umd.cs.findbugs.annotations.Nullable}.
@@ -379,35 +421,50 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	}
 
 	/**
+	 * 获取依赖类型
 	 * Determine the declared (non-generic) type of the wrapped parameter/field.
 	 * @return the declared type (never {@code null})
 	 */
 	public Class<?> getDependencyType() {
+		//如果字段不为 null
 		if (this.field != null) {
+			//如果嵌套数大于 1
 			if (this.nestingLevel > 1) {
+				//获取字段的泛型类型
 				Type type = this.field.getGenericType();
+				//按嵌套迭代
 				for (int i = 2; i <= this.nestingLevel; i++) {
+					//如果泛型参数类型是 ParameterizedType
 					if (type instanceof ParameterizedType) {
+						//获取参数化泛型的泛型参数列表
 						Type[] args = ((ParameterizedType) type).getActualTypeArguments();
+						//获取最后一个
 						type = args[args.length - 1];
 					}
 				}
+				//如果 type 是 Class , 直接返回
 				if (type instanceof Class) {
 					return (Class<?>) type;
 				}
+				//如果 type 是 ParameterizedType
 				else if (type instanceof ParameterizedType) {
+					//获取泛型参数化的原始类型
 					Type arg = ((ParameterizedType) type).getRawType();
+					//如果是 Class , 则直接返回
 					if (arg instanceof Class) {
 						return (Class<?>) arg;
 					}
 				}
+				//找不到, 则直接返回 Object
 				return Object.class;
 			}
 			else {
+				//如果没有嵌套, 则直接返回字段的类型
 				return this.field.getType();
 			}
 		}
 		else {
+			//如果是方法参数, 则获取方法参数的嵌套类型
 			return obtainMethodParameter().getNestedParameterType();
 		}
 	}

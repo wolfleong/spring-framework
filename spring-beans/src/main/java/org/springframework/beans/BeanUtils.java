@@ -603,6 +603,7 @@ public abstract class BeanUtils {
 	}
 
 	/**
+	 * 判断是否简单属性
 	 * Check if the given type represents a "simple" property: a simple value
 	 * type or an array of simple value types.
 	 * <p>See {@link #isSimpleValueType(Class)} for the definition of <em>simple

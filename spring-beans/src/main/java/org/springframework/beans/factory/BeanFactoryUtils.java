@@ -246,6 +246,8 @@ public abstract class BeanFactoryUtils {
 	}
 
 	/**
+	 * 根据类型获取所有的 beanName 列表, 包含父容器
+	 * - allowEagerInit 是否允许被提前创建
 	 * Get all bean names for the given type, including those defined in ancestor
 	 * factories. Will return unique names in case of overridden bean definitions.
 	 * <p>Does consider objects created by FactoryBeans if the "allowEagerInit"
@@ -256,7 +258,7 @@ public abstract class BeanFactoryUtils {
 	 * of each FactoryBean).
 	 * @param lbf the bean factory
 	 * @param includeNonSingletons whether to include prototype or scoped beans too
-	 * or just singletons (also applies to FactoryBeans)
+	 * or just singletons (also applies to FactoryBeans) 是否包括非单例的 beanName
 	 * @param allowEagerInit whether to initialize <i>lazy-init singletons</i> and
 	 * <i>objects created by FactoryBeans</i> (or by factory methods with a
 	 * "factory-bean" reference) for the type check. Note that FactoryBeans need to be
@@ -270,15 +272,22 @@ public abstract class BeanFactoryUtils {
 			ListableBeanFactory lbf, Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
 
 		Assert.notNull(lbf, "ListableBeanFactory must not be null");
+		//从容器中根据类型获取 beanName 列表
 		String[] result = lbf.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
+		//如果容器是 HierarchicalBeanFactory
 		if (lbf instanceof HierarchicalBeanFactory) {
+			//强转
 			HierarchicalBeanFactory hbf = (HierarchicalBeanFactory) lbf;
+			//如果 hbf 容器是父容器是 ListableBeanFactory 类型
 			if (hbf.getParentBeanFactory() instanceof ListableBeanFactory) {
+				//从父类容器中根据类型获取所有的 BeanName 列表, 相当于递归调用当前方法
 				String[] parentResult = beanNamesForTypeIncludingAncestors(
 						(ListableBeanFactory) hbf.getParentBeanFactory(), type, includeNonSingletons, allowEagerInit);
+				//合并子当前容器和父容器的结果
 				result = mergeNamesWithParent(result, parentResult, hbf);
 			}
 		}
+		//返回查询到的 beanName 列表
 		return result;
 	}
 
@@ -526,6 +535,7 @@ public abstract class BeanFactoryUtils {
 
 
 	/**
+	 * 合并给定的结果 beanName 列表和父容器的 beanName 结果列表
 	 * Merge the given bean names result with the given parent result.
 	 * @param result the local bean name result
 	 * @param parentResult the parent bean name result (possibly empty)
@@ -534,16 +544,22 @@ public abstract class BeanFactoryUtils {
 	 * @since 4.3.15
 	 */
 	private static String[] mergeNamesWithParent(String[] result, String[] parentResult, HierarchicalBeanFactory hbf) {
+		//如果父结果没有值, 直接返回当前 result
 		if (parentResult.length == 0) {
 			return result;
 		}
+		//创建合并后的容器
 		List<String> merged = new ArrayList<>(result.length + parentResult.length);
+		//添加当前的 result
 		merged.addAll(Arrays.asList(result));
+		//遍历 parentResult
 		for (String beanName : parentResult) {
+			//如果 merged 不包括 beanName 且容器 hbf 中不包括本地的 beanName , 则添加
 			if (!merged.contains(beanName) && !hbf.containsLocalBean(beanName)) {
 				merged.add(beanName);
 			}
 		}
+		//列表变数组
 		return StringUtils.toStringArray(merged);
 	}
 
