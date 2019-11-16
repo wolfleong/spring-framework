@@ -536,15 +536,20 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					if (!mbd.isAbstract() && (allowEagerInit ||
 							(mbd.hasBeanClass() || !mbd.isLazyInit() || isAllowEagerClassLoading()) &&
 									!requiresEagerInitForType(mbd.getFactoryBeanName()))) {
+						//判断 beanName 是否是 FactoryBean
 						boolean isFactoryBean = isFactoryBean(beanName, mbd);
 						//装饰的定义
 						BeanDefinitionHolder dbd = mbd.getDecoratedDefinition();
+						//是否匹配
 						boolean matchFound = false;
 						boolean allowFactoryBeanInit = allowEagerInit || containsSingleton(beanName);
-						//装饰的定义不为null, 且
+						//装饰的定义不为null, 且非懒加载
 						boolean isNonLazyDecorated = dbd != null && !mbd.isLazyInit();
+						//如果不是 FactoryBean
 						if (!isFactoryBean) {
+							//包括非单例实例或是单例对象
 							if (includeNonSingletons || isSingleton(beanName, mbd, dbd)) {
+								//判断类型是否匹配
 								matchFound = isTypeMatch(beanName, type, allowFactoryBeanInit);
 							}
 						}
@@ -559,7 +564,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 								matchFound = isTypeMatch(beanName, type, allowFactoryBeanInit);
 							}
 						}
+						//如果匹配的话
 						if (matchFound) {
+							//添加到结果集中
 							result.add(beanName);
 						}
 					}
@@ -761,6 +768,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public boolean isAutowireCandidate(String beanName, DependencyDescriptor descriptor)
 			throws NoSuchBeanDefinitionException {
 
+		//判断 beanName 是否可以被自动注入
 		return isAutowireCandidate(beanName, descriptor, getAutowireCandidateResolver());
 	}
 
@@ -775,24 +783,35 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	protected boolean isAutowireCandidate(String beanName, DependencyDescriptor descriptor, AutowireCandidateResolver resolver)
 			throws NoSuchBeanDefinitionException {
 
+		//获取 bean 定义的名称
 		String beanDefinitionName = BeanFactoryUtils.transformedBeanName(beanName);
+		//beanName 对应的 bean 定义存在
 		if (containsBeanDefinition(beanDefinitionName)) {
+			//调用 isAutowireCandidate 判断
 			return isAutowireCandidate(beanName, getMergedLocalBeanDefinition(beanDefinitionName), descriptor, resolver);
 		}
+		//如果没有 bean 定义, 但存在单例对象
 		else if (containsSingleton(beanName)) {
+			//调用 isAutowireCandidate 判断
 			return isAutowireCandidate(beanName, new RootBeanDefinition(getType(beanName)), descriptor, resolver);
 		}
 
+		//如果上面的都没办法判断, 则获取父容器
 		BeanFactory parent = getParentBeanFactory();
+		//如果父容器是 DefaultListableBeanFactory
 		if (parent instanceof DefaultListableBeanFactory) {
+			//调用父容器来判断是否可以自动注入
 			// No bean definition found in this factory -> delegate to parent.
 			return ((DefaultListableBeanFactory) parent).isAutowireCandidate(beanName, descriptor, resolver);
 		}
+		//如果父容器是 ConfigurableListableBeanFactory
 		else if (parent instanceof ConfigurableListableBeanFactory) {
+			//调用判断
 			// If no DefaultListableBeanFactory, can't pass the resolver along.
 			return ((ConfigurableListableBeanFactory) parent).isAutowireCandidate(beanName, descriptor);
 		}
 		else {
+			//默认是可以自动注入的
 			return true;
 		}
 	}
@@ -809,11 +828,16 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	protected boolean isAutowireCandidate(String beanName, RootBeanDefinition mbd,
 			DependencyDescriptor descriptor, AutowireCandidateResolver resolver) {
 
+		//获取真正的 beanName
 		String beanDefinitionName = BeanFactoryUtils.transformedBeanName(beanName);
+		//解析 beanClass
 		resolveBeanClass(mbd, beanDefinitionName);
+		//如果 isFactoryMethodUnique 为true, 且唯一的工厂方法为null
 		if (mbd.isFactoryMethodUnique && mbd.factoryMethodToIntrospect == null) {
+			//创建 ConstructorResolver 并且调用 resolveFactoryMethodIfPossible 来解析出可能唯一的工厂方法
 			new ConstructorResolver(this).resolveFactoryMethodIfPossible(mbd);
 		}
+		//调用 AutowireCandidateResolver.isAutowireCandidate 来判断是否允许自动注入
 		return resolver.isAutowireCandidate(
 				new BeanDefinitionHolder(mbd, beanName, getAliases(beanDefinitionName)), descriptor);
 	}
@@ -1553,7 +1577,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				addCandidateEntry(result, candidate, descriptor, requiredType);
 			}
 		}
+		//如果经过上面的解析, 候选结果还是为空
 		if (result.isEmpty()) {
+			//判断返回类型是否是多结果
 			boolean multiple = indicatesMultipleBeans(requiredType);
 			// Consider fallback matches if the first pass failed to find anything...
 			DependencyDescriptor fallbackDescriptor = descriptor.forFallbackMatch();

@@ -567,29 +567,43 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected boolean isTypeMatch(String name, ResolvableType typeToMatch, boolean allowFactoryBeanInit)
 			throws NoSuchBeanDefinitionException {
 
+		//获取真正的 beanName
 		String beanName = transformedBeanName(name);
+		//判断 beanName 是否是 FactoryBean 引用
 		boolean isFactoryDereference = BeanFactoryUtils.isFactoryDereference(name);
 
+		//获取单例实例
 		// Check manually registered singletons.
 		Object beanInstance = getSingleton(beanName, false);
+		//如果实例不为 null 且实例非 NullBean
 		if (beanInstance != null && beanInstance.getClass() != NullBean.class) {
+			//如果实例是 FactoryBean
 			if (beanInstance instanceof FactoryBean) {
+				//获取的不是 FactoryBean 对象
 				if (!isFactoryDereference) {
+					//获取 FactoryBean 的工厂对象
 					Class<?> type = getTypeForFactoryBean((FactoryBean<?>) beanInstance);
+					//如果类型不为 null 且跟给定的类型匹配
 					return (type != null && typeToMatch.isAssignableFrom(type));
 				}
 				else {
+					//如果实例不是 factoryBean , 则直接匹配实例的类型
 					return typeToMatch.isInstance(beanInstance);
 				}
 			}
+			//如果实例对象 beanInstance 不是 FactoryBean , 且 beanName 也是非 FactoryBean 引用
 			else if (!isFactoryDereference) {
+				//直接匹配实例的类型
 				if (typeToMatch.isInstance(beanInstance)) {
 					// Direct match for exposed instance?
 					return true;
 				}
+				//如果要匹配的类型有泛型且 beanName 有对应的 BeanDefinition
 				else if (typeToMatch.hasGenerics() && containsBeanDefinition(beanName)) {
+					//获取合并后的 RootBeanDefinition
 					// Generics potentially only match on the target class, not on the proxy...
 					RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+					//获取 bean 定义的目标类型
 					Class<?> targetType = mbd.getTargetType();
 					if (targetType != null && targetType != ClassUtils.getUserClass(beanInstance)) {
 						// Check raw class match as well, making sure it's exposed on the proxy.
@@ -1765,6 +1779,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	}
 
 	/**
+	 * 判断是否 FactoryBean
 	 * Check whether the given bean is defined as a {@link FactoryBean}.
 	 * @param beanName the name of the bean
 	 * @param mbd the corresponding bean definition

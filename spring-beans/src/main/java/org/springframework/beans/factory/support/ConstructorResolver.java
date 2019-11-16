@@ -383,6 +383,7 @@ class ConstructorResolver {
 	}
 
 	/**
+	 * 如果可能的话, 解析工厂出唯一的工厂方法
 	 * Resolve the factory method in the specified bean definition, if possible.
 	 * {@link RootBeanDefinition#getResolvedFactoryMethod()} can be checked for the result.
 	 * @param mbd the bean definition to check
@@ -390,30 +391,46 @@ class ConstructorResolver {
 	public void resolveFactoryMethodIfPossible(RootBeanDefinition mbd) {
 		Class<?> factoryClass;
 		boolean isStatic;
+		//如果工厂 bean 实例名称不为 null
 		if (mbd.getFactoryBeanName() != null) {
+			//获取工厂  bean 实例的类型
 			factoryClass = this.beanFactory.getType(mbd.getFactoryBeanName());
+			//设置非静态
 			isStatic = false;
 		}
 		else {
+			//获取 beanClass
 			factoryClass = mbd.getBeanClass();
+			//设置静态
 			isStatic = true;
 		}
+		//断言工厂类不能为 null
 		Assert.state(factoryClass != null, "Unresolvable factory class");
+		//获取用户设置的工厂类(去除代理)
 		factoryClass = ClassUtils.getUserClass(factoryClass);
 
+		//获取所有的候选方法
 		Method[] candidates = getCandidateMethods(factoryClass, mbd);
+		//记录唯一的方法
 		Method uniqueCandidate = null;
+		//遍历候选方法
 		for (Method candidate : candidates) {
+			//如果方法是的修饰符一样, 且方法名是指定的工厂方法
 			if (Modifier.isStatic(candidate.getModifiers()) == isStatic && mbd.isFactoryMethod(candidate)) {
+				//如果唯一方法是 null
 				if (uniqueCandidate == null) {
+					//直接记录
 					uniqueCandidate = candidate;
 				}
+				//如果 uniqueCandidate 不为 null, 且新的候选参数跟旧的参数类型不相等
 				else if (!Arrays.equals(uniqueCandidate.getParameterTypes(), candidate.getParameterTypes())) {
+					//将唯一的工厂方法置空
 					uniqueCandidate = null;
 					break;
 				}
 			}
 		}
+		//缓存唯一的工厂方法
 		mbd.factoryMethodToIntrospect = uniqueCandidate;
 	}
 
