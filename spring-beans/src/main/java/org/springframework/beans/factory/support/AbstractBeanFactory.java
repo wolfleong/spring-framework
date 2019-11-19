@@ -598,13 +598,14 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// Direct match for exposed instance?
 					return true;
 				}
-				//如果要匹配的类型有泛型且 beanName 有对应的 BeanDefinition
+				//如果要匹配的类型有泛型参数且 beanName 有对应的 BeanDefinition
 				else if (typeToMatch.hasGenerics() && containsBeanDefinition(beanName)) {
 					//获取合并后的 RootBeanDefinition
 					// Generics potentially only match on the target class, not on the proxy...
 					RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 					//获取 bean 定义的目标类型
 					Class<?> targetType = mbd.getTargetType();
+					//如果配置的 targetType 不为 null 且 targetType 跟实例的类型不相等
 					if (targetType != null && targetType != ClassUtils.getUserClass(beanInstance)) {
 						// Check raw class match as well, making sure it's exposed on the proxy.
 						Class<?> classToMatch = typeToMatch.resolve();
@@ -629,22 +630,30 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			return false;
 		}
 
+		//如果上面还是没法匹配上, 则找父容器判断
 		// No singleton instance found -> check bean definition.
 		BeanFactory parentBeanFactory = getParentBeanFactory();
+		//如果父容器不为空, 且当前容器不包括这个 BeanDefinition
 		if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
+			//调用父容器的 isTypeMatch
 			// No bean definition found in this factory -> delegate to parent.
 			return parentBeanFactory.isTypeMatch(originalBeanName(name), typeToMatch);
 		}
 
+		//尝试用 BeanDefinition 来解析
 		// Retrieve corresponding bean definition.
 		RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 		BeanDefinitionHolder dbd = mbd.getDecoratedDefinition();
 
+		//解析出要匹配的类型
 		// Setup the types that we want to match against
 		Class<?> classToMatch = typeToMatch.resolve();
+		//如果匹配的类型为 null
 		if (classToMatch == null) {
+			//设置为 FactoryBean
 			classToMatch = FactoryBean.class;
 		}
+		//如果 classToMatch 为 FactoryBean , 则直接创建数组, 如果 classToMatch 不为 null, 则创建带有 FactoryBean 的数组
 		Class<?>[] typesToMatch = (FactoryBean.class == classToMatch ?
 				new Class<?>[] {classToMatch} : new Class<?>[] {FactoryBean.class, classToMatch});
 

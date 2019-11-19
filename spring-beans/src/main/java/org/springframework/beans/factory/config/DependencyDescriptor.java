@@ -320,6 +320,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 
 
 	/**
+	 * 增加这个描述符的嵌套水平
 	 * Increase this descriptor's nesting level.
 	 */
 	public void increaseNestingLevel() {
@@ -428,9 +429,10 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 	public Class<?> getDependencyType() {
 		//如果字段不为 null
 		if (this.field != null) {
-			//如果嵌套数大于 1
+			//从外面的代码看, 最复杂的是 ObjectFactory<Optional<Map<String,Bean>>> , 这里的 nestingLevel 最高应该是 3
+			//如果嵌套数大于 1 , 只要 nestingLevel > 1 的基本都是带泛型的
 			if (this.nestingLevel > 1) {
-				//获取字段的泛型类型
+				//获取字段带泛型的类型 如: Optional<Map<String,Bean>> field, 返回 Optional<Map<String,Bean>>, 是 ParameterizedType
 				Type type = this.field.getGenericType();
 				//按嵌套迭代
 				for (int i = 2; i <= this.nestingLevel; i++) {
@@ -438,7 +440,7 @@ public class DependencyDescriptor extends InjectionPoint implements Serializable
 					if (type instanceof ParameterizedType) {
 						//获取参数化泛型的泛型参数列表
 						Type[] args = ((ParameterizedType) type).getActualTypeArguments();
-						//获取最后一个
+						//获取最后一个, 如果是List<E> , 则获取E, 如果是Map<K,V> 则获取 V
 						type = args[args.length - 1];
 					}
 				}

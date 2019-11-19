@@ -59,6 +59,9 @@ import org.springframework.util.StringUtils;
  */
 public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwareAutowireCandidateResolver {
 
+	/**
+	 * 缓存 Qualifier 相关的注解, 如 @Qualifier,  @javax.inject.Qualifier
+	 */
 	private final Set<Class<? extends Annotation>> qualifierTypes = new LinkedHashSet<>(2);
 
 	private Class<? extends Annotation> valueAnnotationType = Value.class;
@@ -206,11 +209,15 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	 * Checks whether the given annotation type is a recognized qualifier type.
 	 */
 	protected boolean isQualifier(Class<? extends Annotation> annotationType) {
+		//Qualifier的标识有多个注解, 所以要遍历
+		//遍历所有 Qualifier 的注解
 		for (Class<? extends Annotation> qualifierType : this.qualifierTypes) {
+			//只要有一个相等或是指定 Qualifier 的子类注解, 都返回 true
 			if (annotationType.equals(qualifierType) || annotationType.isAnnotationPresent(qualifierType)) {
 				return true;
 			}
 		}
+		//默认返回 false
 		return false;
 	}
 
@@ -326,13 +333,16 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	}
 
 	/**
+	 * 判断当前注入点是否有 @Qualifier 注解
 	 * Determine whether the given dependency declares a qualifier annotation.
 	 * @see #isQualifier(Class)
 	 * @see Qualifier
 	 */
 	@Override
 	public boolean hasQualifier(DependencyDescriptor descriptor) {
+		//遍历注入点上的注解
 		for (Annotation ann : descriptor.getAnnotations()) {
+			//只要有 Qualifier 则返回 true
 			if (isQualifier(ann.annotationType())) {
 				return true;
 			}
@@ -373,6 +383,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	}
 
 	/**
+	 * 从注解是获取 value 的值
 	 * Extract the value attribute from the given annotation.
 	 * @since 4.3
 	 */
