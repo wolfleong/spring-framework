@@ -1831,10 +1831,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param pvs the new property values
 	 */
 	protected void applyPropertyValues(String beanName, BeanDefinition mbd, BeanWrapper bw, PropertyValues pvs) {
+		//如果属性依赖集合为空, 则直接返回
 		if (pvs.isEmpty()) {
 			return;
 		}
 
+		// 设置 BeanWrapperImpl 的 SecurityContext 属性
 		if (System.getSecurityManager() != null && bw instanceof BeanWrapperImpl) {
 			((BeanWrapperImpl) bw).setSecurityContext(getAccessControlContext());
 		}
@@ -1842,12 +1844,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		MutablePropertyValues mpvs = null;
 		List<PropertyValue> original;
 
+		//如果 pvs 是 MutablePropertyValues
 		if (pvs instanceof MutablePropertyValues) {
+			//强转
 			mpvs = (MutablePropertyValues) pvs;
+			//如果属性值已经转换
 			if (mpvs.isConverted()) {
 				// Shortcut: use the pre-converted values as-is.
 				try {
+					// 为实例化对象设置属性值 ，依赖注入真真正正地实现在此！！！！！
 					bw.setPropertyValues(mpvs);
+					//直接返回
 					return;
 				}
 				catch (BeansException ex) {
@@ -1855,68 +1862,96 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 							mbd.getResourceDescription(), beanName, "Error setting property values", ex);
 				}
 			}
+			//如果没有转换, 则获取属性值列表
 			original = mpvs.getPropertyValueList();
 		}
 		else {
+			//获取属性值列表
 			original = Arrays.asList(pvs.getPropertyValues());
 		}
 
+		//获取类型转换器
 		TypeConverter converter = getCustomTypeConverter();
 		if (converter == null) {
 			converter = bw;
 		}
+		//获取对应的解析器
 		BeanDefinitionValueResolver valueResolver = new BeanDefinitionValueResolver(this, beanName, mbd, converter);
 
 		// Create a deep copy, resolving any references for values.
 		List<PropertyValue> deepCopy = new ArrayList<>(original.size());
 		boolean resolveNecessary = false;
+		//遍历属性列表
 		for (PropertyValue pv : original) {
+			//属性值不需要转换的, 直接添加到 deepCopy
 			if (pv.isConverted()) {
 				deepCopy.add(pv);
 			}
 			else {
+				//获取属性名
 				String propertyName = pv.getName();
+				//获取原始属性值
 				Object originalValue = pv.getValue();
+				//如果原始属性值是 AutowiredPropertyMarker.INSTANCE
 				if (originalValue == AutowiredPropertyMarker.INSTANCE) {
+					//获取属性的 setter 方法
 					Method writeMethod = bw.getPropertyDescriptor(propertyName).getWriteMethod();
+					//如果 setter 为 null , 则报错
 					if (writeMethod == null) {
 						throw new IllegalArgumentException("Autowire marker for property without write method: " + pv);
 					}
+					//根据 setter 方法, 创建 DependencyDescriptor
 					originalValue = new DependencyDescriptor(new MethodParameter(writeMethod, 0), true);
 				}
+				// 转换属性值，例如将引用转换为IoC容器中实例化对象引用 ！！！！！ 对属性值的解析！！
 				Object resolvedValue = valueResolver.resolveValueIfNecessary(pv, originalValue);
 				Object convertedValue = resolvedValue;
+				//判断属性值是否可以转换
+				//属性值可以写入
+				//属性名称不可以是 person.name 或 personList[0] 这种
 				boolean convertible = bw.isWritableProperty(propertyName) &&
 						!PropertyAccessorUtils.isNestedOrIndexedProperty(propertyName);
+				//如果可以转换
 				if (convertible) {
 					convertedValue = convertForProperty(resolvedValue, propertyName, bw, converter);
 				}
+				//如果 resolvedValue == originalValue , 则表明 originalValue 没有经过转换, 不是动态的, 可以直接缓存
 				// Possibly store converted value in merged bean definition,
 				// in order to avoid re-conversion for every created bean instance.
 				if (resolvedValue == originalValue) {
+					//如果可转换
 					if (convertible) {
+						//缓存转换后的值
 						pv.setConvertedValue(convertedValue);
 					}
+					//添加到 deepCopy 中
 					deepCopy.add(pv);
 				}
+				//如果属性是可转换的 且 属性原始值是字符串类型, 且 属性的原始类型值不是动态生成的字串, 且属性的原始值不是集合或数组类型
 				else if (convertible && originalValue instanceof TypedStringValue &&
 						!((TypedStringValue) originalValue).isDynamic() &&
 						!(convertedValue instanceof Collection || ObjectUtils.isArray(convertedValue))) {
+					//缓存转换后的值
 					pv.setConvertedValue(convertedValue);
 					deepCopy.add(pv);
 				}
 				else {
+					//设置需要解析
 					resolveNecessary = true;
+					//重新封装属性值
 					deepCopy.add(new PropertyValue(pv, convertedValue));
 				}
 			}
 		}
+		//如果 mpvs 不为 null , 且不需要解析的话
 		if (mpvs != null && !resolveNecessary) {
+			//设置所有属性值已经转换过了
 			mpvs.setConverted();
 		}
 
 		// Set our (possibly massaged) deep copy.
 		try {
+			// 进行属性依赖注入，依赖注入的真真正正实现依赖的注入方法在此
 			bw.setPropertyValues(new MutablePropertyValues(deepCopy));
 		}
 		catch (BeansException ex) {
@@ -1932,12 +1967,18 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	private Object convertForProperty(
 			@Nullable Object value, String propertyName, BeanWrapper bw, TypeConverter converter) {
 
+		//如果 converter 是 BeanWrapperImpl
 		if (converter instanceof BeanWrapperImpl) {
+			//强转成 BeanWrapperImpl , 并且转换值
 			return ((BeanWrapperImpl) converter).convertForProperty(value, propertyName);
 		}
+		//如果是自定义的类型转换器
 		else {
+			//获取属性描述器
 			PropertyDescriptor pd = bw.getPropertyDescriptor(propertyName);
+			//构建 MethodParameter
 			MethodParameter methodParam = BeanUtils.getWriteMethodParameter(pd);
+			//转换
 			return converter.convertIfNecessary(value, pd.getPropertyType(), methodParam);
 		}
 	}

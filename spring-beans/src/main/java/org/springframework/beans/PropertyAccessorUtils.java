@@ -40,6 +40,7 @@ public abstract class PropertyAccessorUtils {
 	}
 
 	/**
+	 * 判断属性路径是否是嵌套或有列表索引的如, person.name 或 personList[0]
 	 * Check whether the given property path indicates an indexed or nested property.
 	 * @param propertyPath the property path to check
 	 * @return whether the path indicates an indexed or nested property

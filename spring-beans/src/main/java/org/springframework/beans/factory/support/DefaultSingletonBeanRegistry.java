@@ -430,6 +430,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
+	 * 主注两个 beanName 之前的包含关系
 	 * Register a containment relationship between two beans,
 	 * e.g. between an inner bean and its containing outer bean.
 	 * <p>Also registers the containing bean as dependent on the contained bean
@@ -440,12 +441,15 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	public void registerContainedBean(String containedBeanName, String containingBeanName) {
 		synchronized (this.containedBeanMap) {
+			//初始化 set 列表
 			Set<String> containedBeans =
 					this.containedBeanMap.computeIfAbsent(containingBeanName, k -> new LinkedHashSet<>(8));
+			//将当前 innner bean Name 添加到 set 中
 			if (!containedBeans.add(containedBeanName)) {
 				return;
 			}
 		}
+		//注册依赖关系, outer bean 处理前, 要先处理 inner bean
 		registerDependentBean(containedBeanName, containingBeanName);
 	}
 
