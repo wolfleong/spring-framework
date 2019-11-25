@@ -49,6 +49,10 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 
 	private final transient AbstractApplicationContext applicationContext;
 
+	/**
+	 * 记录对应的 beanName  是否是单例对象
+	 * Map<beanName,isSingleton>
+	 */
 	private final transient Map<String, Boolean> singletonNames = new ConcurrentHashMap<>(256);
 
 
@@ -59,6 +63,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		//记录那些 beanName 是单例, 那些是非单例的, 这个方法的记录是在初始化之前执行的, 也就是在 postProcessAfterInitialization 之前
 		this.singletonNames.put(beanName, beanDefinition.isSingleton());
 	}
 
@@ -69,14 +74,19 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) {
+		//如果实例是 ApplicationListener 监听器
 		if (bean instanceof ApplicationListener) {
+			//判断当前 beanName 是否单例
 			// potentially not detected as a listener by getBeanNamesForType retrieval
 			Boolean flag = this.singletonNames.get(beanName);
 			if (Boolean.TRUE.equals(flag)) {
+				//如果是单例的, 则添加到监听器列表中
 				// singleton bean (top-level or inner): register on the fly
 				this.applicationContext.addApplicationListener((ApplicationListener<?>) bean);
 			}
+			//如果不是单例
 			else if (Boolean.FALSE.equals(flag)) {
+				//记录日志
 				if (logger.isWarnEnabled() && !this.applicationContext.containsBean(beanName)) {
 					// inner bean with other scope - can't reliably process events
 					logger.warn("Inner bean '" + beanName + "' implements ApplicationListener interface " +
@@ -84,6 +94,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 							"because it does not have singleton scope. Only top-level listener beans are allowed " +
 							"to be of non-singleton scope.");
 				}
+				//删除非单例的 bean
 				this.singletonNames.remove(beanName);
 			}
 		}
@@ -92,10 +103,14 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) {
+		//如果是 bean 实例是 ApplicationListener
 		if (bean instanceof ApplicationListener) {
 			try {
+				//获到 ApplicationEventMulticaster
 				ApplicationEventMulticaster multicaster = this.applicationContext.getApplicationEventMulticaster();
+				//删除监听器的 bean 实例
 				multicaster.removeApplicationListener((ApplicationListener<?>) bean);
+				//删除监听器的 beanName
 				multicaster.removeApplicationListenerBean(beanName);
 			}
 			catch (IllegalStateException ex) {

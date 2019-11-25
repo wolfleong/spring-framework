@@ -74,6 +74,7 @@ public abstract class PropertiesLoaderUtils {
 	}
 
 	/**
+	 * 加载配置文件到 props 的真正实现
 	 * Actually load properties from the given EncodedResource into the given Properties instance.
 	 * @param props the Properties instance to load into
 	 * @param resource the resource to load from
@@ -86,21 +87,28 @@ public abstract class PropertiesLoaderUtils {
 		InputStream stream = null;
 		Reader reader = null;
 		try {
+			//获取资源文件名
 			String filename = resource.getResource().getFilename();
+			//如果文件名不为 null 且是 .xml 结尾的, 也就是 xml 文件
 			if (filename != null && filename.endsWith(XML_FILE_EXTENSION)) {
+				//获取文件输入流
 				stream = resource.getInputStream();
+				//用 PropertiesPersister 加载 xml 的 kv 配置
 				persister.loadFromXml(props, stream);
 			}
+			//如果有字符编码, 则走字符流
 			else if (resource.requiresReader()) {
 				reader = resource.getReader();
 				persister.load(props, reader);
 			}
 			else {
+				//配置走字节流解析
 				stream = resource.getInputStream();
 				persister.load(props, stream);
 			}
 		}
 		finally {
+			//最后关流
 			if (stream != null) {
 				stream.close();
 			}

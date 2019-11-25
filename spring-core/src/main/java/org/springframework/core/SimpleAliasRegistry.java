@@ -187,20 +187,32 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	 */
 	public void resolveAliases(StringValueResolver valueResolver) {
 		Assert.notNull(valueResolver, "StringValueResolver must not be null");
+		//同步处理
 		synchronized (this.aliasMap) {
+			//拷贝别名
 			Map<String, String> aliasCopy = new HashMap<>(this.aliasMap);
+			//遍历
 			aliasCopy.forEach((alias, registeredName) -> {
+				//解析别名的占位符
 				String resolvedAlias = valueResolver.resolveStringValue(alias);
+				//解析注册的名称的占位符
 				String resolvedName = valueResolver.resolveStringValue(registeredName);
+				//如果有任意一个为 null 或别名和注册的名称一样, 则直接删除
 				if (resolvedAlias == null || resolvedName == null || resolvedAlias.equals(resolvedName)) {
 					this.aliasMap.remove(alias);
 				}
+				//如果别名和注册的名称不相等
 				else if (!resolvedAlias.equals(alias)) {
+					//获取解析后的别名的注册的名称
 					String existingName = this.aliasMap.get(resolvedAlias);
+					//如果原注册名
 					if (existingName != null) {
+						//如果注册名与解析后的注册名相等, 也就是解析后的别名已经注册, 删除原来就行
 						if (existingName.equals(resolvedName)) {
+							//删除原有占位符的别名
 							// Pointing to existing alias - just remove placeholder
 							this.aliasMap.remove(alias);
+							//直接返回
 							return;
 						}
 						throw new IllegalStateException(
@@ -208,10 +220,15 @@ public class SimpleAliasRegistry implements AliasRegistry {
 								"') for name '" + resolvedName + "': It is already registered for name '" +
 								registeredName + "'.");
 					}
+					//如果 existingName 为空, 则表示解析后的别名还没存在
+					//检测别名是否循环依赖
 					checkForAliasCircle(resolvedName, resolvedAlias);
+					//删除原有点占位符的别名
 					this.aliasMap.remove(alias);
+					//添加新的别名和注册名的关系
 					this.aliasMap.put(resolvedAlias, resolvedName);
 				}
+				// alias 和 resolvedAlias 相等, 且解析后的 resolvedName 和 registeredName 不相等, 用解析后的注册名替换掉原来的就好了
 				else if (!registeredName.equals(resolvedName)) {
 					this.aliasMap.put(alias, resolvedName);
 				}

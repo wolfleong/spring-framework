@@ -356,11 +356,12 @@ public abstract class StringUtils {
 	}
 
 	/**
+	 * 在给定字符串的指定开始索引匹配子串
 	 * Test whether the given string matches the given substring
 	 * at the given index.
-	 * @param str the original string (or StringBuilder)
-	 * @param index the index in the original string to start matching against
-	 * @param substring the substring to match at the given index
+	 * @param str the original string (or StringBuilder) 字符串
+	 * @param index the index in the original string to start matching against 开始匹配的索引
+	 * @param substring the substring to match at the given index 要匹配的子串
 	 */
 	public static boolean substringMatch(CharSequence str, int index, CharSequence substring) {
 		if (index + substring.length() > str.length()) {

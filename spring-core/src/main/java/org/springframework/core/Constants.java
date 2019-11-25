@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * 用于解析静态变量的值 static final
  * This class can be used to parse other classes containing constant definitions
  * in public static final members. The {@code asXXXX} methods of this class
  * allow these constant values to be accessed via their string names.
@@ -46,9 +47,11 @@ import org.springframework.util.ReflectionUtils;
  */
 public class Constants {
 
+	//类名
 	/** The name of the introspected class. */
 	private final String className;
 
+	//静态字段名称和值
 	/** Map from String field name to object value. */
 	private final Map<String, Object> fieldCache = new HashMap<>();
 
@@ -61,13 +64,20 @@ public class Constants {
 	 */
 	public Constants(Class<?> clazz) {
 		Assert.notNull(clazz, "Class must not be null");
+		//获取类名
 		this.className = clazz.getName();
+		//获取所有字段
 		Field[] fields = clazz.getFields();
+		//遍历
 		for (Field field : fields) {
+			//判断是否是 static 和 final
 			if (ReflectionUtils.isPublicStaticFinal(field)) {
+				//获取字段的名称
 				String name = field.getName();
 				try {
+					//获取字段的值
 					Object value = field.get(null);
+					//缓存
 					this.fieldCache.put(name, value);
 				}
 				catch (IllegalAccessException ex) {
@@ -102,6 +112,7 @@ public class Constants {
 
 
 	/**
+	 * 转换指定的静态值为数字
 	 * Return a constant value cast to a Number.
 	 * @param code the name of the field (never {@code null})
 	 * @return the Number value
@@ -118,6 +129,7 @@ public class Constants {
 	}
 
 	/**
+	 * 转换指定的静态值为字符串
 	 * Return a constant value as a String.
 	 * @param code the name of the field (never {@code null})
 	 * @return the String value
@@ -130,6 +142,7 @@ public class Constants {
 	}
 
 	/**
+	 * 获取静态字段的值
 	 * Parse the given String (upper or lower case accepted) and return
 	 * the appropriate value if it's the name of a constant field in the
 	 * class that we're analysing.
@@ -139,16 +152,20 @@ public class Constants {
 	 */
 	public Object asObject(String code) throws ConstantException {
 		Assert.notNull(code, "Code must not be null");
+		//字段名大写
 		String codeToUse = code.toUpperCase(Locale.ENGLISH);
+		//获取值
 		Object val = this.fieldCache.get(codeToUse);
 		if (val == null) {
 			throw new ConstantException(this.className, codeToUse, "not found");
 		}
+		//返回
 		return val;
 	}
 
 
 	/**
+	 * 找名称相同前缀的静态字段
 	 * Return all names of the given group of constants.
 	 * <p>Note that this method assumes that constants are named
 	 * in accordance with the standard Java convention for constant
@@ -159,8 +176,10 @@ public class Constants {
 	 * @return the set of constant names
 	 */
 	public Set<String> getNames(@Nullable String namePrefix) {
+		//大写处理
 		String prefixToUse = (namePrefix != null ? namePrefix.trim().toUpperCase(Locale.ENGLISH) : "");
 		Set<String> names = new HashSet<>();
+		//遍历查找以 namePrefix 开头的
 		for (String code : this.fieldCache.keySet()) {
 			if (code.startsWith(prefixToUse)) {
 				names.add(code);
@@ -181,6 +200,7 @@ public class Constants {
 	}
 
 	/**
+	 * 查找相同结尾的静态字段
 	 * Return all names of the given group of constants.
 	 * <p>Note that this method assumes that constants are named
 	 * in accordance with the standard Java convention for constant
@@ -203,6 +223,7 @@ public class Constants {
 
 
 	/**
+	 * 返回指定前缀的静态字段的值
 	 * Return all values of the given group of constants.
 	 * <p>Note that this method assumes that constants are named
 	 * in accordance with the standard Java convention for constant
@@ -224,6 +245,7 @@ public class Constants {
 	}
 
 	/**
+	 * 根据属性名查找所有静态字段的值
 	 * Return all values of the group of constants for the
 	 * given bean property name.
 	 * @param propertyName the name of the bean property
@@ -235,6 +257,7 @@ public class Constants {
 	}
 
 	/**
+	 * 根据属性名后缀查找所有静态字段的值
 	 * Return all values of the given group of constants.
 	 * <p>Note that this method assumes that constants are named
 	 * in accordance with the standard Java convention for constant
@@ -257,6 +280,7 @@ public class Constants {
 
 
 	/**
+	 * 根据静态字段值和前缀查找字段名
 	 * Look up the given value within the given group of constants.
 	 * <p>Will return the first match.
 	 * @param value constant value to look up
@@ -275,6 +299,7 @@ public class Constants {
 	}
 
 	/**
+	 * 根据属性值和字段名查找名称
 	 * Look up the given value within the group of constants for
 	 * the given bean property name. Will return the first match.
 	 * @param value constant value to look up
@@ -288,6 +313,7 @@ public class Constants {
 	}
 
 	/**
+	 * 根据值和后缀查找名称
 	 * Look up the given value within the given group of constants.
 	 * <p>Will return the first match.
 	 * @param value constant value to look up
@@ -307,6 +333,7 @@ public class Constants {
 
 
 	/**
+	 * 驼峰转下划线大写
 	 * Convert the given bean property name to a constant name prefix.
 	 * <p>Uses a common naming idiom: turning all lower case characters to
 	 * upper case, and prepending upper case characters with an underscore.

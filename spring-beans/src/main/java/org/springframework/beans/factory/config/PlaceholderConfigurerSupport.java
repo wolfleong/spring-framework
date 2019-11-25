@@ -24,6 +24,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StringValueResolver;
 
 /**
+ * 抽象类, 该类持有占位符符号的前缀, 后缀, 分隔符,  在 doProcessProperties() 方法实现对 BeanDefinition 实例中的占位符进行替换。
  * Abstract base class for property resource configurers that resolve placeholders
  * in bean definition property values. Implementations <em>pull</em> values from a
  * properties file or other {@linkplain org.springframework.core.env.PropertySource
@@ -114,6 +115,9 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 	@Nullable
 	protected String nullValue;
 
+	/**
+	 * 当解析不到对应的key是否忽略, 默认为 false. 在配置多个解析类的时候, 可设置为 true 防止属性加载报错.
+	 */
 	protected boolean ignoreUnresolvablePlaceholders = false;
 
 	@Nullable
@@ -210,18 +214,29 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 	}
 
 
+	/**
+	 * 实现对BeanDefinition实例中的占位符进行替换
+	 */
 	protected void doProcessProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
 			StringValueResolver valueResolver) {
 
+		//这里用了访问者模式
+		//循环获得所有BeanDefinition, 依据模版类StringValueResolver替换对应BeanDefinition的占位符
 		BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(valueResolver);
 
+		//获取所有的 bean 定义的名称
 		String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
+		//遍历
 		for (String curName : beanNames) {
+			//排序当前的 bean 定义
+			//如果是非当前容器或 beanName 不一样的话
 			// Check that we're not parsing our own bean definition,
 			// to avoid failing on unresolvable placeholders in properties file locations.
 			if (!(curName.equals(this.beanName) && beanFactoryToProcess.equals(this.beanFactory))) {
+				//获取 bean 定义
 				BeanDefinition bd = beanFactoryToProcess.getBeanDefinition(curName);
 				try {
+					//解析 beanDefinition 中的占位符
 					visitor.visitBeanDefinition(bd);
 				}
 				catch (Exception ex) {
@@ -230,9 +245,11 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 			}
 		}
 
+		//解析别名中的占位符
 		// New in Spring 2.5: resolve placeholders in alias target names and aliases as well.
 		beanFactoryToProcess.resolveAliases(valueResolver);
 
+		//解析注解中的值的占位符
 		// New in Spring 3.0: resolve placeholders in embedded values such as annotation attributes.
 		beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);
 	}

@@ -24,6 +24,7 @@ import java.io.Writer;
 import java.util.Properties;
 
 /**
+ * PropertiesPersister 接口的默认实现, 主要委托给 Properties 的方法加载
  * Default implementation of the {@link PropertiesPersister} interface.
  * Follows the native parsing of {@code java.util.Properties}.
  *

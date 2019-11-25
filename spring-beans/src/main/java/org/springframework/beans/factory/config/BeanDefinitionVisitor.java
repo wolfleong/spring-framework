@@ -30,6 +30,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringValueResolver;
 
 /**
+ * 主要的作用是遍历 beanDefinition 各个配置的值, 并且用替换器替换
+ * - 这里用了访问者的设计模式
  * Visitor class for traversing {@link BeanDefinition} objects, in particular
  * the property values and constructor argument values contained in them,
  * resolving bean metadata values.
@@ -47,6 +49,9 @@ import org.springframework.util.StringValueResolver;
  */
 public class BeanDefinitionVisitor {
 
+	/**
+	 * 属性值替换解析器
+	 */
 	@Nullable
 	private StringValueResolver valueResolver;
 
@@ -169,6 +174,9 @@ public class BeanDefinitionVisitor {
 		}
 	}
 
+	/**
+	 * 替换 beanDefinition 对象中的值
+	 */
 	@SuppressWarnings("rawtypes")
 	@Nullable
 	protected Object resolveValue(@Nullable Object value) {
@@ -283,6 +291,7 @@ public class BeanDefinitionVisitor {
 	}
 
 	/**
+	 * 替换字符串
 	 * Resolve the given String value, for example parsing placeholders.
 	 * @param strVal the original String value
 	 * @return the resolved String value

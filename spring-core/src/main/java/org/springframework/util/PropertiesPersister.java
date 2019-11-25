@@ -24,6 +24,7 @@ import java.io.Writer;
 import java.util.Properties;
 
 /**
+ * 解析资源文件到 Properties 的策略接口
  * Strategy interface for persisting {@code java.util.Properties},
  * allowing for pluggable parsing strategies.
  *
