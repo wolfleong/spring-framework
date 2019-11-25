@@ -43,6 +43,10 @@ public class PropertyPlaceholderHelper {
 
 	private static final Log logger = LogFactory.getLog(PropertyPlaceholderHelper.class);
 
+	/**
+	 * 这里简单的前缀的使用, 可能会导致解析不出正确定的占位符属性, 如: ${aaa{bbb}
+	 *
+	 */
 	private static final Map<String, String> wellKnownSimplePrefixes = new HashMap<>(4);
 
 	static {
@@ -62,6 +66,9 @@ public class PropertyPlaceholderHelper {
 	 */
 	private final String placeholderSuffix;
 
+	/**
+	 * 简单前缀的缓存
+	 */
 	private final String simplePrefix;
 
 	/**
@@ -276,7 +283,8 @@ public class PropertyPlaceholderHelper {
 					return index;
 				}
 			}
-			//这里为什么可以用简单前缀呢, 主要是嵌套内容的占位符在外层还会做真正的解析,
+			//这里为什么可以用简单前缀呢, 主要是嵌套内容的占位符在外层还会做真正的解析, 在这里做简单判断可能性能会好点吧
+			//但是这样, 就会导致下面的情况不能解析, 如: ${aaa{bbb}, 如果占位符中存在 { 或 [ 或 ( , 结束符被抵消了, 没法找出后缀索引
 			//在 index 索引位置匹配简单前缀字符, 如果匹配上的话
 			else if (StringUtils.substringMatch(buf, index, this.simplePrefix)) {
 				//占位符嵌套层数加 1
