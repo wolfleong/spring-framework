@@ -32,6 +32,7 @@ import org.springframework.util.PropertiesPersister;
 
 /**
  * 抽像类, 提供从 properties 文件中读取配置的能力, 该类的属性locations指定需要加载的文件所在的路径
+ * - 这个类的主要作用是读取配置的 properties
  * Base class for JavaBean-style components that need to load properties
  * from one or more resources. Supports local properties as well, with
  * configurable overriding.

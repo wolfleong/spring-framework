@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringValueResolver;
 
 /**
+ * 这个主要做的事情就是, 处理占位符的替换
  * Specialization of {@link PlaceholderConfigurerSupport} that resolves ${...} placeholders
  * within bean definition property values and {@code @Value} annotations against the current
  * Spring {@link Environment} and its set of {@link PropertySources}.
