@@ -31,6 +31,7 @@ import org.springframework.util.StringValueResolver;
  * 允许我们用 Properties 文件中的属性或系统变量来替换 bean实体中占位符
  * - 这个类是要在 xml 配置的才可以使用的, 不懂的话可以查询一下它的用法
  * - 从properties中将传入占位符替换为对应的值
+ * - 这个已经过期了, 建议用 PropertySourcesPlaceholderConfigurer 来代替
  * {@link PlaceholderConfigurerSupport} subclass that resolves ${...} placeholders against
  * {@link #setLocation local} {@link #setProperties properties} and/or system properties
  * and environment variables.
@@ -244,6 +245,7 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 
 	/**
 	 * 实际替换占位符的模版类, 实现在字符串解析接口 StringValueResolver
+	 * - 这个实现类主要做了占位符解析
 	 */
 	private class PlaceholderResolvingStringValueResolver implements StringValueResolver {
 
@@ -252,18 +254,23 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 		private final PlaceholderResolver resolver;
 
 		public PlaceholderResolvingStringValueResolver(Properties props) {
+			//创建 PropertyPlaceholderHelper
 			this.helper = new PropertyPlaceholderHelper(
 					placeholderPrefix, placeholderSuffix, valueSeparator, ignoreUnresolvablePlaceholders);
+			//创建 PropertyPlaceholderConfigurerResolver
 			this.resolver = new PropertyPlaceholderConfigurerResolver(props);
 		}
 
 		@Override
 		@Nullable
 		public String resolveStringValue(String strVal) throws BeansException {
+			//用 PropertyPlaceholderHelper 解析字符串
 			String resolved = this.helper.replacePlaceholders(strVal, this.resolver);
+			//如果需要去前后空格, 则调用 trim()
 			if (trimValues) {
 				resolved = resolved.trim();
 			}
+			//如果是空值字符串, 则返回 null, 否则返回解析后的值
 			return (resolved.equals(nullValue) ? null : resolved);
 		}
 	}
@@ -271,6 +278,7 @@ public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport 
 
 	/**
 	 * 实现 PlaceholderResolver 接口, 占位符解析类, 实际操作是委托给 PropertyPlaceholderConfigurer.resolvePlaceholder() 方法
+	 * - 这个接口主要做了将占位值替换
 	 */
 	private final class PropertyPlaceholderConfigurerResolver implements PlaceholderResolver {
 

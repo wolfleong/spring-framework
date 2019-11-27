@@ -22,6 +22,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
+ * 封装一个 Map<String,Object> 对象为属性源
  * {@link PropertySource} that reads keys and values from a {@code Map} object.
  *
  * @author Chris Beams

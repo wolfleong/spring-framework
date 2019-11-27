@@ -77,6 +77,9 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	public static final String ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME = "environmentProperties";
 
 
+	/**
+	 * 多个 PropertySource 集合
+	 */
 	@Nullable
 	private MutablePropertySources propertySources;
 
@@ -126,9 +129,13 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	 */
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		//如果 propertySources 集合为 null
 		if (this.propertySources == null) {
+			//初始化 propertySources, 即 MutablePropertySources
 			this.propertySources = new MutablePropertySources();
+			//如果 environment 不为 null
 			if (this.environment != null) {
+				//在属性列表后面添加一个 Environment 源的 PropertySource
 				this.propertySources.addLast(
 					new PropertySource<Environment>(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
 						@Override
@@ -140,8 +147,10 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 				);
 			}
 			try {
+				//获取合并所有 properties, 创建一个 PropertiesPropertySource
 				PropertySource<?> localPropertySource =
 						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
+				//如果 localOverride 为 true, 则添加 properties 到前面, 否则添加到后面
 				if (this.localOverride) {
 					this.propertySources.addFirst(localPropertySource);
 				}
@@ -154,6 +163,7 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 			}
 		}
 
+		//调用 processProperties
 		processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
 		this.appliedPropertySources = this.propertySources;
 	}
@@ -165,20 +175,29 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
 			final ConfigurablePropertyResolver propertyResolver) throws BeansException {
 
+		//设置占位符前缀
 		propertyResolver.setPlaceholderPrefix(this.placeholderPrefix);
+		//设置占位符后缀
 		propertyResolver.setPlaceholderSuffix(this.placeholderSuffix);
+		//设置默认值分割符
 		propertyResolver.setValueSeparator(this.valueSeparator);
 
+		//创建 StringValueResolver
 		StringValueResolver valueResolver = strVal -> {
+			//如果忽略不能解析的属性, 则调用 resolvePlaceholders , 否则调用 resolveRequiredPlaceholders, 返回解析后的值
 			String resolved = (this.ignoreUnresolvablePlaceholders ?
 					propertyResolver.resolvePlaceholders(strVal) :
 					propertyResolver.resolveRequiredPlaceholders(strVal));
+			//如果要去前后空串
 			if (this.trimValues) {
+				//去除前后空串
 				resolved = resolved.trim();
 			}
+			//如果返回值是表示 null 的字符串, 则返回 null, 否则返回解析的字符串
 			return (resolved.equals(this.nullValue) ? null : resolved);
 		};
 
+		//执行解析 BeanDefinition 里面的相关字符串
 		doProcessProperties(beanFactoryToProcess, valueResolver);
 	}
 

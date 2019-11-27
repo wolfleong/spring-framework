@@ -24,6 +24,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 对于各种基于"名称/值"对(key/value pair)的属性源, Spring 将其抽象成了抽象泛型类 PropertySource<T>。
+ * 底层的属性源T可以是容纳属性信息的任意类型，比如java.util.Properties,java.util.Map,ServletContext,ServletConfig对象,
+ * 或者是命令行参数 CommandLineArgs 对象。类 PropertySource 的方法 getSource() 用于获取底层的属性源对象T。
+ * 顶层的属性源对象经过 PropertySource 封装，从而具有统一的访问方式。
  * Abstract base class representing a source of name/value property pairs. The underlying
  * {@linkplain #getSource() source object} may be of any type {@code T} that encapsulates
  * properties. Examples include {@link java.util.Properties} objects, {@link java.util.Map}
@@ -61,8 +65,14 @@ public abstract class PropertySource<T> {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * 属性源名称
+	 */
 	protected final String name;
 
+	/**
+	 * 属性源
+	 */
 	protected final T source;
 
 
@@ -114,6 +124,7 @@ public abstract class PropertySource<T> {
 	}
 
 	/**
+	 * 获取属性源指定属性的值, 由子类实现
 	 * Return the value associated with the given name,
 	 * or {@code null} if not found.
 	 * @param name the property to find
@@ -124,6 +135,7 @@ public abstract class PropertySource<T> {
 
 
 	/**
+	 * 比较两个对象是否相等, 如果引用相等或者名称相等都是 true
 	 * This {@code PropertySource} object is equal to the given object if:
 	 * <ul>
 	 * <li>they are the same instance
@@ -168,6 +180,7 @@ public abstract class PropertySource<T> {
 
 
 	/**
+	 * 创建一个只用于比较名称的 PropertySource 对象, 因为 PropertySource 实现了 equals 方法
 	 * Return a {@code PropertySource} implementation intended for collection comparison purposes only.
 	 * <p>Primarily for internal use, but given a collection of {@code PropertySource} objects, may be
 	 * used as follows:
@@ -190,6 +203,7 @@ public abstract class PropertySource<T> {
 
 
 	/**
+	 * 空的 PropertySource  主要用作占位符用的, 主要是属性源名称有用, 其他操作都没用
 	 * {@code PropertySource} to be used as a placeholder in cases where an actual
 	 * property source cannot be eagerly initialized at application context
 	 * creation time.  For example, a {@code ServletContext}-based property source
@@ -219,6 +233,7 @@ public abstract class PropertySource<T> {
 
 
 	/**
+	 * 一个 PropertySource 空实现, 主要用于集合对象比较用
 	 * A {@code PropertySource} implementation intended for collection comparison
 	 * purposes.
 	 *

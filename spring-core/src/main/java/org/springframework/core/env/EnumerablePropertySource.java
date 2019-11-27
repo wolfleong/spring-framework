@@ -19,6 +19,7 @@ package org.springframework.core.env;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 可列举的 PropertySource, 主要多了 getPropertyNames 方法, 用于列举所有属性名
  * A {@link PropertySource} implementation capable of interrogating its
  * underlying source object to enumerate all possible property name/value
  * pairs. Exposes the {@link #getPropertyNames()} method to allow callers

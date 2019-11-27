@@ -129,6 +129,7 @@ public class PropertyPlaceholderHelper {
 
 
 	/**
+	 * 用 properties 的属性来替代占位符
 	 * Replaces all placeholders of format {@code ${name}} with the corresponding
 	 * property from the supplied {@link Properties}.
 	 * @param value the value containing the placeholders to be replaced
@@ -141,6 +142,7 @@ public class PropertyPlaceholderHelper {
 	}
 
 	/**
+	 * 用 placeholderResolver 来解析占位符的内容
 	 * Replaces all placeholders of format {@code ${name}} with the value returned
 	 * from the supplied {@link PlaceholderResolver}.
 	 * @param value the value containing the placeholders to be replaced
@@ -303,6 +305,7 @@ public class PropertyPlaceholderHelper {
 
 
 	/**
+	 * 占位符解析器接口
 	 * Strategy interface used to resolve replacement values for placeholders contained in Strings.
 	 */
 	@FunctionalInterface

@@ -22,6 +22,7 @@ import java.util.stream.StreamSupport;
 import org.springframework.lang.Nullable;
 
 /**
+ * 处理多个 PropertySource 的接口, 实现 Iterable , 也就是可遍历
  * Holder containing one or more {@link PropertySource} objects.
  *
  * @author Chris Beams
@@ -46,6 +47,7 @@ public interface PropertySources extends Iterable<PropertySource<?>> {
 	boolean contains(String name);
 
 	/**
+	 * 根据属性源名, 获取 PropertySource
 	 * Return the property source with the given name, {@code null} if not found.
 	 * @param name the {@linkplain PropertySource#getName() name of the property source} to find
 	 */

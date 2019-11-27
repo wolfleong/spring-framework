@@ -45,7 +45,7 @@ public abstract class PropertiesLoaderSupport {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	/**
-	 * 本地资源例如从 xml 加载的配置信息等
+	 * 本地资源例如从 xml 加载的 properties
 	 */
 	@Nullable
 	protected Properties[] localProperties;
@@ -56,7 +56,7 @@ public abstract class PropertiesLoaderSupport {
 	protected boolean localOverride = false;
 
 	/**
-	 * 配置文件Properties地址
+	 * Properties 配置文件的地址
 	 */
 	@Nullable
 	private Resource[] locations;

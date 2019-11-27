@@ -110,8 +110,14 @@ public abstract class PlaceholderConfigurerSupport extends PropertyResourceConfi
 	@Nullable
 	protected String valueSeparator = DEFAULT_VALUE_SEPARATOR;
 
+	/**
+	 * 是否去前后空格
+	 */
 	protected boolean trimValues = false;
 
+	/**
+	 * 空值的字符串表现
+	 */
 	@Nullable
 	protected String nullValue;
 
