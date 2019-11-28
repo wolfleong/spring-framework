@@ -84,9 +84,15 @@ public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerS
 	@Nullable
 	private MutablePropertySources propertySources;
 
+	/**
+	 * 表示最终生效的 PropertySources
+	 */
 	@Nullable
 	private PropertySources appliedPropertySources;
 
+	/**
+	 * 当前环境配置
+	 */
 	@Nullable
 	private Environment environment;
 

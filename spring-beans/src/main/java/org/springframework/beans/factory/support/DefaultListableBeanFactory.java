@@ -1306,6 +1306,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		//注入点
 		InjectionPoint previousInjectionPoint = ConstructorResolver.setCurrentInjectionPoint(descriptor);
 		try {
+			//终于发现, 这里在那里用了, 在属性注入用的 org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.ShortcutDependencyDescriptor
 			// 针对给定的工厂给定一个快捷实现的方式，例如考虑一些预先解析的信息
 			// 在进入所有bean的常规类型匹配算法之前，解析算法将首先尝试通过此方法解析快捷方式。
 			// 子类可以覆盖此方法

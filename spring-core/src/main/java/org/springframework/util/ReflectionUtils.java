@@ -221,6 +221,7 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
+	 * 在给定的类上, 查找指定方法名和方法参数的 Method, 在当前类找不到则会查询父类
 	 * Attempt to find a {@link Method} on the supplied class with the supplied name
 	 * and parameter types. Searches all superclasses up to {@code Object}.
 	 * <p>Returns {@code null} if no {@link Method} can be found.
@@ -234,17 +235,25 @@ public abstract class ReflectionUtils {
 	public static Method findMethod(Class<?> clazz, String name, @Nullable Class<?>... paramTypes) {
 		Assert.notNull(clazz, "Class must not be null");
 		Assert.notNull(name, "Method name must not be null");
+		//查询的类
 		Class<?> searchType = clazz;
+		//如果查找的类不为 null
 		while (searchType != null) {
+			//如果 searchType 是接口, 则直接获取接口的方法, 否则获取查询类的声明的所有方法
 			Method[] methods = searchType.isInterface() ?
 					searchType.getMethods() :
 					getDeclaredMethods(searchType, false);
+			//遍历
 			for (Method method : methods) {
+				//如果方法相同
+				//参数类型为 null 或 参数类型相同
 				if (name.equals(method.getName()) &&
 						(paramTypes == null || Arrays.equals(paramTypes, method.getParameterTypes()))) {
+					//返回查询到的方法
 					return method;
 				}
 			}
+			//往父类查找
 			searchType = searchType.getSuperclass();
 		}
 		return null;
@@ -437,6 +446,7 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
+	 * 获取类声明的所有方法, 包括私有的,接口声明的 但不包括继承的方法
 	 * Variant of {@link Class#getDeclaredMethods()} that uses a local cache in
 	 * order to avoid the JVM's SecurityManager check and new Method instances.
 	 * In addition, it also includes Java 8 default methods from locally
@@ -452,25 +462,39 @@ public abstract class ReflectionUtils {
 		return getDeclaredMethods(clazz, true);
 	}
 
+	/**
+	 * 获取类声明的所有方法, 包括私有的,接口声明的 但不包括继承的方法
+	 * @param defensive 是否做保护拷贝
+	 */
 	private static Method[] getDeclaredMethods(Class<?> clazz, boolean defensive) {
 		Assert.notNull(clazz, "Class must not be null");
+		//从缓存获取
 		Method[] result = declaredMethodsCache.get(clazz);
+		//如果 result 的方法列表为 null
 		if (result == null) {
 			try {
+				//获取类声明的所有方法
 				Method[] declaredMethods = clazz.getDeclaredMethods();
+				//获取接口的所有默认方法
 				List<Method> defaultMethods = findConcreteMethodsOnInterfaces(clazz);
+				//如果默认方法列表不为 null
 				if (defaultMethods != null) {
+					//创建 Method 数组
 					result = new Method[declaredMethods.length + defaultMethods.size()];
+					//将 declaredMethods 添加到 result
 					System.arraycopy(declaredMethods, 0, result, 0, declaredMethods.length);
+					//再将 defaultMethods 添加到 result
 					int index = declaredMethods.length;
 					for (Method defaultMethod : defaultMethods) {
 						result[index] = defaultMethod;
 						index++;
 					}
 				}
+				//如果没有默认方法, 则将 declaredMethods 赋值到 result
 				else {
 					result = declaredMethods;
 				}
+				//将结果添加到缓存, 是如果空, 则用空数组
 				declaredMethodsCache.put(clazz, (result.length == 0 ? EMPTY_METHOD_ARRAY : result));
 			}
 			catch (Throwable ex) {
@@ -478,6 +502,7 @@ public abstract class ReflectionUtils {
 						"] from ClassLoader [" + clazz.getClassLoader() + "]", ex);
 			}
 		}
+		//结果数组是空或非保护性拷贝, 则直接返回 result , 否则拷贝一份
 		return (result.length == 0 || !defensive) ? result : result.clone();
 	}
 

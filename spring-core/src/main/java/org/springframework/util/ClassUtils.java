@@ -1274,6 +1274,8 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 返回目标类更特殊的方法,
+	 * - 给定的方法有可能是来自接口, 所以从目标类有没有实现这个方法, 如果有则返回
 	 * Given a method, which may come from an interface, and a target class used
 	 * in the current reflective invocation, find the corresponding target method
 	 * if there is one. E.g. the method may be {@code IFoo.bar()} and the
@@ -1295,19 +1297,29 @@ public abstract class ClassUtils {
 	 * @see #getInterfaceMethodIfPossible
 	 */
 	public static Method getMostSpecificMethod(Method method, @Nullable Class<?> targetClass) {
+		//如果目标类不为 null
+		// 且目标类不等于方法的声明类
+		// 且方法可以被 targetClass 覆盖
 		if (targetClass != null && targetClass != method.getDeclaringClass() && isOverridable(method, targetClass)) {
 			try {
+				//如果方法是 公开的
 				if (Modifier.isPublic(method.getModifiers())) {
 					try {
+						//根据方法名和方法参数获取 targetClass 下的方法
 						return targetClass.getMethod(method.getName(), method.getParameterTypes());
 					}
+					//如果报异常
 					catch (NoSuchMethodException ex) {
+						//返回原始的方法
 						return method;
 					}
 				}
+				//如果方法不是公开
 				else {
+					//在目标类上查询同样名称和同样参数的方法
 					Method specificMethod =
 							ReflectionUtils.findMethod(targetClass, method.getName(), method.getParameterTypes());
+					//如果类的方法不为 null 则直接返回, 否则返回原方法
 					return (specificMethod != null ? specificMethod : method);
 				}
 			}
@@ -1367,17 +1379,23 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 判断给定的方法是否可被给定的目标类重写的
 	 * Determine whether the given method is overridable in the given target class.
 	 * @param method the method to check
 	 * @param targetClass the target class to check against
 	 */
 	private static boolean isOverridable(Method method, @Nullable Class<?> targetClass) {
+		//如果方法是私有的, 则返回 false
 		if (Modifier.isPrivate(method.getModifiers())) {
 			return false;
 		}
+		//如果方法是 public 或 protected , 则返回 true
 		if (Modifier.isPublic(method.getModifiers()) || Modifier.isProtected(method.getModifiers())) {
 			return true;
 		}
+		//最后一种情况是没有修饰符的, 则同包可以覆盖
+		//如果目标类为 null
+		//或给定方法的所在的类与给定目标类是同包名
 		return (targetClass == null ||
 				getPackageName(method.getDeclaringClass()).equals(getPackageName(targetClass)));
 	}

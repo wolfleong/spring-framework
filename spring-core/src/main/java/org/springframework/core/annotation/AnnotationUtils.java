@@ -129,7 +129,9 @@ public abstract class AnnotationUtils {
 	 * @see #isCandidateClass(Class, String)
 	 */
 	public static boolean isCandidateClass(Class<?> clazz, Collection<Class<? extends Annotation>> annotationTypes) {
+		//遍历注解类型
 		for (Class<? extends Annotation> annotationType : annotationTypes) {
+			//只要有一个注解合适这个类, 则返回 true
 			if (isCandidateClass(clazz, annotationType)) {
 				return true;
 			}
@@ -164,6 +166,7 @@ public abstract class AnnotationUtils {
 	 * @see #isCandidateClass(Class, Class)
 	 */
 	public static boolean isCandidateClass(Class<?> clazz, String annotationName) {
+		//如果注解名是以 java. 开头的, 则直接返回 true
 		if (annotationName.startsWith("java.")) {
 			return true;
 		}

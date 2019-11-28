@@ -68,12 +68,14 @@ public interface MergedAnnotation<A extends Annotation> {
 
 
 	/**
+	 * 返回注解的类型
 	 * Get the {@code Class} reference for the actual annotation type.
 	 * @return the annotation type
 	 */
 	Class<A> getType();
 
 	/**
+	 * 判断注解是否存在
 	 * Determine if the annotation is present on the source. Considers
 	 * {@linkplain #isDirectlyPresent() directly present} and
 	 * {@linkplain #isMetaPresent() meta-present} annotations within the context
@@ -83,6 +85,7 @@ public interface MergedAnnotation<A extends Annotation> {
 	boolean isPresent();
 
 	/**
+	 * 注解是否直接存在于源代码中
 	 * Determine if the annotation is directly present on the source. A directly
 	 * present annotation is one that the user has explicitly declared and not
 	 * one that is {@linkplain #isMetaPresent() meta-present} or
@@ -92,6 +95,7 @@ public interface MergedAnnotation<A extends Annotation> {
 	boolean isDirectlyPresent();
 
 	/**
+	 * 判断注解是否是继承下来的
 	 * Determine if the annotation is meta-present on the source. A meta-present
 	 * annotation is an annotation that the user hasn't explicitly declared, but
 	 * has been used as a meta-annotation somewhere in the annotation hierarchy.
@@ -166,6 +170,7 @@ public interface MergedAnnotation<A extends Annotation> {
 
 
 	/**
+	 * 判断指定属性名是否没有默认值
 	 * Determine if the specified attribute name has a non-default value when
 	 * compared to the annotation declaration.
 	 * @param attributeName the attribute name
@@ -175,6 +180,7 @@ public interface MergedAnnotation<A extends Annotation> {
 	boolean hasNonDefaultValue(String attributeName);
 
 	/**
+	 * 判断指定属性有默认值
 	 * Determine if the specified attribute name has a default value when compared
 	 * to the annotation declaration.
 	 * @param attributeName the attribute name

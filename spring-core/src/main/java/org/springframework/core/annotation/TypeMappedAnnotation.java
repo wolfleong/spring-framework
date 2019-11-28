@@ -70,6 +70,9 @@ import org.springframework.util.ReflectionUtils;
  */
 final class TypeMappedAnnotation<A extends Annotation> extends AbstractMergedAnnotation<A> {
 
+	/**
+	 * 空数组 Map
+	 */
 	private static final Map<Class<?>, Object> EMPTY_ARRAYS;
 	static {
 		Map<Class<?>, Object> emptyArrays = new HashMap<>();
