@@ -46,10 +46,13 @@ import org.springframework.util.StringUtils;
 public class MutablePropertyValues implements PropertyValues, Serializable {
 
 	/**
-	 * PropertyValue 列表
+	 * 配置的 PropertyValue 列表
 	 */
 	private final List<PropertyValue> propertyValueList;
 
+	/**
+	 * 这里主要记录后置处理处理过的属性列表, 如果 @autowired @value等, 免得重复处理
+	 */
 	@Nullable
 	private Set<String> processedProperties;
 

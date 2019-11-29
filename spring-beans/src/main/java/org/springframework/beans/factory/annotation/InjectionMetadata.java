@@ -300,6 +300,7 @@ public class InjectionMetadata {
 
 		/**
 		 * todo wolfleong 不太懂
+		 * pvs 为前面配置的属性或者是 autowiredByName 和 autowiredByType 已经注入的属性, 这里可以避免跟前面配置的重复注入
 		 * Check whether this injector's property needs to be skipped due to
 		 * an explicit property value having been specified. Also marks the
 		 * affected property as processed for other processors to ignore it.
@@ -330,7 +331,9 @@ public class InjectionMetadata {
 				}
 				//如果当削 pd 不为 null
 				if (this.pd != null) {
-					//判断 pvs 是否包括当前属性名, 如果包括则说明当前属性已经处理过了, 则设置 skip 为 true, 直接跳过
+					//这里是避免重复注入的关键
+					//判断 pvs 是否包括当前属性名, 如果包括则说明当前属性已经处理过了或者是前面的注入流程已经处理, 则设置 skip 为 true, 直接跳过
+					//这个 contain 的判断会包括 processedProperties 里面的属性
 					if (pvs.contains(this.pd.getName())) {
 						// Explicit value provided as part of the bean definition.
 						this.skip = true;

@@ -1652,7 +1652,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		//用于记录注入的 bean 名称
 		Set<String> autowiredBeanNames = new LinkedHashSet<>(4);
-		//获取非普通属性名称列表
+		//获取非普通属性名称列表,不在 pvs 中的
 		String[] propertyNames = unsatisfiedNonSimpleProperties(mbd, bw);
 		//遍历
 		for (String propertyName : propertyNames) {
@@ -1699,7 +1699,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 
 	/**
-	 * 获取对象的非简单属性
+	 * 获取对象的非简单属性, 不在配置的属性中的
 	 * Return an array of non-simple bean properties that are unsatisfied.
 	 * These are probably unsatisfied references to other beans in the
 	 * factory. Does not include simple properties like primitives or Strings.
