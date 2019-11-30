@@ -49,6 +49,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
 
 /**
+ * ConversionService 接口的基础实现，适用于大部分条件下的转换工作，通过 ConfigurableConversionService 接口间接地将 ConverterRegistry 实现为注册 API 。
  * Base {@link ConversionService} implementation suitable for use in most environments.
  * Indirectly implements {@link ConverterRegistry} as registration API through the
  * {@link ConfigurableConversionService} interface.
@@ -74,8 +75,14 @@ public class GenericConversionService implements ConfigurableConversionService {
 	private static final GenericConverter NO_MATCH = new NoOpConverter("NO_MATCH");
 
 
+	/**
+	 * 所有 Converter 集合的封装对象
+	 */
 	private final Converters converters = new Converters();
 
+	/**
+	 * GenericConverter 的缓存
+	 */
 	private final Map<ConverterCacheKey, GenericConverter> converterCache = new ConcurrentReferenceHashMap<>(64);
 
 
@@ -178,19 +185,27 @@ public class GenericConversionService implements ConfigurableConversionService {
 	@Nullable
 	public Object convert(@Nullable Object source, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
 		Assert.notNull(targetType, "Target type to convert to cannot be null");
+		//如果 sourceType 为 null
 		if (sourceType == null) {
+			//那么转换的值 source 必须也为 null
 			Assert.isTrue(source == null, "Source must be [null] if source type == [null]");
+			//处理结果
 			return handleResult(null, targetType, convertNullSource(null, targetType));
 		}
+		//如果类型不对，抛出 IllegalArgumentException 异常
 		if (source != null && !sourceType.getObjectType().isInstance(source)) {
 			throw new IllegalArgumentException("Source to convert from must be an instance of [" +
 					sourceType + "]; instead it was a [" + source.getClass().getName() + "]");
 		}
+		//获得对应的 GenericConverter 对象
 		GenericConverter converter = getConverter(sourceType, targetType);
+		//如果 converter 非空，则进行转换，然后再处理结果
 		if (converter != null) {
+			//执行转换操作, 为什么要抽取多一个方法出来呢, 主要是异常处理吗
 			Object result = ConversionUtils.invokeConverter(converter, source, sourceType, targetType);
 			return handleResult(sourceType, targetType, result);
 		}
+		//处理 converter 为空的情况
 		return handleConverterNotFound(source, sourceType, targetType);
 	}
 
@@ -221,6 +236,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 	// Protected template methods
 
 	/**
+	 * 将 null 值, 转换成目标类型
 	 * Template method to convert a {@code null} source.
 	 * <p>The default implementation returns {@code null} or the Java 8
 	 * {@link java.util.Optional#empty()} instance if the target type is
@@ -251,22 +267,30 @@ public class GenericConversionService implements ConfigurableConversionService {
 	 */
 	@Nullable
 	protected GenericConverter getConverter(TypeDescriptor sourceType, TypeDescriptor targetType) {
+		//创建  ConverterCacheKey 对象
 		ConverterCacheKey key = new ConverterCacheKey(sourceType, targetType);
+		//从 converterCache 缓存中，获得 GenericConverter 对象 converter
 		GenericConverter converter = this.converterCache.get(key);
+		//如果 converter 不等 null
 		if (converter != null) {
+			//如果不是 NO_MATCH 则直接返回, 否则返回 null
 			return (converter != NO_MATCH ? converter : null);
 		}
 
+		// 如果获取不到，则从 converters 中查找
 		converter = this.converters.find(sourceType, targetType);
+		// 如果查找不到，则获得默认的 Converter 对象
 		if (converter == null) {
 			converter = getDefaultConverter(sourceType, targetType);
 		}
 
+		// 如果找到 converter ，则添加 converter 到 converterCache 中，并返回 converter
 		if (converter != null) {
 			this.converterCache.put(key, converter);
 			return converter;
 		}
 
+		// 如果找不到 converter ，则添加 NO_MATCH 占位符到 converterCache 中，并返回 null
 		this.converterCache.put(key, NO_MATCH);
 		return null;
 	}
@@ -310,25 +334,38 @@ public class GenericConversionService implements ConfigurableConversionService {
 	private Object handleConverterNotFound(
 			@Nullable Object source, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
 
+		//如果数据源为 null
 		if (source == null) {
+			//校验目标类型非原始类型
 			assertNotPrimitiveTargetType(sourceType, targetType);
+			//直接返回 null
 			return null;
 		}
+		//如果 sourceType 为 null 或 sourceType 是 targetType 的子类型
+		//且 source 对象直接是 targetType 的类型
 		if ((sourceType == null || sourceType.isAssignableTo(targetType)) &&
 				targetType.getObjectType().isInstance(source)) {
+			//直接返回
 			return source;
 		}
+		//其他情况直接报错
 		throw new ConverterNotFoundException(sourceType, targetType);
 	}
 
 	@Nullable
 	private Object handleResult(@Nullable TypeDescriptor sourceType, TypeDescriptor targetType, @Nullable Object result) {
+		//如果结果对象为 null
 		if (result == null) {
+			//判断非原始类型
 			assertNotPrimitiveTargetType(sourceType, targetType);
 		}
+		//返回结果对象
 		return result;
 	}
 
+	/**
+	 * 判断目标类型非原始类型(int long, double 等八大基本类型), 如果是原始类型, 则直接报错
+	 */
 	private void assertNotPrimitiveTargetType(@Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
 		if (targetType.isPrimitive()) {
 			throw new ConversionFailedException(sourceType, targetType, null,
@@ -444,12 +481,19 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 
 	/**
+	 * 主要封 Converter 的缓存 key , 主要实现 Comparable 接口, 覆盖 equals 和 hashcode 方法
 	 * Key for use with the converter cache.
 	 */
 	private static final class ConverterCacheKey implements Comparable<ConverterCacheKey> {
 
+		/**
+		 * 源类型
+		 */
 		private final TypeDescriptor sourceType;
 
+		/**
+		 * 目标类型
+		 */
 		private final TypeDescriptor targetType;
 
 		public ConverterCacheKey(TypeDescriptor sourceType, TypeDescriptor targetType) {
@@ -495,6 +539,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 
 	/**
+	 * Converters 是 GenericConversionService 内部类，用于管理所有注册的转换器
 	 * Manages all converters registered with the service.
 	 */
 	private static class Converters {
@@ -681,6 +726,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 
 
 	/**
+	 * 内部转换器, 不执行任何操作
 	 * Internal converter that performs no operation.
 	 */
 	private static class NoOpConverter implements GenericConverter {

@@ -36,6 +36,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 封要转换类型的上下文
  * Context about a type to convert from or to.
  *
  * @author Keith Donald
@@ -49,10 +50,16 @@ import org.springframework.util.ObjectUtils;
 @SuppressWarnings("serial")
 public class TypeDescriptor implements Serializable {
 
+	/**
+	 * 空的注解列表
+	 */
 	private static final Annotation[] EMPTY_ANNOTATION_ARRAY = new Annotation[0];
 
 	private static final Map<Class<?>, TypeDescriptor> commonTypesCache = new HashMap<>(32);
 
+	/**
+	 * 缓存通用的类型
+	 */
 	private static final Class<?>[] CACHED_COMMON_TYPES = {
 			boolean.class, Boolean.class, byte.class, Byte.class, char.class, Character.class,
 			double.class, Double.class, float.class, Float.class, int.class, Integer.class,
@@ -65,14 +72,24 @@ public class TypeDescriptor implements Serializable {
 	}
 
 
+	/**
+	 * 要转换的类型
+	 */
 	private final Class<?> type;
 
+	/**
+	 * 可能带泛型的 ResolvableType
+	 */
 	private final ResolvableType resolvableType;
 
+	/**
+	 * 注解元素
+	 */
 	private final AnnotatedElementAdapter annotatedElement;
 
 
 	/**
+	 * 根据 MethodParameter 来创建 , 也就是根据方法参数来创建
 	 * Create a new type descriptor from a {@link MethodParameter}.
 	 * <p>Use this constructor when a source or target conversion point is a
 	 * constructor parameter, method parameter, or method return value.
@@ -168,6 +185,10 @@ public class TypeDescriptor implements Serializable {
 	}
 
 	/**
+	 * 这里主要由大的类型转成小的类型, 如:
+	 * 例如，如果将声明为java.lang.Object的字段设置为java.util.HashMap值，则该字段将缩小为java.util.HashMap。
+	 * 然后，可以使用缩小的TypeDescriptor将HashMap转换为其他类型。
+	 * 注释和嵌套类型上下文由缩小的副本保留
 	 * Narrows this {@link TypeDescriptor} by setting its type to the class of the
 	 * provided value.
 	 * <p>If the value is {@code null}, no narrowing is performed and this TypeDescriptor
@@ -192,6 +213,7 @@ public class TypeDescriptor implements Serializable {
 	}
 
 	/**
+	 * 将小类型升级为大类型, 如: 将 java.util.HashMap 升级为 java.lang.Object
 	 * Cast this {@link TypeDescriptor} to a superclass or implemented interface
 	 * preserving annotations and nested type context.
 	 * @param superType the super type to cast to (can be {@code null})
@@ -727,6 +749,7 @@ public class TypeDescriptor implements Serializable {
 
 
 	/**
+	 * AnnotatedElement 接口的内部实现, 用来表示这个类型的所有注解实例
 	 * Adapter class for exposing a {@code TypeDescriptor}'s annotations as an
 	 * {@link AnnotatedElement}, in particular to {@link AnnotatedElementUtils}.
 	 * @see AnnotatedElementUtils#isAnnotated(AnnotatedElement, Class)
@@ -734,6 +757,9 @@ public class TypeDescriptor implements Serializable {
 	 */
 	private class AnnotatedElementAdapter implements AnnotatedElement, Serializable {
 
+		/**
+		 * 注解列表
+		 */
 		@Nullable
 		private final Annotation[] annotations;
 
@@ -743,7 +769,9 @@ public class TypeDescriptor implements Serializable {
 
 		@Override
 		public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+			//遍历注解列表
 			for (Annotation annotation : getAnnotations()) {
+				//有注解和当前类型相同的, 则返回 true
 				if (annotation.annotationType() == annotationClass) {
 					return true;
 				}
@@ -755,6 +783,7 @@ public class TypeDescriptor implements Serializable {
 		@Nullable
 		@SuppressWarnings("unchecked")
 		public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+			//遍历注解列表, 根据注解类型获取存在注解实例, 没有返回 null
 			for (Annotation annotation : getAnnotations()) {
 				if (annotation.annotationType() == annotationClass) {
 					return (T) annotation;

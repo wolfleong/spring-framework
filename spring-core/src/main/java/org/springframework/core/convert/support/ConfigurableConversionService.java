@@ -20,6 +20,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterRegistry;
 
 /**
+ * ConversionService 的配置接口，继承 ConversionService 和 ConverterRegistry 两个接口，用于合并他们两者的操作，以便于通过 add 和 remove 的方式添加和删除转换器
  * Configuration interface to be implemented by most if not all {@link ConversionService}
  * types. Consolidates the read-only operations exposed by {@link ConversionService} and
  * the mutating operations of {@link ConverterRegistry} to allow for convenient ad-hoc

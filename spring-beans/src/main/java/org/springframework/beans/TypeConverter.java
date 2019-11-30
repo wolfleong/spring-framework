@@ -23,6 +23,7 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.lang.Nullable;
 
 /**
+ * spring 类型转换体系接口
  * Interface that defines type conversion methods. Typically (but not necessarily)
  * implemented in conjunction with the {@link PropertyEditorRegistry} interface.
  *
@@ -38,6 +39,7 @@ import org.springframework.lang.Nullable;
 public interface TypeConverter {
 
 	/**
+	 * 根据给定类型转换值
 	 * Convert the value to the required type (if necessary from a String).
 	 * <p>Conversions from String to any type will typically use the {@code setAsText}
 	 * method of the PropertyEditor class, or a Spring Converter in a ConversionService.

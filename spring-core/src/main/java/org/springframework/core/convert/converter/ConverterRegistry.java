@@ -17,6 +17,7 @@
 package org.springframework.core.convert.converter;
 
 /**
+ * 用于注册转换器(Converter)的接口
  * For registering converters with a type conversion system.
  *
  * @author Keith Donald
@@ -26,6 +27,7 @@ package org.springframework.core.convert.converter;
 public interface ConverterRegistry {
 
 	/**
+	 * 添加一个 Converter
 	 * Add a plain converter to this registry.
 	 * The convertible source/target type pair is derived from the Converter's parameterized types.
 	 * @throws IllegalArgumentException if the parameterized types could not be resolved
@@ -33,6 +35,7 @@ public interface ConverterRegistry {
 	void addConverter(Converter<?, ?> converter);
 
 	/**
+	 * 添加一个 Converter, 指定 sourceType 和 targetType
 	 * Add a plain converter to this registry.
 	 * The convertible source/target type pair is specified explicitly.
 	 * <p>Allows for a Converter to be reused for multiple distinct pairs without
