@@ -623,39 +623,61 @@ public class GenericConversionService implements ConfigurableConversionService {
 		}
 
 		/**
+		 * 获取给定类型的继承体系, 也就是 type 类的所有父类和接口
+		 * 注意: 数组是有继承体系的, 如: Integer[] 是 Number[] 的子类
 		 * Returns an ordered class hierarchy for the given type.
 		 * @param type the type
 		 * @return an ordered list of all classes that the given type extends or implements
 		 */
 		private List<Class<?>> getClassHierarchy(Class<?> type) {
+			//记录类的继承体系
 			List<Class<?>> hierarchy = new ArrayList<>(20);
+			//记录已经处理过的类, 主要是去重
 			Set<Class<?>> visited = new HashSet<>(20);
+			//添加当前类自己到继承体系中
 			addToClassHierarchy(0, ClassUtils.resolvePrimitiveIfNecessary(type), false, hierarchy, visited);
+			//判断给定类型是否是数组
 			boolean array = type.isArray();
 
 			int i = 0;
+			//遍历继承体系列表
 			while (i < hierarchy.size()) {
+				//获取一个候选类
 				Class<?> candidate = hierarchy.get(i);
+				//如果是数组, 则获取数组的 ComponentType, 否则获取类型
 				candidate = (array ? candidate.getComponentType() : ClassUtils.resolvePrimitiveIfNecessary(candidate));
+				//获取 candidate 的父类
 				Class<?> superclass = candidate.getSuperclass();
+				//如果父类不为 null, 且不为 Object 且不为 Enum
+				//注意, 这里不处理Object 和 枚举类型
 				if (superclass != null && superclass != Object.class && superclass != Enum.class) {
+					//将 superclass 添加到列表
 					addToClassHierarchy(i + 1, candidate.getSuperclass(), array, hierarchy, visited);
 				}
+				//添加 candidate 的相关接口
 				addInterfacesToClassHierarchy(candidate, array, hierarchy, visited);
 				i++;
 			}
 
+			//如果 type 是枚举
 			if (Enum.class.isAssignableFrom(type)) {
+				//添加枚举, 可能是数组
 				addToClassHierarchy(hierarchy.size(), Enum.class, array, hierarchy, visited);
+				//添加一个非数组的
 				addToClassHierarchy(hierarchy.size(), Enum.class, false, hierarchy, visited);
+				//添加枚举相关的接口
 				addInterfacesToClassHierarchy(Enum.class, array, hierarchy, visited);
 			}
 
+			//添加 Object 类型
 			addToClassHierarchy(hierarchy.size(), Object.class, array, hierarchy, visited);
 			addToClassHierarchy(hierarchy.size(), Object.class, false, hierarchy, visited);
 			return hierarchy;
 		}
 
+		/**
+		 * 添加指定类型 type 的所有接口到继承体系中
+		 */
 		private void addInterfacesToClassHierarchy(Class<?> type, boolean asArray,
 				List<Class<?>> hierarchy, Set<Class<?>> visited) {
 
@@ -664,12 +686,22 @@ public class GenericConversionService implements ConfigurableConversionService {
 			}
 		}
 
+		/**
+		 * 添加类的继承体系中
+		 * @param index 指定添加的位置
+		 * @param type 要添加的类型
+		 * @param asArray 是否作为数组
+		 * @param hierarchy 继承体系列表
+		 * @param visited 已经添加过的列表
+		 */
 		private void addToClassHierarchy(int index, Class<?> type, boolean asArray,
 				List<Class<?>> hierarchy, Set<Class<?>> visited) {
 
+			//如果是数组, 则创建给定类型 type 的数组类型
 			if (asArray) {
 				type = Array.newInstance(type, 0).getClass();
 			}
+			//如果能添加, 则添加到继承体系中
 			if (visited.add(type)) {
 				hierarchy.add(index, type);
 			}

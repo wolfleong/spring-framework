@@ -534,6 +534,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 如果是原始类型, 则返回原始类型的包装类型
 	 * Resolve the given class if it is a primitive class,
 	 * returning the corresponding primitive wrapper type instead.
 	 * @param clazz the class to check
