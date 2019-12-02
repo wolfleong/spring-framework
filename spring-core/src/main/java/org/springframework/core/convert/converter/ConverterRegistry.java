@@ -27,7 +27,7 @@ package org.springframework.core.convert.converter;
 public interface ConverterRegistry {
 
 	/**
-	 * 添加一个 Converter
+	 * 添加一个 Converter, 这个添加会自动解析 sourceType 和 targetType
 	 * Add a plain converter to this registry.
 	 * The convertible source/target type pair is derived from the Converter's parameterized types.
 	 * @throws IllegalArgumentException if the parameterized types could not be resolved
@@ -45,11 +45,13 @@ public interface ConverterRegistry {
 	<S, T> void addConverter(Class<S> sourceType, Class<T> targetType, Converter<? super S, ? extends T> converter);
 
 	/**
+	 * 添加一个通用的转换器
 	 * Add a generic converter to this registry.
 	 */
 	void addConverter(GenericConverter converter);
 
 	/**
+	 * 添加一个 ConverterFactory
 	 * Add a ranged converter factory to this registry.
 	 * The convertible source/target type pair is derived from the ConverterFactory's parameterized types.
 	 * @throws IllegalArgumentException if the parameterized types could not be resolved
@@ -57,6 +59,7 @@ public interface ConverterRegistry {
 	void addConverterFactory(ConverterFactory<?, ?> factory);
 
 	/**
+	 * 根据源类型和目标类型, 删除 GenericConverter
 	 * Remove any converters from {@code sourceType} to {@code targetType}.
 	 * @param sourceType the source type
 	 * @param targetType the target type

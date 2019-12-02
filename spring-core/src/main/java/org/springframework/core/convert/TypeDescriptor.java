@@ -144,6 +144,7 @@ public class TypeDescriptor implements Serializable {
 
 
 	/**
+	 * 获取类型, 如果给定类型是基本类型, 则转换成包装类型
 	 * Variation of {@link #getType()} that accounts for a primitive type by
 	 * returning its object wrapper type.
 	 * <p>This is useful for conversion service implementations that wish to
