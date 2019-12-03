@@ -25,6 +25,7 @@ import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.lang.Nullable;
 
 /**
+ * 一个通用的 ConversionService 配置工厂
  * A factory for common {@link org.springframework.core.convert.ConversionService}
  * configurations.
  *
@@ -47,6 +48,7 @@ public final class ConversionServiceFactory {
 	 */
 	public static void registerConverters(@Nullable Set<?> converters, ConverterRegistry registry) {
 		if (converters != null) {
+			//遍历转换器, 根据不同类型的的 Converter 调用不同的 spi 进行注册
 			for (Object converter : converters) {
 				if (converter instanceof GenericConverter) {
 					registry.addConverter((GenericConverter) converter);

@@ -23,7 +23,7 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.lang.Nullable;
 
 /**
- * spring 类型转换体系接口
+ * spring 类型转换体系接口, 通常与 PropertyEditorRegistry 接口一起实现
  * Interface that defines type conversion methods. Typically (but not necessarily)
  * implemented in conjunction with the {@link PropertyEditorRegistry} interface.
  *
@@ -39,7 +39,8 @@ import org.springframework.lang.Nullable;
 public interface TypeConverter {
 
 	/**
-	 * 根据给定类型转换值
+	 * 将参数中的 value 转换成 requiredType 类型
+	 * 从 String 到任何类型的转换通常使用 PropertyEditor 类的 setAsText 方法或 ConversionService 中的 Spring Converter
 	 * Convert the value to the required type (if necessary from a String).
 	 * <p>Conversions from String to any type will typically use the {@code setAsText}
 	 * method of the PropertyEditor class, or a Spring Converter in a ConversionService.
@@ -57,6 +58,7 @@ public interface TypeConverter {
 	<T> T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType) throws TypeMismatchException;
 
 	/**
+	 * 意义同上，增加了作为转换目标的方法参数，主要用于分析泛型类型，可能是null
 	 * Convert the value to the required type (if necessary from a String).
 	 * <p>Conversions from String to any type will typically use the {@code setAsText}
 	 * method of the PropertyEditor class, or a Spring Converter in a ConversionService.
@@ -77,6 +79,7 @@ public interface TypeConverter {
 			@Nullable MethodParameter methodParam) throws TypeMismatchException;
 
 	/**
+	 * 意义同上，增加了转换目标的反射field
 	 * Convert the value to the required type (if necessary from a String).
 	 * <p>Conversions from String to any type will typically use the {@code setAsText}
 	 * method of the PropertyEditor class, or a Spring Converter in a ConversionService.
@@ -97,6 +100,7 @@ public interface TypeConverter {
 			throws TypeMismatchException;
 
 	/**
+	 * 意义同上，增加了转换目标的 TypeDescriptor
 	 * Convert the value to the required type (if necessary from a String).
 	 * <p>Conversions from String to any type will typically use the {@code setAsText}
 	 * method of the PropertyEditor class, or a Spring Converter in a ConversionService.

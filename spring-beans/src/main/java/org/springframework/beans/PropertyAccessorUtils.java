@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
 public abstract class PropertyAccessorUtils {
 
 	/**
+	 * 获取 personList[0] 前面的属性 personList
 	 * Return the actual property name for the given property path.
 	 * @param propertyPath the property path to determine the property name
 	 * for (can include property keys, for example for specifying a map entry)
@@ -60,6 +61,7 @@ public abstract class PropertyAccessorUtils {
 	}
 
 	/**
+	 * 获取第一个属性分割符
 	 * Determine the first nested property separator in the
 	 * given property path, ignoring dots in keys (like "map[my.key]").
 	 * @param propertyPath the property path to check
@@ -80,6 +82,7 @@ public abstract class PropertyAccessorUtils {
 	}
 
 	/**
+	 * 获取第一个或者最后一个 . 位置, 忽略[]里面的
 	 * Determine the first (or last) nested property separator in the
 	 * given property path, ignoring dots in keys (like "map[my.key]").
 	 * @param propertyPath the property path to check
