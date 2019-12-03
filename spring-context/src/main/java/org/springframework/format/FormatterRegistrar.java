@@ -18,6 +18,7 @@ package org.springframework.format;
 import org.springframework.core.convert.converter.Converter;
 
 /**
+ * 通过 FormatterRegistry 接口注册 Converter 和 Formatter
  * Registers {@link Converter Converters} and {@link Formatter Formatters} with
  * a FormattingConversionService through the {@link FormatterRegistry} SPI.
  *

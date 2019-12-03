@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * DateFormatter 的注册器, 主要注册一些 Date 相关的转换器, 和 @DateTimeFormat 注解相的工厂
  * Configures basic date formatting for use with Spring, primarily for
  * {@link org.springframework.format.annotation.DateTimeFormat} declarations.
  * Applies to fields of type {@link Date}, {@link Calendar} and {@code long}.
@@ -60,11 +61,14 @@ public class DateFormatterRegistrar implements FormatterRegistrar {
 
 	@Override
 	public void registerFormatters(FormatterRegistry registry) {
+		//注册 date 相关转换器
 		addDateConverters(registry);
+		//注册 DateTimeFormatAnnotationFormatterFactory
 		registry.addFormatterForFieldAnnotation(new DateTimeFormatAnnotationFormatterFactory());
 
 		// In order to retain back compatibility we only register Date/Calendar
 		// types when a user defined formatter is specified (see SPR-10105)
+		//如果 dataFormatter 不为 null , 注册 dateFormatter
 		if (this.dateFormatter != null) {
 			registry.addFormatter(this.dateFormatter);
 			registry.addFormatterForFieldType(Calendar.class, this.dateFormatter);
@@ -72,6 +76,7 @@ public class DateFormatterRegistrar implements FormatterRegistrar {
 	}
 
 	/**
+	 * 添加一些默认的 Date 相关的转换器
 	 * Add date converters to the specified registry.
 	 * @param converterRegistry the registry of converters to add to
 	 */

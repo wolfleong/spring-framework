@@ -50,6 +50,11 @@ import org.springframework.util.StringUtils;
 
 /**
  * ConversionService 接口的基础实现，适用于大部分条件下的转换工作，通过 ConfigurableConversionService 接口间接地将 ConverterRegistry 实现为注册 API 。
+ * - 这个 GenericConverter 类型转换的设计有点精妙, 不仅仅可以针对指定的类型进行转换, 如果没有的话, 还会尝试父类或接口的转换器进行尝试,
+ *   如果通过父类的转换器的话, 可能会进行递归多层转换才得到最后的值
+ * - 也就是这个转换服务获得的转换器并不一定能转换到最终的结果, 需要多次转换
+ * - 它这个转换多次尝试是交给转换器自己处理, 并不是由 GenericConversionService 处理的, 而且只会处理一个链路, 并不会尝试另一个链路
+ * - 感觉其实可以优化一下, 在获取到非精确的转换器之后, 如果转换不成功, 则可以尝试下一组转换链路, 转换链路的尝试由 GenericConversionService 控制
  * Base {@link ConversionService} implementation suitable for use in most environments.
  * Indirectly implements {@link ConverterRegistry} as registration API through the
  * {@link ConfigurableConversionService} interface.
@@ -692,6 +697,8 @@ public class GenericConversionService implements ConfigurableConversionService {
 					//创建两个类型对
 					ConvertiblePair convertiblePair = new ConvertiblePair(sourceCandidate, targetCandidate);
 					//根据给定源类型和目标类型, 获取注册的转换器
+					//这里或许可以做一下优化, 如果没有直接的转换器, 则获取父类的转换器来处理, 如果处理不成功, 则可以尝试下一组父类型转换器,
+					//直到尝试所有转换链路都没转换才报错
 					GenericConverter converter = getRegisteredConverter(sourceType, targetType, convertiblePair);
 					//如果能获取到, 则直接返回
 					if (converter != null) {
@@ -859,7 +866,9 @@ public class GenericConversionService implements ConfigurableConversionService {
 			for (GenericConverter converter : this.converters) {
 				//如果 converter 不是 ConditionalGenericConverter 则直接返回
 				//如果 converter 是 ConditionalGenericConverter, 则要匹配 sourceType 和 targetType
-				//todo wolfleong 这里不明白, 如果没有实现 ConditionalGenericConverter 就直接返回这种情况, 感觉会有可能会返回错误的 GenericConverter
+				//注意: 为什么非 ConditionalGenericConverter 直接返回呢
+				//只有 FormattingConversionService 的 PrinterConverter 和 ParserConverter 没有实现 ConditionalGenericConverter 接口的
+				//这里如果获取到的转换器不是给定的类型, 在转换一层后, 再次进行尝试
 				if (!(converter instanceof ConditionalGenericConverter) ||
 						((ConditionalGenericConverter) converter).matches(sourceType, targetType)) {
 					//返回

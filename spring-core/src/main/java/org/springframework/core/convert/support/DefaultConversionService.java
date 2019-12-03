@@ -55,6 +55,7 @@ public class DefaultConversionService extends GenericConversionService {
 
 
 	/**
+	 * 单例懒加载实例
 	 * Return a shared default {@code ConversionService} instance,
 	 * lazily building it once needed.
 	 * <p><b>NOTE:</b> We highly recommend constructing individual
@@ -80,6 +81,7 @@ public class DefaultConversionService extends GenericConversionService {
 	}
 
 	/**
+	 * 添加默认的转换器
 	 * Add converters appropriate for most environments.
 	 * @param converterRegistry the registry of converters to add to
 	 * (must also be castable to ConversionService, e.g. being a {@link ConfigurableConversionService})
@@ -101,6 +103,7 @@ public class DefaultConversionService extends GenericConversionService {
 	}
 
 	/**
+	 * 添加通用的集合之前的转换器
 	 * Add common collection converters.
 	 * @param converterRegistry the registry of converters to add to
 	 * (must also be castable to ConversionService, e.g. being a {@link ConfigurableConversionService})

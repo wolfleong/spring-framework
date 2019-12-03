@@ -30,6 +30,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringValueResolver;
 
 /**
+ * FormattingConversionService 的默认实例
  * A specialization of {@link FormattingConversionService} configured by default with
  * converters and formatters appropriate for most applications.
  *
@@ -53,7 +54,9 @@ public class DefaultFormattingConversionService extends FormattingConversionServ
 
 	static {
 		ClassLoader classLoader = DefaultFormattingConversionService.class.getClassLoader();
+		//是否有 jsr354 实现
 		jsr354Present = ClassUtils.isPresent("javax.money.MonetaryAmount", classLoader);
+		//是否有 joda 类库处理时间
 		jodaTimePresent = ClassUtils.isPresent("org.joda.time.LocalDate", classLoader);
 	}
 
@@ -90,11 +93,15 @@ public class DefaultFormattingConversionService extends FormattingConversionServ
 	public DefaultFormattingConversionService(
 			@Nullable StringValueResolver embeddedValueResolver, boolean registerDefaultFormatters) {
 
+		//如果 embeddedValueResolver 不为 null, 则设置
 		if (embeddedValueResolver != null) {
 			setEmbeddedValueResolver(embeddedValueResolver);
 		}
+		//添加默认的转换器
 		DefaultConversionService.addDefaultConverters(this);
+		//如果要注册默认的格式化器
 		if (registerDefaultFormatters) {
+			//注册
 			addDefaultFormatters(this);
 		}
 	}
@@ -107,6 +114,7 @@ public class DefaultFormattingConversionService extends FormattingConversionServ
 	 * @param formatterRegistry the service to register default formatters with
 	 */
 	public static void addDefaultFormatters(FormatterRegistry formatterRegistry) {
+		//添加数字注解格式化工厂 @NumberFormat
 		// Default handling of number values
 		formatterRegistry.addFormatterForFieldAnnotation(new NumberFormatAnnotationFormatterFactory());
 
@@ -122,11 +130,13 @@ public class DefaultFormattingConversionService extends FormattingConversionServ
 		// just handling JSR-310 specific date and time types
 		new DateTimeFormatterRegistrar().registerFormatters(formatterRegistry);
 
+		//如果有 joda 日期库的实现, 则创建 JodaTimeFormatterRegistrar , 并注册
 		if (jodaTimePresent) {
 			// handles Joda-specific types as well as Date, Calendar, Long
 			new JodaTimeFormatterRegistrar().registerFormatters(formatterRegistry);
 		}
 		else {
+			//添加日期格式化工厂
 			// regular DateFormat-based Date, Calendar, Long converters
 			new DateFormatterRegistrar().registerFormatters(formatterRegistry);
 		}
