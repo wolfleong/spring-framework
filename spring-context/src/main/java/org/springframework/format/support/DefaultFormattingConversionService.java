@@ -30,7 +30,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringValueResolver;
 
 /**
- * FormattingConversionService 的默认实例
+ * FormattingConversionService 的默认实现
  * A specialization of {@link FormattingConversionService} configured by default with
  * converters and formatters appropriate for most applications.
  *
@@ -136,7 +136,7 @@ public class DefaultFormattingConversionService extends FormattingConversionServ
 			new JodaTimeFormatterRegistrar().registerFormatters(formatterRegistry);
 		}
 		else {
-			//添加日期格式化工厂
+			//添加 Date 相关 Formatter
 			// regular DateFormat-based Date, Calendar, Long converters
 			new DateFormatterRegistrar().registerFormatters(formatterRegistry);
 		}
