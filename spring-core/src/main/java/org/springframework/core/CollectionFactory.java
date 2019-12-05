@@ -90,6 +90,7 @@ public final class CollectionFactory {
 
 
 	/**
+	 * 集合类型是否是可近似的类型
 	 * Determine whether the given collection type is an <em>approximable</em> type,
 	 * i.e. a type that {@link #createApproximateCollection} can approximate.
 	 * @param collectionType the collection type to check

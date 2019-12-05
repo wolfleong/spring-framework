@@ -61,7 +61,7 @@ public abstract class PropertyAccessorUtils {
 	}
 
 	/**
-	 * 获取第一个属性分割符
+	 * 获取第一个属性分割符 . 的位置, 忽略 [] 括号里面的
 	 * Determine the first nested property separator in the
 	 * given property path, ignoring dots in keys (like "map[my.key]").
 	 * @param propertyPath the property path to check
@@ -115,6 +115,10 @@ public abstract class PropertyAccessorUtils {
 	}
 
 	/**
+	 * 判断两个属性路径是否匹配 , 如:
+	 *  list 和 list => true
+	 *  list[0] 和 list => true
+	 *  list[0].xxx 和 list => false
 	 * Determine whether the given registered path matches the given property path,
 	 * either indicating the property itself or an indexed element of the property.
 	 * @param propertyPath the property path (typically without index)
@@ -122,12 +126,16 @@ public abstract class PropertyAccessorUtils {
 	 * @return whether the paths match
 	 */
 	public static boolean matchesProperty(String registeredPath, String propertyPath) {
+		//如果前缀不一致, 则返回 false
 		if (!registeredPath.startsWith(propertyPath)) {
 			return false;
 		}
+		//如果 registeredPath 是以 propertyPath 为前缀, 且长度一样,即相等,  则返回 true
 		if (registeredPath.length() == propertyPath.length()) {
 			return true;
 		}
+		//如果 propertyPath 的长度的位置在 registeredPath 不是 [ 的话, 则返回 false
+		//如: list[0] 和 list
 		if (registeredPath.charAt(propertyPath.length()) != PropertyAccessor.PROPERTY_KEY_PREFIX_CHAR) {
 			return false;
 		}

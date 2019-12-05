@@ -546,6 +546,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * lhsType 是否是 rhsType 类型的父类
 	 * Check if the right-hand side type may be assigned to the left-hand side
 	 * type, assuming setting by reflection. Considers primitive wrapper
 	 * classes as assignable to the corresponding primitive types.

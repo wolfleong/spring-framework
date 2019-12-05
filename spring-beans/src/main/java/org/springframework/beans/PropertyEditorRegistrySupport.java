@@ -361,7 +361,7 @@ public class PropertyEditorRegistrySupport implements PropertyEditorRegistry {
 	}
 
 	/**
-	 * 查询定义的属性编辑器
+	 * 查询定义的属性编辑器, 有保能属性编辑器的类型是 requiredType 的父类
 	 */
 	@Override
 	@Nullable
@@ -569,17 +569,17 @@ public class PropertyEditorRegistrySupport implements PropertyEditorRegistry {
 		if (this.customEditorsForPath != null) {
 			//遍历
 			this.customEditorsForPath.forEach((editorPath, editorHolder) -> {
-				//如果 nestedProperty 不为 null
+				//如果 nestedProperty 不为 null, 复制嵌套属性下的
 				if (nestedProperty != null) {
 					//获取第一个属性分割符的位置
 					int pos = PropertyAccessorUtils.getFirstNestedPropertySeparatorIndex(editorPath);
 					//如果属性分割符存在
 					if (pos != -1) {
-						//获取属性分割符前面的属性
+						//获取第一层属性, 如 person.name 中的 person
 						String editorNestedProperty = editorPath.substring(0, pos);
-						//获取属性分割符后面的属性
+						//获取第一层属性后面的属性, 如: person.name 中的 name
 						String editorNestedPath = editorPath.substring(pos + 1);
-						//如果第一个属性与给定的相等, 则注册
+						//如果编辑器的 propertyPath 的第一层属性等于 nestedProperty 或等于 actualPropertyName , 则复制注册器
 						if (editorNestedProperty.equals(nestedProperty) || editorNestedProperty.equals(actualPropertyName)) {
 							target.registerCustomEditor(
 									editorHolder.getRegisteredType(), editorNestedPath, editorHolder.getPropertyEditor());
@@ -587,7 +587,7 @@ public class PropertyEditorRegistrySupport implements PropertyEditorRegistry {
 					}
 				}
 				else {
-					//nestedProperty 为 null, 直接注册
+					//nestedProperty 为 null, 直接复制所有的编辑器
 					target.registerCustomEditor(
 							editorHolder.getRegisteredType(), editorPath, editorHolder.getPropertyEditor());
 				}
@@ -597,7 +597,9 @@ public class PropertyEditorRegistrySupport implements PropertyEditorRegistry {
 
 
 	/**
-	 * 处理给定的 propertyPath , list[0].age => list.age
+	 * 处理给定的 propertyPath , 如:
+	 * => list[0].age => [list.age]
+	 * => list[0].map[name].age => [list.map[name].age, list.map[name].age]
 	 * Add property paths with all variations of stripped keys and/or indexes.
 	 * Invokes itself recursively with nested paths.
 	 * @param strippedPaths the result list to add to

@@ -514,6 +514,8 @@ public abstract class BeanUtils {
 	}
 
 	/**
+	 * 根据类型名约定, 加载 PropertyEditor
+	 * - "mypackage.MyDomainClass" -> "mypackage.MyDomainClassEditor"
 	 * Find a JavaBeans PropertyEditor following the 'Editor' suffix convention
 	 * (e.g. "mypackage.MyDomainClass" -> "mypackage.MyDomainClassEditor").
 	 * <p>Compatible to the standard JavaBeans convention as implemented by
@@ -524,9 +526,12 @@ public abstract class BeanUtils {
 	 */
 	@Nullable
 	public static PropertyEditor findEditorByConvention(@Nullable Class<?> targetType) {
+		//如果目标类型为 null 或目标类型是数组或是没有属性编辑器的类型
 		if (targetType == null || targetType.isArray() || unknownEditorTypes.contains(targetType)) {
+			//直接返回 null
 			return null;
 		}
+		//获取类加载器
 		ClassLoader cl = targetType.getClassLoader();
 		if (cl == null) {
 			try {
@@ -543,14 +548,18 @@ public abstract class BeanUtils {
 				return null;
 			}
 		}
+		//拼接全类名
 		String editorName = targetType.getName() + "Editor";
 		try {
+			//加载类
 			Class<?> editorClass = cl.loadClass(editorName);
+			//如果不是属性编辑器类型
 			if (!PropertyEditor.class.isAssignableFrom(editorClass)) {
 				if (logger.isInfoEnabled()) {
 					logger.info("Editor class [" + editorName +
 							"] does not implement [java.beans.PropertyEditor] interface");
 				}
+				//将此类型缓存起来, 返回 null
 				unknownEditorTypes.add(targetType);
 				return null;
 			}
@@ -561,6 +570,7 @@ public abstract class BeanUtils {
 				logger.trace("No property editor [" + editorName + "] found for type " +
 						targetType.getName() + " according to 'Editor' suffix convention");
 			}
+			//如果报异常, 也将此类型缓存起来
 			unknownEditorTypes.add(targetType);
 			return null;
 		}
