@@ -159,6 +159,7 @@ public abstract class ObjectUtils {
 	}
 
 	/**
+	 * 获取去掉 Optional 的值
 	 * Unwrap the given object which is potentially a {@link java.util.Optional}.
 	 * @param obj the candidate object
 	 * @return either the value held within the {@code Optional}, {@code null}
@@ -167,13 +168,18 @@ public abstract class ObjectUtils {
 	 */
 	@Nullable
 	public static Object unwrapOptional(@Nullable Object obj) {
+		//如果 obj 是 Optional 类型
 		if (obj instanceof Optional) {
+			//强转
 			Optional<?> optional = (Optional<?>) obj;
+			//如果 optional 没有值, 则返回 null
 			if (!optional.isPresent()) {
 				return null;
 			}
+			//获取 optional 的值
 			Object result = optional.get();
 			Assert.isTrue(!(result instanceof Optional), "Multi-level Optional usage not supported");
+			//返回
 			return result;
 		}
 		return obj;

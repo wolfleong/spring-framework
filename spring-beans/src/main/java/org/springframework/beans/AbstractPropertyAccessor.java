@@ -24,6 +24,10 @@ import java.util.Map;
 import org.springframework.lang.Nullable;
 
 /**
+ * 实现了部分父类的接口以及提供一些模版实现
+ * - TypeConverterSupport 相当于实现了TypeConverter以及PropertyEditorRegistry的所有内容
+ * - 它主要完成了对 PropertyEditorRegistry 和 TypeConverter 等接口的间接实现，然后完成了批量操作的模版操作，
+ *   但是很明显最终的落地的get/set留给子类来实现~
  * Abstract implementation of the {@link PropertyAccessor} interface.
  * Provides base implementations of all convenience methods, with the
  * implementation of actual property access left to subclasses.
@@ -36,8 +40,15 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractPropertyAccessor extends TypeConverterSupport implements ConfigurablePropertyAccessor {
 
+	/**
+	 * 设置在将属性编辑器应用于属性的新值时是**否提取旧属性值**。
+	 */
 	private boolean extractOldValueForEditor = false;
 
+	/**
+	 * 设置此实例是否应尝试“自动增长”包含null的嵌套路径。
+	 * true：为null的值会自动被填充为一个默认的value值，而不是抛出异常 NullValueInNestedPathException
+	 */
 	private boolean autoGrowNestedPaths = false;
 
 
@@ -100,12 +111,14 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 				setPropertyValue(pv);
 			}
 			catch (NotWritablePropertyException ex) {
+				//如果不忽略不存在的属性, 则报异常
 				if (!ignoreUnknown) {
 					throw ex;
 				}
 				// Otherwise, just ignore it and continue...
 			}
 			catch (NullValueInNestedPathException ex) {
+				//如果不忽略非法的值, 则报异常
 				if (!ignoreInvalid) {
 					throw ex;
 				}
@@ -115,10 +128,12 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 				if (propertyAccessExceptions == null) {
 					propertyAccessExceptions = new ArrayList<>();
 				}
+				//收集异常
 				propertyAccessExceptions.add(ex);
 			}
 		}
 
+		//如果有属性访问异常, 则抛出
 		// If we encountered individual exceptions, throw the composite exception.
 		if (propertyAccessExceptions != null) {
 			PropertyAccessException[] paeArray = propertyAccessExceptions.toArray(new PropertyAccessException[0]);

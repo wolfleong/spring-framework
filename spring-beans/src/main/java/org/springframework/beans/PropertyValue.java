@@ -156,8 +156,8 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	public PropertyValue getOriginalPropertyValue() {
 		PropertyValue original = this;
 		Object source = getSource();
-		//一直往上找, 直到  source 不是 PropertyValue 为止
-		//todo wolfleong 这里有个疑问, 会出现 source != original 的情况吗
+		//一直往上找, 直到  source 不是 PropertyValue 为止, 当 null 或者 source == original 都会退出
+		//todo wolfleong 这里有个疑问, 会出现 source == original 的情况吗
 		while (source instanceof PropertyValue && source != original) {
 			original = (PropertyValue) source;
 			source = original.getSource();
