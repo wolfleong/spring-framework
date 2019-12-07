@@ -31,6 +31,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * spring 封装的属性描述器, 相当于 PropertyDescriptor, 主要是避免对 PropertyDescriptor 的强依赖
  * A description of a JavaBeans Property that allows us to avoid a dependency on
  * {@code java.beans.PropertyDescriptor}. The {@code java.beans} package
  * is not available in a number of environments (e.g. Android, Java ME), so this is
@@ -47,20 +48,41 @@ import org.springframework.util.StringUtils;
  */
 public final class Property {
 
+	/**
+	 * 注解列表的缓存
+	 */
 	private static Map<Property, Annotation[]> annotationCache = new ConcurrentReferenceHashMap<>();
 
+	/**
+	 * 属性所在的 class
+	 */
 	private final Class<?> objectType;
 
+	/**
+	 * 读方法
+	 */
 	@Nullable
 	private final Method readMethod;
 
+	/**
+	 * 写方法
+	 */
 	@Nullable
 	private final Method writeMethod;
 
+	/**
+	 * 属性名
+	 */
 	private final String name;
 
+	/**
+	 * 方法参数的封
+	 */
 	private final MethodParameter methodParameter;
 
+	/**
+	 * 注解
+	 */
 	@Nullable
 	private Annotation[] annotations;
 
@@ -76,6 +98,7 @@ public final class Property {
 		this.readMethod = readMethod;
 		this.writeMethod = writeMethod;
 		this.methodParameter = resolveMethodParameter();
+		//用名称则直接用, 否则解析
 		this.name = (name != null ? name : resolveName());
 	}
 
@@ -134,6 +157,9 @@ public final class Property {
 
 	// internal helpers
 
+	/**
+	 * 解析属性名, 主要从方法名中去掉 get, set , is 后的名称
+	 */
 	private String resolveName() {
 		if (this.readMethod != null) {
 			int index = this.readMethod.getName().indexOf("get");
@@ -165,27 +191,35 @@ public final class Property {
 	private MethodParameter resolveMethodParameter() {
 		MethodParameter read = resolveReadMethodParameter();
 		MethodParameter write = resolveWriteMethodParameter();
+		//如果写的方法参数为 null
 		if (write == null) {
+			//同时读方法参数也为 null, 则直接报错
 			if (read == null) {
 				throw new IllegalStateException("Property is neither readable nor writeable");
 			}
+			//返回读方法参数封装
 			return read;
 		}
+		//如果读方法参数不为 null 且写方法参数不为 null
 		if (read != null) {
 			Class<?> readType = read.getParameterType();
 			Class<?> writeType = write.getParameterType();
+			//如果写方法的参数类型和读方法的返回类型不相等且读是写的子类型, 则返回读
 			if (!writeType.equals(readType) && writeType.isAssignableFrom(readType)) {
 				return read;
 			}
 		}
+		//默认返回写的方法参数封装
 		return write;
 	}
 
 	@Nullable
 	private MethodParameter resolveReadMethodParameter() {
+		//如果读方法为 null , 直接返回  null
 		if (getReadMethod() == null) {
 			return null;
 		}
+		//创建 MethodParameter
 		return new MethodParameter(getReadMethod(), -1).withContainingClass(getObjectType());
 	}
 
@@ -197,9 +231,15 @@ public final class Property {
 		return new MethodParameter(getWriteMethod(), 0).withContainingClass(getObjectType());
 	}
 
+	/**
+	 * 解析注解
+	 */
 	private Annotation[] resolveAnnotations() {
+		//用当前实例从缓存中获取
 		Annotation[] annotations = annotationCache.get(this);
+		//如果缓存没有
 		if (annotations == null) {
+			//创建
 			Map<Class<? extends Annotation>, Annotation> annotationMap = new LinkedHashMap<>();
 			addAnnotationsToMap(annotationMap, getReadMethod());
 			addAnnotationsToMap(annotationMap, getWriteMethod());

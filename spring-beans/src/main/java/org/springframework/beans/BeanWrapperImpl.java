@@ -65,6 +65,7 @@ import org.springframework.util.ReflectionUtils;
 public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements BeanWrapper {
 
 	/**
+	 * 内省缓存
 	 * Cached introspections results for this object, to prevent encountering
 	 * the cost of JavaBeans introspection every time.
 	 */
@@ -263,8 +264,14 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	}
 
 
+	/**
+	 * PropertyHandler 抽象类的实现
+	 */
 	private class BeanPropertyHandler extends PropertyHandler {
 
+		/**
+		 * 属性描述器
+		 */
 		private final PropertyDescriptor pd;
 
 		public BeanPropertyHandler(PropertyDescriptor pd) {
@@ -272,11 +279,18 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 			this.pd = pd;
 		}
 
+		/**
+		 * 获取 getter 方法返回类型
+		 */
 		@Override
 		public ResolvableType getResolvableType() {
 			return ResolvableType.forMethodReturnType(this.pd.getReadMethod());
 		}
 
+		/**
+		 *
+		 * @return
+		 */
 		@Override
 		public TypeDescriptor toTypeDescriptor() {
 			return new TypeDescriptor(property(this.pd));
