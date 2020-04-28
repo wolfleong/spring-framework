@@ -81,7 +81,7 @@ public final class Property {
 	private final MethodParameter methodParameter;
 
 	/**
-	 * 注解
+	 * 注解列表
 	 */
 	@Nullable
 	private Annotation[] annotations;
@@ -97,6 +97,7 @@ public final class Property {
 		this.objectType = objectType;
 		this.readMethod = readMethod;
 		this.writeMethod = writeMethod;
+		//解析 MethodParameter
 		this.methodParameter = resolveMethodParameter();
 		//用名称则直接用, 否则解析
 		this.name = (name != null ? name : resolveName());
@@ -158,7 +159,7 @@ public final class Property {
 	// internal helpers
 
 	/**
-	 * 解析属性名, 主要从方法名中去掉 get, set , is 后的名称
+	 * 解析属性名, 主要将getter , setter 方法名去掉 get, set , is 后的名称
 	 */
 	private String resolveName() {
 		if (this.readMethod != null) {
@@ -232,7 +233,7 @@ public final class Property {
 	}
 
 	/**
-	 * 解析注解
+	 * 解析注解, 并返回注解列表
 	 */
 	private Annotation[] resolveAnnotations() {
 		//用当前实例从缓存中获取
@@ -241,15 +242,24 @@ public final class Property {
 		if (annotations == null) {
 			//创建
 			Map<Class<? extends Annotation>, Annotation> annotationMap = new LinkedHashMap<>();
+			//先添加 ReadMethod 的所有注解
 			addAnnotationsToMap(annotationMap, getReadMethod());
+			//再添加 writeMethod 的注解
 			addAnnotationsToMap(annotationMap, getWriteMethod());
+			//最后再获取 Field 的注解
 			addAnnotationsToMap(annotationMap, getField());
+			//获取注解实例列表
 			annotations = annotationMap.values().toArray(new Annotation[0]);
+			//添加到缓存中
 			annotationCache.put(this, annotations);
 		}
+		//返回注解列表
 		return annotations;
 	}
 
+	/**
+	 * 获取 object 对象的注解, 并添加到 annotationMap 中
+	 */
 	private void addAnnotationsToMap(
 			Map<Class<? extends Annotation>, Annotation> annotationMap, @Nullable AnnotatedElement object) {
 
@@ -260,27 +270,42 @@ public final class Property {
 		}
 	}
 
+	/**
+	 * 获取字段的反射
+	 */
 	@Nullable
 	private Field getField() {
+		//获取字段名
 		String name = getName();
+		//如果名称为空, 则返回 null
 		if (!StringUtils.hasLength(name)) {
 			return null;
 		}
 		Field field = null;
+		//获取方法声明的 class
 		Class<?> declaringClass = declaringClass();
+		//声明的 class 不为 null
 		if (declaringClass != null) {
+			//根据字段名查找 Field
 			field = ReflectionUtils.findField(declaringClass, name);
+			//如果没找到
 			if (field == null) {
+				//首字母小写再找一遍
 				// Same lenient fallback checking as in CachedIntrospectionResults...
 				field = ReflectionUtils.findField(declaringClass, StringUtils.uncapitalize(name));
+				//如果还是没找到, 则首字母大写再找一遍
 				if (field == null) {
 					field = ReflectionUtils.findField(declaringClass, StringUtils.capitalize(name));
 				}
 			}
 		}
+		//返回找到的字段
 		return field;
 	}
 
+	/**
+	 * 获取属性声明的 class
+	 */
 	@Nullable
 	private Class<?> declaringClass() {
 		if (getReadMethod() != null) {

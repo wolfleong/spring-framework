@@ -34,6 +34,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ *
  * Extension of the standard JavaBeans {@link PropertyDescriptor} class,
  * overriding {@code getPropertyType()} such that a generically declared
  * type variable will be resolved against the containing bean class.

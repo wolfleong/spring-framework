@@ -173,9 +173,12 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	 * for the wrapped object.
 	 */
 	private CachedIntrospectionResults getCachedIntrospectionResults() {
+		//如果内省缓存为 null
 		if (this.cachedIntrospectionResults == null) {
+			//创建内省缓存返回
 			this.cachedIntrospectionResults = CachedIntrospectionResults.forClass(getWrappedClass());
 		}
+		//返回
 		return this.cachedIntrospectionResults;
 	}
 
@@ -222,6 +225,9 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 		return convertForProperty(propertyName, null, value, td);
 	}
 
+	/**
+	 * 用 PropertyDescriptor 创建 Property
+	 */
 	private Property property(PropertyDescriptor pd) {
 		GenericTypeAwarePropertyDescriptor gpd = (GenericTypeAwarePropertyDescriptor) pd;
 		return new Property(gpd.getBeanClass(), gpd.getReadMethod(), gpd.getWriteMethod(), gpd.getName());
