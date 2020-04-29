@@ -22,6 +22,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 系统属性环境变量的 PropertySource, 主要是对变量名做了一些处理替换
  * Specialization of {@link MapPropertySource} designed for use with
  * {@linkplain AbstractEnvironment#getSystemEnvironment() system environment variables}.
  * Compensates for constraints in Bash and other shells that do not allow for variables
@@ -99,16 +100,19 @@ public class SystemEnvironmentPropertySource extends MapPropertySource {
 	}
 
 	/**
+	 * 解析属性名, 主要是处理系统变量的 .- 变成 _ , 小写变大写
 	 * Check to see if this property source contains a property with the given name, or
 	 * any underscore / uppercase variation thereof. Return the resolved name if one is
 	 * found or otherwise the original name. Never returns {@code null}.
 	 */
 	protected final String resolvePropertyName(String name) {
 		Assert.notNull(name, "Property name must not be null");
+		//处理 .- 变成 _
 		String resolvedName = checkPropertyName(name);
 		if (resolvedName != null) {
 			return resolvedName;
 		}
+		//全成大写
 		String uppercasedName = name.toUpperCase();
 		if (!name.equals(uppercasedName)) {
 			resolvedName = checkPropertyName(uppercasedName);
@@ -119,22 +123,28 @@ public class SystemEnvironmentPropertySource extends MapPropertySource {
 		return name;
 	}
 
+	/**
+	 * 主要作用是将点和中划线替换成下划线, 再尝试判断 key 是否存在
+	 */
 	@Nullable
 	private String checkPropertyName(String name) {
 		// Check name as-is
 		if (containsKey(name)) {
 			return name;
 		}
+		//替换点
 		// Check name with just dots replaced
 		String noDotName = name.replace('.', '_');
 		if (!name.equals(noDotName) && containsKey(noDotName)) {
 			return noDotName;
 		}
+		//替换中划线
 		// Check name with just hyphens replaced
 		String noHyphenName = name.replace('-', '_');
 		if (!name.equals(noHyphenName) && containsKey(noHyphenName)) {
 			return noHyphenName;
 		}
+		//这个主要是同时将点和中划线进行替换, 再判断
 		// Check name with dots and hyphens replaced
 		String noDotNoHyphenName = noDotName.replace('-', '_');
 		if (!noDotName.equals(noDotNoHyphenName) && containsKey(noDotNoHyphenName)) {

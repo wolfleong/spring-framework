@@ -22,6 +22,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.lang.Nullable;
 
 /**
+ * 该接口只有一个 #getServletContext() 方法，用于给 Servlet 提供上下文信息
+ *
  * Interface to provide configuration for a web application. This is read-only while
  * the application is running, but may be reloaded if the implementation supports this.
  *
@@ -98,6 +100,7 @@ public interface WebApplicationContext extends ApplicationContext {
 
 
 	/**
+	 * 获取 ServletContext
 	 * Return the standard Servlet API ServletContext for this application.
 	 */
 	@Nullable

@@ -31,6 +31,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 主要的作用是, 在初始化 bean 之后, 将单例的监听器类型的 bean 实例添加到 AbstractApplicationContext 中
  * {@code BeanPostProcessor} that detects beans which implement the {@code ApplicationListener}
  * interface. This catches beans that can't reliably be detected by {@code getBeanNamesForType}
  * and related operations which only work against top-level beans.

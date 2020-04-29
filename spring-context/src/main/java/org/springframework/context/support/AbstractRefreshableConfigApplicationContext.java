@@ -87,6 +87,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	}
 
 	/**
+	 * 获取配置的文件地址列表, 如果没有则取默认的
 	 * Return an array of resource locations, referring to the XML bean definition
 	 * files that this context should be built with. Can also include location
 	 * patterns, which will get resolved via a ResourcePatternResolver.
