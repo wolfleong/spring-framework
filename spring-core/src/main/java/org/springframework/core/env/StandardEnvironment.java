@@ -17,6 +17,7 @@
 package org.springframework.core.env;
 
 /**
+ * 标准的 Environment 实现, 主要是读取系统变量和系统环境变量
  * {@link Environment} implementation suitable for use in 'standard' (i.e. non-web)
  * applications.
  *
@@ -75,8 +76,10 @@ public class StandardEnvironment extends AbstractEnvironment {
 	 */
 	@Override
 	protected void customizePropertySources(MutablePropertySources propertySources) {
+		//获取系统属性
 		propertySources.addLast(
 				new PropertiesPropertySource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME, getSystemProperties()));
+		//获取系统环境变量, 如: PATH=...., JAVA_HOME=... 这些
 		propertySources.addLast(
 				new SystemEnvironmentPropertySource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, getSystemEnvironment()));
 	}

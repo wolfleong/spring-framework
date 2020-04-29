@@ -34,6 +34,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * Environment 的基础实现
  * Abstract base class for {@link Environment} implementations. Supports the notion of
  * reserved default profile names and enables specifying active and default profiles
  * through the {@link #ACTIVE_PROFILES_PROPERTY_NAME} and
@@ -382,6 +383,9 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 		return this.propertySources;
 	}
 
+	/**
+	 * 获取所有的系统属性
+	 */
 	@Override
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public Map<String, Object> getSystemProperties() {

@@ -28,6 +28,7 @@ import org.springframework.util.ObjectUtils;
  * 底层的属性源T可以是容纳属性信息的任意类型，比如java.util.Properties,java.util.Map,ServletContext,ServletConfig对象,
  * 或者是命令行参数 CommandLineArgs 对象。类 PropertySource 的方法 getSource() 用于获取底层的属性源对象T。
  * 顶层的属性源对象经过 PropertySource 封装，从而具有统一的访问方式。
+ *
  * Abstract base class representing a source of name/value property pairs. The underlying
  * {@linkplain #getSource() source object} may be of any type {@code T} that encapsulates
  * properties. Examples include {@link java.util.Properties} objects, {@link java.util.Map}

@@ -19,9 +19,9 @@ package org.springframework.core.env;
 import org.springframework.lang.Nullable;
 
 /**
- * 属性解析器, 主要有两个功能
- * - 通过propertyName属性名获取与之对应的propertValue属性值（getProperty）
- * - 把${propertyName:defaultValue}格式的属性占位符，替换为实际的值(resolvePlaceholders)
+ * PropertyResolver 定义了访问 Properties 属性值的方法
+ * - 通过 propertyName 属性名获取与之对应的 propertValue 属性值（getProperty）
+ * - 把 ${propertyName:defaultValue} 格式的属性占位符，替换为实际的值(resolvePlaceholders)
  * Interface for resolving properties against any underlying source.
  *
  * @author Chris Beams

@@ -20,7 +20,8 @@ import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.lang.Nullable;
 
 /**
- * PropertyResolver 的配置接口
+ * PropertyResolver 的配置接口, 提供属性类型转换的功能
+ * - ConfigurablePropertyResolver 则定义了解析 Properties 一些相关的规则和值进行类型转换所需要的 Service。
  * Configuration interface to be implemented by most if not all {@link PropertyResolver}
  * types. Provides facilities for accessing and customizing the
  * {@link org.springframework.core.convert.ConversionService ConversionService}

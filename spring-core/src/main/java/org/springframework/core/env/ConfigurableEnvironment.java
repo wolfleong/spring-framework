@@ -19,6 +19,8 @@ package org.springframework.core.env;
 import java.util.Map;
 
 /**
+ * ConfigurableEnvironment：提供设置激活的 profile 和默认的 profile 的功能以及操作 Properties 的工具
+ *
  * Configuration interface to be implemented by most if not all {@link Environment} types.
  * Provides facilities for setting active and default profiles and manipulating underlying
  * property sources. Allows clients to set and validate required properties, customize the

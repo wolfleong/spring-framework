@@ -33,7 +33,9 @@ import org.springframework.util.PropertyPlaceholderHelper;
 import org.springframework.util.SystemPropertyUtils;
 
 /**
- * ConfigurablePropertyResolver 接口的抽象类, 它实现了 ConfigurablePropertyResolver 接口的所有方法和 PropertyResolver 接口的部分方法
+ * ConfigurablePropertyResolver 接口的抽象类,
+ * 它实现了 ConfigurablePropertyResolver 接口的所有方法和 PropertyResolver 接口的部分方法
+ *
  * Abstract base class for resolving properties against any underlying source.
  *
  * @author Chris Beams
