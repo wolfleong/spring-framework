@@ -630,7 +630,7 @@ class ConstructorResolver {
 			boolean autowiring = (mbd.getResolvedAutowireMode() == AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
 			//一开始最小的比重是 Integer.MAX_VALUE
 			int minTypeDiffWeight = Integer.MAX_VALUE;
-			//记录有冲空的构造方法
+			//记录有冲突的构造方法
 			Set<Method> ambiguousFactoryMethods = null;
 
 			int minNrOfArgs;
@@ -1091,6 +1091,7 @@ class ConstructorResolver {
 			//获取参数的类型
 			Class<?> paramType = paramTypes[argIndex];
 			try {
+				//因为上面解析出来的值不一定是构造器参数的类型, 所以做一次转换
 				//转换类型
 				resolvedArgs[argIndex] = converter.convertIfNecessary(argValue, paramType, methodParam);
 			}

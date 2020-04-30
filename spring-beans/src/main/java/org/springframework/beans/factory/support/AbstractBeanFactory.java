@@ -255,7 +255,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		//如果 Bean 对象不为空, 且参数为空
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
-				//指定的singleton bean是否正在创建（在整个工厂内）
+				//指定的 singleton bean 是否正在创建（在整个工厂内）
 				if (isSingletonCurrentlyInCreation(beanName)) {
 					logger.trace("Returning eagerly cached instance of singleton bean '" + beanName +
 							"' that is not fully initialized yet - a consequence of a circular reference");
@@ -281,7 +281,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			//如果容器中没有找到, 则从父类容器中加载
 			// Check if bean definition exists in this factory.
 			BeanFactory parentBeanFactory = getParentBeanFactory();
-			//如果父容器不为 null 且当前容器不包括 beanName
+			//如果父容器不为 null 且当前容器不包括 beanName 对应的 BeanDefinition
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
 				//todo wolfleong 不懂为什么要转换
@@ -311,6 +311,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 			//如果不是仅仅做类型检查则是创建bean，这里需要记录
 			if (!typeCheckOnly) {
+				//标记 bean 已经创建
 				markBeanAsCreated(beanName);
 			}
 
@@ -382,7 +383,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 						//加载后缀处理
 						afterPrototypeCreation(beanName);
 					}
-					//从 Bean 实例中获取对象
+					//处理 factoryBean
 					bean = getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
 				}
 
@@ -1718,7 +1719,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 		}
 
-		//用 mbd 直接加载, 这种加载会设置 mbd 的 beanClass
+		//用 mbd 直接加载, 这种加载会设置到 mbd 的 beanClass 中缓存起来
 		// Resolve regularly, caching the result in the BeanDefinition...
 		return mbd.resolveBeanClass(beanClassLoader);
 	}
