@@ -19,6 +19,7 @@ package org.springframework.aop;
 import java.lang.reflect.Method;
 
 /**
+ * 方法匹配器
  * Part of a {@link Pointcut}: Checks whether the target method is eligible for advice.
  *
  * <p>A MethodMatcher may be evaluated <b>statically</b> or at <b>runtime</b> (dynamically).

@@ -19,6 +19,8 @@ package org.aopalliance.intercept;
 import java.lang.reflect.AccessibleObject;
 
 /**
+ * 连接点是指程序执行过程中的一些点，比如方法调用，异常处理等。在 Spring AOP 中，仅支持方法级别的连接点。
+ * - 一个方法调用就是一个连接点
  * This interface represents a generic runtime joinpoint (in the AOP
  * terminology).
  *
@@ -40,6 +42,7 @@ import java.lang.reflect.AccessibleObject;
 public interface Joinpoint {
 
 	/**
+	 * 用于执行拦截器链中的下一个拦截器逻辑
 	 * Proceed to the next interceptor in the chain.
 	 * <p>The implementation and the semantics of this method depends
 	 * on the actual joinpoint type (see the children interfaces).

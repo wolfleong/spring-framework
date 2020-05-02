@@ -17,6 +17,7 @@
 package org.springframework.aop;
 
 /**
+ * 类型过滤器
  * Filter that restricts matching of a pointcut or introduction to
  * a given set of target classes.
  *

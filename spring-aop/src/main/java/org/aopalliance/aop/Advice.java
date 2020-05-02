@@ -17,6 +17,7 @@
 package org.aopalliance.aop;
 
 /**
+ * 通知 Advice 即我们定义的横切逻辑, 解决了何时(when)调用, 什么逻辑的问题(how)
  * Tag interface for Advice. Implementations can be any type
  * of advice, such as Interceptors.
  *
