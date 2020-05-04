@@ -30,6 +30,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
+ * TransactionAttributeSource 的基础抽象类
+ *  - 实现支持按照【实现方法的事务属性 > 实现类的事务属性 > 接口的事务属性 > 接口的事务属性】的优先级
  * Abstract implementation of {@link TransactionAttributeSource} that caches
  * attributes for methods and implements a fallback policy: 1. specific target
  * method; 2. target class; 3. declaring method; 4. declaring class/interface.
@@ -95,33 +97,42 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 		}
 
 		// First, see if we have a cached value.
+		//获取缓存的 key
 		Object cacheKey = getCacheKey(method, targetClass);
+		//从缓存中获取
 		TransactionAttribute cached = this.attributeCache.get(cacheKey);
 		if (cached != null) {
 			// Value will either be canonical value indicating there is no transaction attribute,
 			// or an actual transaction attribute.
+			//获取为空的 TransactionAttribute
 			if (cached == NULL_TRANSACTION_ATTRIBUTE) {
 				return null;
 			}
 			else {
+				//返回缓存值
 				return cached;
 			}
 		}
+		//缓存中没有
 		else {
 			// We need to work it out.
+			//计算方法上的事务属性
 			TransactionAttribute txAttr = computeTransactionAttribute(method, targetClass);
 			// Put it in the cache.
 			if (txAttr == null) {
 				this.attributeCache.put(cacheKey, NULL_TRANSACTION_ATTRIBUTE);
 			}
 			else {
+				//获取方法全类名作为唯一标识, 用作事务名称
 				String methodIdentification = ClassUtils.getQualifiedMethodName(method, targetClass);
+				//设置到 DefaultTransactionAttribute 的 descriptor 中
 				if (txAttr instanceof DefaultTransactionAttribute) {
 					((DefaultTransactionAttribute) txAttr).setDescriptor(methodIdentification);
 				}
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding transactional method '" + methodIdentification + "' with attribute: " + txAttr);
 				}
+				//解析好的事务属性存入缓存
 				this.attributeCache.put(cacheKey, txAttr);
 			}
 			return txAttr;
@@ -141,6 +152,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 	}
 
 	/**
+	 * 方法中的事务声明优先级最高，如果方法上没有声明则在类上寻找
 	 * Same signature as {@link #getTransactionAttribute}, but doesn't cache the result.
 	 * {@link #getTransactionAttribute} is effectively a caching decorator for this method.
 	 * <p>As of 4.1.8, this method can be overridden.
@@ -156,15 +168,18 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 
 		// The method may be on an interface, but we need attributes from the target class.
 		// If the target class is null, the method will be unchanged.
+		//method 为接口中的方法, specificMethod 为具体类中的方法
 		Method specificMethod = AopUtils.getMostSpecificMethod(method, targetClass);
 
 		// First try is the method in the target class.
+		//查看方法中是否存在事务生命
 		TransactionAttribute txAttr = findTransactionAttribute(specificMethod);
 		if (txAttr != null) {
 			return txAttr;
 		}
 
 		// Second try is the transaction attribute on the target class.
+		//查看方法所在类中是否有事务声明
 		txAttr = findTransactionAttribute(specificMethod.getDeclaringClass());
 		if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 			return txAttr;
@@ -172,11 +187,13 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 
 		if (specificMethod != method) {
 			// Fallback is to look at the original method.
+			//查看接口方法中是否有事务声明
 			txAttr = findTransactionAttribute(method);
 			if (txAttr != null) {
 				return txAttr;
 			}
 			// Last fallback is the class of the original method.
+			//查看接口类中是否有事务声明
 			txAttr = findTransactionAttribute(method.getDeclaringClass());
 			if (txAttr != null && ClassUtils.isUserLevelMethod(method)) {
 				return txAttr;
@@ -188,6 +205,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 
 
 	/**
+	 * 获取类上的事务属性配置
 	 * Subclasses need to implement this to return the transaction attribute for the
 	 * given class, if any.
 	 * @param clazz the class to retrieve the attribute for
@@ -197,6 +215,7 @@ public abstract class AbstractFallbackTransactionAttributeSource implements Tran
 	protected abstract TransactionAttribute findTransactionAttribute(Class<?> clazz);
 
 	/**
+	 * 获取方法上面的属性
 	 * Subclasses need to implement this to return the transaction attribute for the
 	 * given method, if any.
 	 * @param method the method to retrieve the attribute for

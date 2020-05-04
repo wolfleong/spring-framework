@@ -21,6 +21,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 
 /**
+ * TransactionAttribute 接口的默认实现
  * Spring's common transaction attribute implementation.
  * Rolls back on runtime, but not checked, exceptions by default.
  *
@@ -132,6 +133,7 @@ public class DefaultTransactionAttribute extends DefaultTransactionDefinition im
 	 */
 	@Override
 	public boolean rollbackOn(Throwable ex) {
+		//回滚条件默认为 RuntimeException 或 Error
 		return (ex instanceof RuntimeException || ex instanceof Error);
 	}
 

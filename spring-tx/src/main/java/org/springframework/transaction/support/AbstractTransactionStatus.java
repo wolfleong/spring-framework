@@ -24,6 +24,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.TransactionUsageException;
 
 /**
+ * 事务状态抽象类
  * Abstract base implementation of the
  * {@link org.springframework.transaction.TransactionStatus} interface.
  *
@@ -46,10 +47,19 @@ import org.springframework.transaction.TransactionUsageException;
  */
 public abstract class AbstractTransactionStatus implements TransactionStatus {
 
+	/**
+	 * 是否只能回滚, 默认为 false
+	 */
 	private boolean rollbackOnly = false;
 
+	/**
+	 * 是否已经完成, 默认为 false
+	 */
 	private boolean completed = false;
 
+	/**
+	 * 保存点
+	 */
 	@Nullable
 	private Object savepoint;
 
@@ -60,6 +70,7 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 
 	@Override
 	public void setRollbackOnly() {
+		//设置回滚
 		this.rollbackOnly = true;
 	}
 
@@ -76,6 +87,7 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	}
 
 	/**
+	 * 本地事务回滚
 	 * Determine the rollback-only flag via checking this TransactionStatus.
 	 * <p>Will only return "true" if the application called {@code setRollbackOnly}
 	 * on this TransactionStatus object.
@@ -85,6 +97,7 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	}
 
 	/**
+	 * 全局事务回滚
 	 * Template method for determining the global rollback-only flag of the
 	 * underlying transaction, if any.
 	 * <p>This implementation always returns {@code false}.
@@ -137,6 +150,7 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	 * if the underlying transaction does not support savepoints
 	 */
 	public void createAndHoldSavepoint() throws TransactionException {
+		//创建保存点, 并且设置到变量中
 		setSavepoint(getSavepointManager().createSavepoint());
 	}
 
@@ -145,12 +159,16 @@ public abstract class AbstractTransactionStatus implements TransactionStatus {
 	 * and release the savepoint right afterwards.
 	 */
 	public void rollbackToHeldSavepoint() throws TransactionException {
+		//获取保存点
 		Object savepoint = getSavepoint();
+		//保存点为 null 则报错
 		if (savepoint == null) {
 			throw new TransactionUsageException(
 					"Cannot roll back to savepoint - no savepoint associated with current transaction");
 		}
+		//用保存点管理器回滚保存点
 		getSavepointManager().rollbackToSavepoint(savepoint);
+		//释放保存点
 		getSavepointManager().releaseSavepoint(savepoint);
 		setSavepoint(null);
 	}

@@ -27,6 +27,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * 事务代理的 PointCut , 主要确定哪些方法需要开启事务代理的, 事务属性源 Pointcut 实现类
  * Inner class that implements a Pointcut that matches if the underlying
  * {@link TransactionAttributeSource} has an attribute for a given method.
  *
@@ -41,9 +42,14 @@ abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPoi
 	}
 
 
+	/**
+	 * 匹配需要事务代理的方法
+	 */
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
+		//获取事务属性源
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		//判断是否有事务属性
 		return (tas == null || tas.getTransactionAttribute(method, targetClass) != null);
 	}
 
@@ -79,6 +85,7 @@ abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPoi
 
 
 	/**
+	 * 开启代理事务的类过滤器
 	 * {@link ClassFilter} that delegates to {@link TransactionAttributeSource#isCandidateClass}
 	 * for filtering classes whose methods are not worth searching to begin with.
 	 */

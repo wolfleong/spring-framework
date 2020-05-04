@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
 
 /**
+ * 基于 {@link RollbackRuleAttribute} 的事务定义实现类。
  * TransactionAttribute implementation that works out whether a given exception
  * should cause transaction rollback by applying a number of rollback rules,
  * both positive and negative. If no rules are relevant to the exception, it
@@ -137,9 +138,12 @@ public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute i
 		RollbackRuleAttribute winner = null;
 		int deepest = Integer.MAX_VALUE;
 
+		//处理配置的回滚条件
 		if (this.rollbackRules != null) {
 			for (RollbackRuleAttribute rule : this.rollbackRules) {
+				//获取异常条件的深度
 				int depth = rule.getDepth(ex);
+				//如果有多个异常条件满足的情况下, 找出 depth 最小的
 				if (depth >= 0 && depth < deepest) {
 					deepest = depth;
 					winner = rule;
@@ -157,6 +161,7 @@ public class RuleBasedTransactionAttribute extends DefaultTransactionAttribute i
 			return super.rollbackOn(ex);
 		}
 
+		//排除 NoRollbackRuleAttribute
 		return !(winner instanceof NoRollbackRuleAttribute);
 	}
 

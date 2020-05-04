@@ -33,6 +33,12 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 事务同步管理器，维护当前线程事务资源，信息以及 TransactionSynchronization 集合
+ *
+ * 基于 ThreadLocal ，记录当前线程的事务的一些信息。例如：
+ *  1）事务的隔离级别
+ *  2）在 DataSourceTransactionManager 事物管理器中，会存储当前的数据库连接信息
+ *
  * Central delegate that manages resources and transaction synchronizations per thread.
  * To be used by resource management code but not by typical application code.
  *
@@ -78,21 +84,42 @@ public abstract class TransactionSynchronizationManager {
 
 	private static final Log logger = LogFactory.getLog(TransactionSynchronizationManager.class);
 
+	/**
+	 * 类型为Map<Object, Object>用于保存事务相关资源，比如我们常用的 DataSourceTransactionManager 会在开启物理事务的时候把 <DataSource, ConnectionHolder> 绑定到线程。
+	 * 这样在事务作用的业务代码中可以通过 Spring 的 DataSourceUtils 拿到绑定到线程的 ConnectionHolder 中的 Connection。事实上对于MyBatis来说与Spring集成时就是这样拿的。
+	 */
 	private static final ThreadLocal<Map<Object, Object>> resources =
 			new NamedThreadLocal<>("Transactional resources");
 
+	/**
+	 * 类型为 Set<TransactionSynchronization> 用于保存 transaction synchronization，这个可以理解为是回调钩子对象,
+	 * 内部含有 beforeCommit, afterCommit, beforeCompletion 等钩子方法。
+	 * 我们自己如果需要的话也可以在业务方法或者切面中注册一些transaction synchronization对象用于追踪事务生命周期做一些自定义的事情。
+	 */
 	private static final ThreadLocal<Set<TransactionSynchronization>> synchronizations =
 			new NamedThreadLocal<>("Transaction synchronizations");
 
+	/**
+	 * 当前事务名
+	 */
 	private static final ThreadLocal<String> currentTransactionName =
 			new NamedThreadLocal<>("Current transaction name");
 
+	/**
+	 * 当前事务是否只读
+	 */
 	private static final ThreadLocal<Boolean> currentTransactionReadOnly =
 			new NamedThreadLocal<>("Current transaction read-only status");
 
+	/**
+	 * 当前事务隔离级别
+	 */
 	private static final ThreadLocal<Integer> currentTransactionIsolationLevel =
 			new NamedThreadLocal<>("Current transaction isolation level");
 
+	/**
+	 * 是否存在物理事务，比如传播行为为NOT_SUPPORTED时就会是false。
+	 */
 	private static final ThreadLocal<Boolean> actualTransactionActive =
 			new NamedThreadLocal<>("Actual transaction active");
 
@@ -275,6 +302,7 @@ public abstract class TransactionSynchronizationManager {
 			throw new IllegalStateException("Cannot activate transaction synchronization - already active");
 		}
 		logger.trace("Initializing transaction synchronization");
+		//添加一个空集合, 以表示 active
 		synchronizations.set(new LinkedHashSet<>());
 	}
 
@@ -320,7 +348,9 @@ public abstract class TransactionSynchronizationManager {
 		else {
 			// Sort lazily here, not in registerSynchronization.
 			List<TransactionSynchronization> sortedSynchs = new ArrayList<>(synchs);
+			//排序
 			AnnotationAwareOrderComparator.sort(sortedSynchs);
+			//设置不可变的列表
 			return Collections.unmodifiableList(sortedSynchs);
 		}
 	}

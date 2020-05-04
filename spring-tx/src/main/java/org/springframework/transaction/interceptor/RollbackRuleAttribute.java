@@ -22,6 +22,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 回滚规则属性配置
  * Rule determining whether or not a given exception (and any subclasses)
  * should cause a rollback.
  *
@@ -101,6 +102,8 @@ public class RollbackRuleAttribute implements Serializable{
 	}
 
 	/**
+	 * 获取继承体系中深度最浅的, 如继承链: NullPointerException -> RuntimeException -> Exception -> Throwable
+	 * 当参数 ex 是 Exception, 则返回的 depth 为 2
 	 * Return the depth of the superclass matching.
 	 * <p>{@code 0} means {@code ex} matches exactly. Returns
 	 * {@code -1} if there is no match. Otherwise, returns depth with the
@@ -112,14 +115,18 @@ public class RollbackRuleAttribute implements Serializable{
 
 
 	private int getDepth(Class<?> exceptionClass, int depth) {
+		//如果在给定异常链中找到给定异常
 		if (exceptionClass.getName().contains(this.exceptionName)) {
 			// Found it!
+			//返回深度
 			return depth;
 		}
+		//如果遍历完都没找到
 		// If we've gone as far as we can go and haven't found it...
 		if (exceptionClass == Throwable.class) {
 			return -1;
 		}
+		//递归获取异常父类查找深度
 		return getDepth(exceptionClass.getSuperclass(), depth + 1);
 	}
 
