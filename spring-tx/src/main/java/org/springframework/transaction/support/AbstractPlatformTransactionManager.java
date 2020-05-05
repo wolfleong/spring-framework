@@ -851,7 +851,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 					//清除保存点信息
 					status.releaseHeldSavepoint();
 				}
-				// 最外层事务边界才提交
+				// 最外层事务边界才提交, isNewTransaction 会判断是否存在事务
 				else if (status.isNewTransaction()) {
 					if (status.isDebug()) {
 						logger.debug("Initiating transaction commit");

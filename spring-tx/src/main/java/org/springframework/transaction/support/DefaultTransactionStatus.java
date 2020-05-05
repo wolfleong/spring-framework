@@ -127,6 +127,7 @@ public class DefaultTransactionStatus extends AbstractTransactionStatus {
 
 	@Override
 	public boolean isNewTransaction() {
+		//有事务且是事务边界
 		return (hasTransaction() && this.newTransaction);
 	}
 
