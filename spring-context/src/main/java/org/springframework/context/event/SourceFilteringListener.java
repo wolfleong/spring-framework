@@ -23,6 +23,9 @@ import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 
 /**
+ * 实现 GenericApplicationListener、SmartApplicationListener 监听器，
+ * 实现将原始对象触发的事件，转发给指定监听器
+ *
  * {@link org.springframework.context.ApplicationListener} decorator that filters
  * events from a specified event source, invoking its delegate listener for
  * matching {@link org.springframework.context.ApplicationEvent} objects only.
@@ -36,8 +39,14 @@ import org.springframework.lang.Nullable;
  */
 public class SourceFilteringListener implements GenericApplicationListener, SmartApplicationListener {
 
+	/**
+	 * 原始类
+	 */
 	private final Object source;
 
+	/**
+	 * 代理的监听器
+	 */
 	@Nullable
 	private GenericApplicationListener delegate;
 
