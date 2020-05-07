@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.util.StringUtils;
 
 /**
+ * 继承 AbstractDetectingUrlHandlerMapping 抽象类，基于 Bean 的名字来自动探测的 HandlerMapping 实现类。
  * Implementation of the {@link org.springframework.web.servlet.HandlerMapping}
  * interface that maps from URLs to beans with names that start with a slash ("/"),
  * similar to how Struts maps URLs to action names.
@@ -55,15 +56,18 @@ public class BeanNameUrlHandlerMapping extends AbstractDetectingUrlHandlerMappin
 	@Override
 	protected String[] determineUrlsForHandler(String beanName) {
 		List<String> urls = new ArrayList<>();
+		//// 如果是以 / 开头，添加到 urls
 		if (beanName.startsWith("/")) {
 			urls.add(beanName);
 		}
+		// 获得 beanName 的别名们，如果以 / 开头，则添加到 urls
 		String[] aliases = obtainApplicationContext().getAliases(beanName);
 		for (String alias : aliases) {
 			if (alias.startsWith("/")) {
 				urls.add(alias);
 			}
 		}
+		// 返回
 		return StringUtils.toStringArray(urls);
 	}
 

@@ -73,7 +73,7 @@ public interface PathMatcher {
 	boolean matchStart(String pattern, String path);
 
 	/**
-	 * 提取path中匹配到的部分,如pattern(myroot/*.html),path(myroot/myfile.html),返回myfile.html
+	 * 提取path中匹配到的部分,如 pattern(myroot/*.html),path(myroot/myfile.html),返回myfile.html
 	 * Given a pattern and a full path, determine the pattern-mapped part.
 	 * <p>This method is supposed to find out which part of the path is matched
 	 * dynamically through an actual pattern, that is, it strips off a statically
