@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.lang.Nullable;
 
 /**
+ * FlashMap 管理器接口，负责重定向时，保存参数到临时存储中
  * A strategy interface for retrieving and saving FlashMap instances.
  * See {@link FlashMap} for a general overview of flash attributes.
  *
@@ -32,6 +33,7 @@ import org.springframework.lang.Nullable;
 public interface FlashMapManager {
 
 	/**
+	 * 恢复参数，并将恢复过的和超时的参数从保存介质中删除
 	 * Find a FlashMap saved by a previous request that matches to the current
 	 * request, remove it from underlying storage, and also remove other
 	 * expired FlashMap instances.
@@ -46,6 +48,7 @@ public interface FlashMapManager {
 	FlashMap retrieveAndUpdate(HttpServletRequest request, HttpServletResponse response);
 
 	/**
+	 * 将参数保存起来
 	 * Save the given FlashMap, in some underlying storage and set the start
 	 * of its expiration period.
 	 * <p><strong>NOTE:</strong> Invoke this method prior to a redirect in order

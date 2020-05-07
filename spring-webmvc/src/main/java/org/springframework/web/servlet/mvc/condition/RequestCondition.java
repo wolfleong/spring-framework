@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.lang.Nullable;
 
 /**
+ * 请求条件接口
  * Contract for request mapping conditions.
  *
  * <p>Request conditions can be combined via {@link #combine(Object)}, matched to
@@ -37,6 +38,7 @@ import org.springframework.lang.Nullable;
 public interface RequestCondition<T> {
 
 	/**
+	 * 合并方法, 为什么会有合并操作, 主要是类和方法上的 @RequestMapping 进行合并
 	 * Combine this condition with another such as conditions from a
 	 * type-level and method-level {@code @RequestMapping} annotation.
 	 * @param other the condition to combine with.
@@ -46,6 +48,7 @@ public interface RequestCondition<T> {
 	T combine(T other);
 
 	/**
+	 * 匹配方法
 	 * Check if the condition matches the request returning a potentially new
 	 * instance created for the current request. For example a condition with
 	 * multiple URL patterns may return a new instance only with those patterns
@@ -61,6 +64,7 @@ public interface RequestCondition<T> {
 	T getMatchingCondition(HttpServletRequest request);
 
 	/**
+	 *  比较方法
 	 * Compare this condition to another condition in the context of
 	 * a specific request. This method assumes both instances have
 	 * been obtained via {@link #getMatchingCondition(HttpServletRequest)}

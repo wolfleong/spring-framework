@@ -141,6 +141,7 @@ public final class PatternsRequestCondition extends AbstractRequestCondition<Pat
 		}
 		Set<String> result = new LinkedHashSet<>(patterns.size());
 		for (String pattern : patterns) {
+			//不以 / 开头的, 会自动为我们补上 /
 			if (StringUtils.hasLength(pattern) && !pattern.startsWith("/")) {
 				pattern = "/" + pattern;
 			}

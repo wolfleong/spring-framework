@@ -33,6 +33,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 /**
+ * 用于URL路径匹配的帮助类。提供了对于URL路径的支持，在RequestDispatcher includes和支持URL解码方面
+ *
  * Helper class for URL path matching. Provides support for URL paths in
  * {@code RequestDispatcher} includes and support for consistent URL decoding.
  *

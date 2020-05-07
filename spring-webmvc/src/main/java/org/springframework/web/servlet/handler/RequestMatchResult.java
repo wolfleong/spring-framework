@@ -22,6 +22,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.PathMatcher;
 
 /**
+ * 请求匹配结果
  * Container for the result from request pattern matching via
  * {@link MatchableHandlerMapping} with a method to further extract
  * URI template variables from the pattern.
@@ -31,10 +32,19 @@ import org.springframework.util.PathMatcher;
  */
 public class RequestMatchResult {
 
+	/**
+	 * 匹配上的路径
+	 */
 	private final String matchingPattern;
 
+	/**
+	 * 被匹配的路径
+	 */
 	private final String lookupPath;
 
+	/**
+	 * 路径匹配器
+	 */
 	private final PathMatcher pathMatcher;
 
 

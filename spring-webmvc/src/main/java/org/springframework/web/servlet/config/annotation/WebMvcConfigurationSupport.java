@@ -332,13 +332,19 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	protected final Object[] getInterceptors(
 			FormattingConversionService mvcConversionService,
 			ResourceUrlProvider mvcResourceUrlProvider) {
+		// 若 interceptors 未初始化，则进行初始化
 		if (this.interceptors == null) {
+			// 创建 InterceptorRegistry 对象
 			InterceptorRegistry registry = new InterceptorRegistry();
+			// 添加拦截器到 interceptors 中
 			addInterceptors(registry);
+			// 添加内置拦截器到 interceptors 中
 			registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
 			registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
+			// 初始化到 interceptors 属性
 			this.interceptors = registry.getInterceptors();
 		}
+		// 若 interceptors 已初始化，则直接返回
 		return this.interceptors.toArray();
 	}
 
