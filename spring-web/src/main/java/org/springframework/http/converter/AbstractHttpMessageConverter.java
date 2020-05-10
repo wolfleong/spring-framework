@@ -177,10 +177,13 @@ public abstract class AbstractHttpMessageConverter<T> implements HttpMessageConv
 	 * or if the media type is {@code null}
 	 */
 	protected boolean canWrite(@Nullable MediaType mediaType) {
+		//没指定 mediaType, 或者 MediaType.ALL, 都是可写
 		if (mediaType == null || MediaType.ALL.equalsTypeAndSubtype(mediaType)) {
 			return true;
 		}
+		//遍历支持的 MediaType
 		for (MediaType supportedMediaType : getSupportedMediaTypes()) {
+			//只要有一个支持, 则表支持
 			if (supportedMediaType.isCompatibleWith(mediaType)) {
 				return true;
 			}
@@ -207,9 +210,12 @@ public abstract class AbstractHttpMessageConverter<T> implements HttpMessageConv
 	public final void write(final T t, @Nullable MediaType contentType, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
 
+		//获取 headers
 		final HttpHeaders headers = outputMessage.getHeaders();
+		//添加默认的  headers
 		addDefaultHeaders(headers, t, contentType);
 
+		//StreamingHttpOutputMessage
 		if (outputMessage instanceof StreamingHttpOutputMessage) {
 			StreamingHttpOutputMessage streamingOutputMessage = (StreamingHttpOutputMessage) outputMessage;
 			streamingOutputMessage.setBody(outputStream -> writeInternal(t, new HttpOutputMessage() {
@@ -224,6 +230,7 @@ public abstract class AbstractHttpMessageConverter<T> implements HttpMessageConv
 			}));
 		}
 		else {
+			//正常的
 			writeInternal(t, outputMessage);
 			outputMessage.getBody().flush();
 		}
@@ -293,6 +300,7 @@ public abstract class AbstractHttpMessageConverter<T> implements HttpMessageConv
 
 
 	/**
+	 * 支持的类
 	 * Indicates whether the given class is supported by this converter.
 	 * @param clazz the class to test for support
 	 * @return {@code true} if supported; {@code false} otherwise

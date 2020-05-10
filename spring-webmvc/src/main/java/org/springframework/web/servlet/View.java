@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.lang.Nullable;
 
 /**
+ * View 接口表示一个响应给用户的视图，例如jsp文件，pdf文件，html文件等
  * MVC View for a web interaction. Implementations are responsible for rendering
  * content, and exposing the model. A single view exposes multiple model attributes.
  *
@@ -47,6 +48,7 @@ import org.springframework.lang.Nullable;
 public interface View {
 
 	/**
+	 * HttpServletRequest 中的属性名，其值为响应状态码
 	 * Name of the {@link HttpServletRequest} attribute that contains the response status code.
 	 * <p>Note: This attribute is not required to be supported by all View implementations.
 	 * @since 3.0
@@ -54,6 +56,7 @@ public interface View {
 	String RESPONSE_STATUS_ATTRIBUTE = View.class.getName() + ".responseStatus";
 
 	/**
+	 * HttpServletRequest中的属性名，前一篇文章用到了该变量，它的对应值是请求路径中的变量，及 @PathVariable 注解的变量
 	 * Name of the {@link HttpServletRequest} attribute that contains a Map with path variables.
 	 * The map consists of String-based URI template variable names as keys and their corresponding
 	 * Object-based values -- extracted from segments of the URL and type converted.
@@ -72,6 +75,7 @@ public interface View {
 
 
 	/**
+	 * 该视图的ContentType
 	 * Return the content type of the view, if predetermined.
 	 * <p>Can be used to check the view's content type upfront,
 	 * i.e. before an actual rendering attempt.
@@ -84,6 +88,7 @@ public interface View {
 	}
 
 	/**
+	 * 渲染该视图
 	 * Render the view given the specified model.
 	 * <p>The first step will be preparing the request: In the JSP case, this would mean
 	 * setting model objects as request attributes. The second step will be the actual

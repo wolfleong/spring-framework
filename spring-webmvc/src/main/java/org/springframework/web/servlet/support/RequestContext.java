@@ -212,6 +212,7 @@ public class RequestContext {
 
 		// Fetch WebApplicationContext, either from DispatcherServlet or the root context.
 		// ServletContext needs to be specified to be able to fall back to the root context!
+		//获取 WebApplicationContext
 		WebApplicationContext wac = (WebApplicationContext) request.getAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 		if (wac == null) {
 			wac = RequestContextUtils.findWebApplicationContext(request, servletContext);
@@ -222,6 +223,7 @@ public class RequestContext {
 		}
 		this.webApplicationContext = wac;
 
+		//获取 Locale 和 timeZone
 		Locale locale = null;
 		TimeZone timeZone = null;
 

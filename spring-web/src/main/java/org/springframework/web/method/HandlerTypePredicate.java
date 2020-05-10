@@ -30,6 +30,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 处理器类型匹配判断函数
  * A {@code Predicate} to match request handling component types if
  * <strong>any</strong> of the following selectors match:
  * <ul>
@@ -49,10 +50,19 @@ import org.springframework.util.StringUtils;
  */
 public final class HandlerTypePredicate implements Predicate<Class<?>> {
 
+	/**
+	 * 指定的包列表
+	 */
 	private final Set<String> basePackages;
 
+	/**
+	 * 可接收的类型列表
+	 */
 	private final List<Class<?>> assignableTypes;
 
+	/**
+	 * 类上的注解
+	 */
 	private final List<Class<? extends Annotation>> annotations;
 
 
@@ -70,26 +80,32 @@ public final class HandlerTypePredicate implements Predicate<Class<?>> {
 
 	@Override
 	public boolean test(Class<?> controllerType) {
+		//如果没有条件, 则直接返回 true
 		if (!hasSelectors()) {
 			return true;
 		}
+		// controllerType 不为 null
 		else if (controllerType != null) {
+			//判断包
 			for (String basePackage : this.basePackages) {
 				if (controllerType.getName().startsWith(basePackage)) {
 					return true;
 				}
 			}
+			//判断类
 			for (Class<?> clazz : this.assignableTypes) {
 				if (ClassUtils.isAssignable(clazz, controllerType)) {
 					return true;
 				}
 			}
+			//判断类上的注解
 			for (Class<? extends Annotation> annotationClass : this.annotations) {
 				if (AnnotationUtils.findAnnotation(controllerType, annotationClass) != null) {
 					return true;
 				}
 			}
 		}
+		//默认不匹配
 		return false;
 	}
 

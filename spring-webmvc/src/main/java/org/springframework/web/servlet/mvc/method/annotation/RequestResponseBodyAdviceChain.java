@@ -52,7 +52,9 @@ class RequestResponseBodyAdviceChain implements RequestBodyAdvice, ResponseBodyA
 	 * {@code ControllerAdviceBean} or {@code RequestBodyAdvice}.
 	 */
 	public RequestResponseBodyAdviceChain(@Nullable List<Object> requestResponseBodyAdvice) {
+		//获取所有 RequestBodyAdvice 类型的 ControllerAdviceBean
 		this.requestBodyAdvice.addAll(getAdviceByType(requestResponseBodyAdvice, RequestBodyAdvice.class));
+		//获取所有 ResponseBodyAdvice 类型 ControllerAdviceBean
 		this.responseBodyAdvice.addAll(getAdviceByType(requestResponseBodyAdvice, ResponseBodyAdvice.class));
 	}
 
@@ -60,13 +62,17 @@ class RequestResponseBodyAdviceChain implements RequestBodyAdvice, ResponseBodyA
 	static <T> List<T> getAdviceByType(@Nullable List<Object> requestResponseBodyAdvice, Class<T> adviceType) {
 		if (requestResponseBodyAdvice != null) {
 			List<T> result = new ArrayList<>();
+			//遍历
 			for (Object advice : requestResponseBodyAdvice) {
+				//获取 BeanType
 				Class<?> beanType = (advice instanceof ControllerAdviceBean ?
 						((ControllerAdviceBean) advice).getBeanType() : advice.getClass());
+				//如果 beanType 是 给定类型, 则添加的结果集中
 				if (beanType != null && adviceType.isAssignableFrom(beanType)) {
 					result.add((T) advice);
 				}
 			}
+			//返回结果
 			return result;
 		}
 		return Collections.emptyList();
@@ -87,8 +93,11 @@ class RequestResponseBodyAdviceChain implements RequestBodyAdvice, ResponseBodyA
 	public HttpInputMessage beforeBodyRead(HttpInputMessage request, MethodParameter parameter,
 			Type targetType, Class<? extends HttpMessageConverter<?>> converterType) throws IOException {
 
+		//遍历匹配的 ControllerAdvice 实例
 		for (RequestBodyAdvice advice : getMatchingAdvice(parameter, RequestBodyAdvice.class)) {
+			//判断是否支持
 			if (advice.supports(parameter, targetType, converterType)) {
+				//进行处理
 				request = advice.beforeBodyRead(request, parameter, targetType, converterType);
 			}
 		}
@@ -99,6 +108,7 @@ class RequestResponseBodyAdviceChain implements RequestBodyAdvice, ResponseBodyA
 	public Object afterBodyRead(Object body, HttpInputMessage inputMessage, MethodParameter parameter,
 			Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
 
+		//遍历匹配的 ControllerAdvice 实例, 并判断是否支持处理, 支持则回调
 		for (RequestBodyAdvice advice : getMatchingAdvice(parameter, RequestBodyAdvice.class)) {
 			if (advice.supports(parameter, targetType, converterType)) {
 				body = advice.afterBodyRead(body, inputMessage, parameter, targetType, converterType);
@@ -136,6 +146,7 @@ class RequestResponseBodyAdviceChain implements RequestBodyAdvice, ResponseBodyA
 			Class<? extends HttpMessageConverter<?>> converterType,
 			ServerHttpRequest request, ServerHttpResponse response) {
 
+		//遍历匹配的 ControllerAdvice 实例, 并判断是否支持处理, 支持则回调
 		for (ResponseBodyAdvice<?> advice : getMatchingAdvice(returnType, ResponseBodyAdvice.class)) {
 			if (advice.supports(returnType, converterType)) {
 				body = ((ResponseBodyAdvice<T>) advice).beforeBodyWrite((T) body, returnType,
@@ -145,28 +156,43 @@ class RequestResponseBodyAdviceChain implements RequestBodyAdvice, ResponseBodyA
 		return body;
 	}
 
+	/**
+	 * 获取匹配的 Advice 处理器
+	 */
 	@SuppressWarnings("unchecked")
 	private <A> List<A> getMatchingAdvice(MethodParameter parameter, Class<? extends A> adviceType) {
+		//获取指定类型的处理器
 		List<Object> availableAdvice = getAdvice(adviceType);
+		//如果是空, 则返回空
 		if (CollectionUtils.isEmpty(availableAdvice)) {
 			return Collections.emptyList();
 		}
 		List<A> result = new ArrayList<>(availableAdvice.size());
+		//遍历
 		for (Object advice : availableAdvice) {
+			//如果是 ControllerAdviceBean 类型
 			if (advice instanceof ControllerAdviceBean) {
+				//强转
 				ControllerAdviceBean adviceBean = (ControllerAdviceBean) advice;
+				//如果类型不匹配, 则不处理
 				if (!adviceBean.isApplicableToBeanType(parameter.getContainingClass())) {
 					continue;
 				}
+				//获取处理器
 				advice = adviceBean.resolveBean();
 			}
+			//如果处理器是对应类型(RequestBodyAdvice, ResponseBodyAdvice)
 			if (adviceType.isAssignableFrom(advice.getClass())) {
 				result.add((A) advice);
 			}
 		}
+		//返回
 		return result;
 	}
 
+	/**
+	 * 获取对应类型的 ControllerAdviceBean 列表
+	 */
 	private List<Object> getAdvice(Class<?> adviceType) {
 		if (RequestBodyAdvice.class == adviceType) {
 			return this.requestBodyAdvice;

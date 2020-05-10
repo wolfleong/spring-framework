@@ -34,6 +34,7 @@ import org.springframework.web.server.ServerErrorException;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
+ * 实现 UriComponentsContributor 接口，继承 AbstractNamedValueMethodArgumentResolver 抽象类，处理路径参数
  * Resolves method arguments annotated with @{@link PathVariable}.
  *
  * <p>An @{@link PathVariable} is a named value that gets resolved from a URI
@@ -74,25 +75,32 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueSyncAr
 	}
 
 	private boolean singlePathVariable(PathVariable pathVariable, Class<?> type) {
+		//非 Map 类型
+		//Map 类型, 但是 PathVariable 有变量名
 		return !Map.class.isAssignableFrom(type) || StringUtils.hasText(pathVariable.name());
 	}
 
 	@Override
 	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+		// 获得 @PathVariable 注解
 		PathVariable ann = parameter.getParameterAnnotation(PathVariable.class);
 		Assert.state(ann != null, "No PathVariable annotation");
+		// 创建 PathVariableNamedValueInfo 对象
 		return new PathVariableNamedValueInfo(ann);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	protected Object resolveNamedValue(String name, MethodParameter parameter, ServerWebExchange exchange) {
+		// 获得 uriTemplateVars 属性名
 		String attributeName = HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
+		// 从 uriTemplateVars 中获取值
 		return exchange.getAttributeOrDefault(attributeName, Collections.emptyMap()).get(name);
 	}
 
 	@Override
 	protected void handleMissingValue(String name, MethodParameter parameter) {
+		// 抛出 MissingPathVariableException 异常
 		throw new ServerErrorException(name, parameter, null);
 	}
 

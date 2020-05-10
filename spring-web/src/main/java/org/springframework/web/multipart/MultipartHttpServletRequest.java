@@ -60,6 +60,7 @@ public interface MultipartHttpServletRequest extends HttpServletRequest, Multipa
 	HttpHeaders getRequestHeaders();
 
 	/**
+	 * 获取文件上传的每一部分的请求头信息
 	 * Return the headers associated with the specified part of the multipart request.
 	 * <p>If the underlying implementation supports access to headers, then all headers are returned.
 	 * Otherwise, the returned headers will include a 'Content-Type' header at the very least.

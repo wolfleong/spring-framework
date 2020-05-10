@@ -398,31 +398,40 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 
 	@Override
 	protected CorsConfiguration initCorsConfiguration(Object handler, Method method, RequestMappingInfo mappingInfo) {
+		//创建 handlerMethod
 		HandlerMethod handlerMethod = createHandlerMethod(handler, method);
 		Class<?> beanType = handlerMethod.getBeanType();
+		//获取类和方法是的跨域配置
 		CrossOrigin typeAnnotation = AnnotatedElementUtils.findMergedAnnotation(beanType, CrossOrigin.class);
 		CrossOrigin methodAnnotation = AnnotatedElementUtils.findMergedAnnotation(method, CrossOrigin.class);
 
+		//没有配置, 则返回 null
 		if (typeAnnotation == null && methodAnnotation == null) {
 			return null;
 		}
 
+		//创建 CorsConfiguration
 		CorsConfiguration config = new CorsConfiguration();
 		updateCorsConfig(config, typeAnnotation);
 		updateCorsConfig(config, methodAnnotation);
 
+		//如果注解没有配置 allowedMethod
 		if (CollectionUtils.isEmpty(config.getAllowedMethods())) {
+			//用 mappingInfo 中配置的 method
 			for (RequestMethod allowedMethod : mappingInfo.getMethodsCondition().getMethods()) {
 				config.addAllowedMethod(allowedMethod.name());
 			}
 		}
+		//如果没有配置, 则做一些默认配置
 		return config.applyPermitDefaultValues();
 	}
 
 	private void updateCorsConfig(CorsConfiguration config, @Nullable CrossOrigin annotation) {
+		//注解为 null 则不处理
 		if (annotation == null) {
 			return;
 		}
+		//设置允许的条件
 		for (String origin : annotation.origins()) {
 			config.addAllowedOrigin(resolveCorsAnnotationValue(origin));
 		}

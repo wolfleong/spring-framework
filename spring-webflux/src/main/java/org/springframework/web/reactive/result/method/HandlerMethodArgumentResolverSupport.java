@@ -113,6 +113,7 @@ public abstract class HandlerMethodArgumentResolverSupport implements HandlerMet
 	protected <A extends Annotation> boolean checkAnnotatedParamNoReactiveWrapper(
 			MethodParameter parameter, Class<A> annotationType, BiPredicate<A, Class<?>> typePredicate) {
 
+		// 如果无 @PathVariable 注解
 		A annotation = parameter.getParameterAnnotation(annotationType);
 		if (annotation == null) {
 			return false;

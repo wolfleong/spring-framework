@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
+ * http 响应消息的抽象
  * Represents an HTTP output message, consisting of {@linkplain #getHeaders() headers}
  * and a writable {@linkplain #getBody() body}.
  *

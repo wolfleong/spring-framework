@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.WebUtils;
 
 /**
+ * web 应用内建支持的资源, 如: JSP
  * Wrapper for a JSP or other resource within the same web application.
  * Exposes model objects as request attributes and forwards the request to
  * the specified resource URL using a {@link javax.servlet.RequestDispatcher}.
@@ -131,6 +132,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 
 
 	/**
+	 * 这个转发的逻辑, 就是 servlet 转发到 jsp 的内容
 	 * Render the internal resource given the specified model.
 	 * This includes setting the model as request attributes.
 	 */
@@ -139,15 +141,18 @@ public class InternalResourceView extends AbstractUrlBasedView {
 			Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// Expose the model object as request attributes.
+		//把model中的所有数据放到request中
 		exposeModelAsRequestAttributes(model, request);
 
 		// Expose helpers as request attributes, if any.
 		exposeHelpers(request);
 
 		// Determine the path for the request dispatcher.
+		//获取跳转的路径, 如: /jsp/zhuanfa.jsp
 		String dispatcherPath = prepareForRendering(request, response);
 
 		// Obtain a RequestDispatcher for the target resource (typically a JSP).
+		//获取请求转发器, servlet 的 api
 		RequestDispatcher rd = getRequestDispatcher(request, dispatcherPath);
 		if (rd == null) {
 			throw new ServletException("Could not get RequestDispatcher for [" + getUrl() +
@@ -160,6 +165,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Including [" + getUrl() + "]");
 			}
+			//加载页面
 			rd.include(request, response);
 		}
 
@@ -168,6 +174,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Forwarding to [" + getUrl() + "]");
 			}
+			//转发到 jsp 中
 			rd.forward(request, response);
 		}
 	}
@@ -201,6 +208,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 	protected String prepareForRendering(HttpServletRequest request, HttpServletResponse response)
 			throws Exception {
 
+		//获取页面的 url , 如: /WEB-INF/home/index.jsp
 		String path = getUrl();
 		Assert.state(path != null, "'url' not set");
 

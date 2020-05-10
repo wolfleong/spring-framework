@@ -37,6 +37,7 @@ public abstract class AbstractThemeResolver implements ThemeResolver {
 
 
 	/**
+	 * 设置默认的样式名
 	 * Set the name of the default theme.
 	 * Out-of-the-box value is "theme".
 	 */
@@ -45,6 +46,7 @@ public abstract class AbstractThemeResolver implements ThemeResolver {
 	}
 
 	/**
+	 * 获取默认的样式名
 	 * Return the name of the default theme.
 	 */
 	public String getDefaultThemeName() {

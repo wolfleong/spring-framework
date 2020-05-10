@@ -43,6 +43,7 @@ import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.support.RequestContext;
 
 /**
+ * View 接口的基础实现类
  * Abstract base class for {@link org.springframework.web.servlet.View}
  * implementations. Subclasses should be JavaBeans, to allow for
  * convenient configuration as Spring-managed bean instances.
@@ -63,6 +64,7 @@ import org.springframework.web.servlet.support.RequestContext;
  */
 public abstract class AbstractView extends WebApplicationObjectSupport implements View, BeanNameAware {
 
+	//默认是 html 类型
 	/** Default content type. Overridable as bean property. */
 	public static final String DEFAULT_CONTENT_TYPE = "text/html;charset=ISO-8859-1";
 
@@ -78,6 +80,9 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 
 	private final Map<String, Object> staticAttributes = new LinkedHashMap<>();
 
+	/**
+	 * 是否暴露 PathVariable 变量
+	 */
 	private boolean exposePathVariables = true;
 
 	private boolean exposeContextBeansAsAttributes = false;
@@ -312,18 +317,23 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 					(this.staticAttributes.isEmpty() ? "" : ", static attributes " + this.staticAttributes));
 		}
 
+		//将model和request中的参数全部放到mergedModel中
 		Map<String, Object> mergedModel = createMergedOutputModel(model, request, response);
+		//判断是否下载资源, 进行响应头设置
 		prepareResponse(request, response);
+		//将 mergedModel 中的参数值放到 request 中
 		renderMergedOutputModel(mergedModel, getRequestToExpose(request), response);
 	}
 
 	/**
+	 * 将所有的数据放到  mergedModel 中
 	 * Creates a combined output Map (never {@code null}) that includes dynamic values and static attributes.
 	 * Dynamic values take precedence over static attributes.
 	 */
 	protected Map<String, Object> createMergedOutputModel(@Nullable Map<String, ?> model,
 			HttpServletRequest request, HttpServletResponse response) {
 
+		//根据配置是否暴露 PathVariables 变量
 		@SuppressWarnings("unchecked")
 		Map<String, Object> pathVars = (this.exposePathVariables ?
 				(Map<String, Object>) request.getAttribute(View.PATH_VARIABLES) : null);
@@ -333,11 +343,15 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 		size += (model != null ? model.size() : 0);
 		size += (pathVars != null ? pathVars.size() : 0);
 
+		//创建 mergedModel
 		Map<String, Object> mergedModel = new LinkedHashMap<>(size);
+		//添加静态属性
 		mergedModel.putAll(this.staticAttributes);
+		//添加 PathVariables 变量
 		if (pathVars != null) {
 			mergedModel.putAll(pathVars);
 		}
+		//添加 model
 		if (model != null) {
 			mergedModel.putAll(model);
 		}
@@ -375,6 +389,7 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 	 * @param response current HTTP response
 	 */
 	protected void prepareResponse(HttpServletRequest request, HttpServletResponse response) {
+		//如果是下载的内容, 则设置相关的响应头
 		if (generatesDownloadContent()) {
 			response.setHeader("Pragma", "private");
 			response.setHeader("Cache-Control", "private, must-revalidate");
@@ -382,6 +397,7 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 	}
 
 	/**
+	 * 是否为要下载的内容
 	 * Return whether this view generates download content
 	 * (typically binary content like PDF or Excel files).
 	 * <p>The default implementation returns {@code false}. Subclasses are

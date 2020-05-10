@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * 处理器的方法的封装对象, 实际上，HandlerMethod 是 handler + method 的组合，一个对象的某个方法。
+ *  - HandlerMethod 只提供了处理器的方法的基本信息，不提供调用逻辑
  * Encapsulates information about a handler method consisting of a
  * {@linkplain #getMethod() method} and a {@linkplain #getBean() bean}.
  * Provides convenient access to method parameters, the method return value,
@@ -124,6 +125,9 @@ public class HandlerMethod {
 	@Nullable
 	private volatile List<Annotation[][]> interfaceParameterAnnotations;
 
+	/**
+	 * 方法的描述, 如: com.wl.User#getAge(java.lang.Integer)
+	 */
 	private final String description;
 
 
@@ -138,8 +142,10 @@ public class HandlerMethod {
 		this.beanType = ClassUtils.getUserClass(bean);
 		this.method = method;
 		this.bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
+		//初始化 MethodParameter 数组
 		this.parameters = initMethodParameters();
 		evaluateResponseStatus();
+		// 全类名#方法名(参数类型...)
 		this.description = initDescription(this.beanType, this.method);
 	}
 
@@ -234,11 +240,17 @@ public class HandlerMethod {
 		return result;
 	}
 
+	/**
+	 * 获取 @ResponseStatus 注解的信息
+	 */
 	private void evaluateResponseStatus() {
+		//获取方法上是否有 @ResponseStatus
 		ResponseStatus annotation = getMethodAnnotation(ResponseStatus.class);
 		if (annotation == null) {
+			//如果方法没有则获取类上的 @ResponseStatus
 			annotation = AnnotatedElementUtils.findMergedAnnotation(getBeanType(), ResponseStatus.class);
 		}
+		//如果有注解, 则设置值
 		if (annotation != null) {
 			this.responseStatus = annotation.code();
 			this.responseStatusReason = annotation.reason();
@@ -367,6 +379,7 @@ public class HandlerMethod {
 	}
 
 	/**
+	 * 如果 bean 是 String, 则为 beanName, 解析成 bean 实例并创建新 HandlerMethod
 	 * If the provided instance contains a bean name rather than an object instance,
 	 * the bean name is resolved before a {@link HandlerMethod} is created and returned.
 	 */
@@ -457,6 +470,7 @@ public class HandlerMethod {
 	protected static Object findProvidedArgument(MethodParameter parameter, @Nullable Object... providedArgs) {
 		if (!ObjectUtils.isEmpty(providedArgs)) {
 			for (Object providedArg : providedArgs) {
+				//只要类型匹配, 则返回
 				if (parameter.getParameterType().isInstance(providedArg)) {
 					return providedArg;
 				}

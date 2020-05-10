@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.lang.Nullable;
 
 /**
+ * 跨域处理器
  * A strategy that takes a request and a {@link CorsConfiguration} and updates
  * the response.
  *
@@ -41,6 +42,7 @@ import org.springframework.lang.Nullable;
 public interface CorsProcessor {
 
 	/**
+	 * 处理跨域请求
 	 * Process a request given a {@code CorsConfiguration}.
 	 * @param configuration the applicable CORS configuration (possibly {@code null})
 	 * @param request the current request

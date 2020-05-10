@@ -35,6 +35,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public abstract class CorsUtils {
 
 	/**
+	 * 判断是否为跨域请求
 	 * Returns {@code true} if the request is a valid CORS one by checking {@code Origin}
 	 * header presence and ensuring that origins are different.
 	 */
@@ -66,6 +67,7 @@ public abstract class CorsUtils {
 	}
 
 	/**
+	 * 判断请求是否为CORS 预检请求, 用于检查服务器是否支持 CORS 即跨域资源共享
 	 * Returns {@code true} if the request is a valid CORS pre-flight one.
 	 * To be used in combination with {@link #isCorsRequest(HttpServletRequest)} since
 	 * regular CORS checks are not invoked here for performance reasons.

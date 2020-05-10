@@ -32,6 +32,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
 /**
+ * 有 @ControllerAdvice 注解的 bean 的封装
  * Encapsulates information about an {@link ControllerAdvice @ControllerAdvice}
  * Spring-managed bean without necessarily requiring it to be instantiated.
  *
@@ -54,15 +55,22 @@ public class ControllerAdviceBean implements Ordered {
 	private final Object beanOrName;
 
 	/**
+	 * bean 实例
 	 * Reference to the resolved bean instance, potentially lazily retrieved
 	 * via the {@code BeanFactory}.
 	 */
 	@Nullable
 	private Object resolvedBean;
 
+	/**
+	 * 处理器类型
+	 */
 	@Nullable
 	private final Class<?> beanType;
 
+	/**
+	 * 处理器类型匹配函数
+	 */
 	private final HandlerTypePredicate beanTypePredicate;
 
 	@Nullable
@@ -216,6 +224,7 @@ public class ControllerAdviceBean implements Ordered {
 
 
 	/**
+	 * 查找有 @ControllerAdvice 注解的 bean 实例
 	 * Find beans annotated with {@link ControllerAdvice @ControllerAdvice} in the
 	 * given {@link ApplicationContext} and wrap them as {@code ControllerAdviceBean}
 	 * instances.
@@ -227,14 +236,18 @@ public class ControllerAdviceBean implements Ordered {
 	 */
 	public static List<ControllerAdviceBean> findAnnotatedBeans(ApplicationContext context) {
 		List<ControllerAdviceBean> adviceBeans = new ArrayList<>();
+		//获取所有 bean
 		for (String name : BeanFactoryUtils.beanNamesForTypeIncludingAncestors(context, Object.class)) {
+			//获取当前 beanName 的类的 @ControllerAdvice 注解
 			ControllerAdvice controllerAdvice = context.findAnnotationOnBean(name, ControllerAdvice.class);
 			if (controllerAdvice != null) {
 				// Use the @ControllerAdvice annotation found by findAnnotationOnBean()
 				// in order to avoid a subsequent lookup of the same annotation.
+				//如果有注解, 则创建  ControllerAdviceBean 添加到 adviceBeans 中
 				adviceBeans.add(new ControllerAdviceBean(name, context, controllerAdvice));
 			}
 		}
+		//对所有 ControllerAdviceBean 排序
 		OrderComparator.sort(adviceBeans);
 		return adviceBeans;
 	}

@@ -27,6 +27,7 @@ import org.springframework.web.servlet.SmartView;
 import org.springframework.web.servlet.View;
 
 /**
+ * 处理 ModelAndView 类型的返回值
  * Handles return values of type {@link ModelAndView} copying view and model
  * information to the {@link ModelAndViewContainer}.
  *
@@ -44,6 +45,9 @@ import org.springframework.web.servlet.View;
  */
 public class ModelAndViewMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 
+	/**
+	 * 自定义的重定向前缀
+	 */
 	@Nullable
 	private String[] redirectPatterns;
 
@@ -71,6 +75,7 @@ public class ModelAndViewMethodReturnValueHandler implements HandlerMethodReturn
 
 	@Override
 	public boolean supportsReturnType(MethodParameter returnType) {
+		//返回值类型是 ModelAndView
 		return ModelAndView.class.isAssignableFrom(returnType.getParameterType());
 	}
 
@@ -78,27 +83,36 @@ public class ModelAndViewMethodReturnValueHandler implements HandlerMethodReturn
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
 
+		//如果没有返回值, 则不处理
 		if (returnValue == null) {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
 
+		//强转
 		ModelAndView mav = (ModelAndView) returnValue;
+		//如果 view 是字符串引用
 		if (mav.isReference()) {
+			//设置 viewName
 			String viewName = mav.getViewName();
 			mavContainer.setViewName(viewName);
+			//判断是否重定向
 			if (viewName != null && isRedirectViewName(viewName)) {
 				mavContainer.setRedirectModelScenario(true);
 			}
 		}
 		else {
+			//设置 View 对象
 			View view = mav.getView();
 			mavContainer.setView(view);
+			//判断是否重定向
 			if (view instanceof SmartView && ((SmartView) view).isRedirectView()) {
 				mavContainer.setRedirectModelScenario(true);
 			}
 		}
+		//设置状态
 		mavContainer.setStatus(mav.getStatus());
+		//设置 Model
 		mavContainer.addAllAttributes(mav.getModel());
 	}
 

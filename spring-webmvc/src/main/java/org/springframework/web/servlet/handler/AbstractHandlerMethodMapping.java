@@ -99,7 +99,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 
 
 	/**
-	 * 是否只扫描可访问的 HandlerMethod 们
+	 * 是否扫描父容器中的 HandlerMethod
 	 */
 	private boolean detectHandlerMethodsInAncestorContexts = false;
 
@@ -363,6 +363,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	}
 
 	/**
+	 * 解析跨域配置, 子类有实现
 	 * Extract and return the CORS configuration for the mapping.
 	 */
 	@Nullable
@@ -377,6 +378,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	protected void handlerMethodsInitialized(Map<T, HandlerMethod> handlerMethods) {
 		// Total includes detected mappings + explicit registrations via registerMapping
 		int total = handlerMethods.size();
+		//打印一下日志, 看有多少 handlerMethod
 		if ((logger.isTraceEnabled() && total == 0) || (logger.isDebugEnabled() && total > 0) ) {
 			logger.debug(total + " mappings in " + formatMappingName());
 		}
@@ -386,19 +388,21 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	// Handler method lookup
 
 	/**
+	 * 根据请求查找对应的 HandleMethod 对象
 	 * Look up a handler method for the given request.
 	 */
 	@Override
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
 		// 获得请求的路径
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
+		//设置 lookupPath 到 request 中
 		request.setAttribute(LOOKUP_PATH, lookupPath);
 		//获得读锁
 		this.mappingRegistry.acquireReadLock();
 		try {
 			//获得 HandlerMethod 对象
 			HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
-			//进一步，获得 HandlerMethod 对象
+			//获得 bean 为实例的 HandlerMethod 对象
 			return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
 		}
 		finally {
@@ -425,7 +429,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 		if (directPathMatches != null) {
 			addMatchingMappings(directPathMatches, matches, request);
 		}
-		//其次，扫描注册表的 Mapping 们，进行匹配
+		//其次，扫描全部的 Mapping ，进行匹配
 		if (matches.isEmpty()) {
 			// No choice but to go through all mappings...
 			addMatchingMappings(this.mappingRegistry.getMappings().keySet(), matches, request);
@@ -458,7 +462,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				}
 			}
 			request.setAttribute(BEST_MATCHING_HANDLER_ATTRIBUTE, bestMatch.handlerMethod);
-			//处理首个 Match 对象
+			//处理已经最优的 Match 对象, 主要是添加 handleMethod 各种属性到 request 中
 			handleMatch(bestMatch.mapping, lookupPath, request);
 			//返回首个 Match 对象的 handlerMethod 属性
 			return bestMatch.handlerMethod;
@@ -583,33 +587,30 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	class MappingRegistry {
 
 		/**
-		 * 注册表, Key: Mapping
+		 *  Mapping -> MappingRegistration 缓存, 主要用于删除下面的缓存
 		 */
 		private final Map<T, MappingRegistration<T>> registry = new HashMap<>();
 
 		/**
-		 * 注册表2
-		 *
-		 * KEY：Mapping
+		 *  Mapping -> HandlerMethod 缓存
 		 */
 		private final Map<T, HandlerMethod> mappingLookup = new LinkedHashMap<>();
 
 		/**
-		 * 直接 URL 的映射
-		 *
-		 * KEY：直接 URL
-		 * VALUE：Mapping 数组
+		 * 直接 URL 的映射, Direct URL -> Mapping 数组
 		 */
 		private final MultiValueMap<String, T> urlLookup = new LinkedMultiValueMap<>();
 
 		/**
-		 * Mapping 的名字与 HandlerMethod 的映射
+		 * Mapping 的名字与 HandlerMethod 的缓存
 		 *
-		 * KEY：Mapping 的名字
-		 * VALUE：HandlerMethod 数组
+		 * Mapping Name -> HandlerMethod 数组
 		 */
 		private final Map<String, List<HandlerMethod>> nameLookup = new ConcurrentHashMap<>();
 
+		/**
+		 * 跨域配置的缓存, HandlerMethod -> CorsConfiguration
+		 */
 		private final Map<HandlerMethod, CorsConfiguration> corsLookup = new ConcurrentHashMap<>();
 
 		/**
@@ -697,8 +698,10 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					addMappingName(name, handlerMethod);
 				}
 
+				//获取跨域配置
 				CorsConfiguration corsConfig = initCorsConfiguration(handler, method, mapping);
 				if (corsConfig != null) {
+					//添加到缓存
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
 
@@ -767,6 +770,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			try {
 				// 从 registry 中移除
 				MappingRegistration<T> definition = this.registry.remove(mapping);
+				//如果没有则不处理
 				if (definition == null) {
 					return;
 				}
@@ -822,6 +826,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	}
 
 
+	/**
+	 * Mapping 相关的缓存注册信息, 主要用于删除缓存用的
+	 */
 	private static class MappingRegistration<T> {
 
 		/**

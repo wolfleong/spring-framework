@@ -60,6 +60,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
 /**
+ * 基础抽象类, 用 HttpMessageConverter 做参数转换
  * A base class for resolving method argument values by reading from the body of
  * a request with {@link HttpMessageConverter HttpMessageConverters}.
  *
@@ -78,10 +79,16 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * HttpMessageConverter 数组
+	 */
 	protected final List<HttpMessageConverter<?>> messageConverters;
 
 	protected final List<MediaType> allSupportedMediaTypes;
 
+	/**
+	 * RequestResponseBodyAdviceChain 对象
+	 */
 	private final RequestResponseBodyAdviceChain advice;
 
 
@@ -166,19 +173,26 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	protected <T> Object readWithMessageConverters(HttpInputMessage inputMessage, MethodParameter parameter,
 			Type targetType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
+		//内容类型
 		MediaType contentType;
+		//是否没有内容类型
 		boolean noContentType = false;
 		try {
+			//获取内容类型
 			contentType = inputMessage.getHeaders().getContentType();
 		}
 		catch (InvalidMediaTypeException ex) {
 			throw new HttpMediaTypeNotSupportedException(ex.getMessage());
 		}
+		//如果没有内容类型
 		if (contentType == null) {
+			//标记没有
 			noContentType = true;
+			//给默认的类型
 			contentType = MediaType.APPLICATION_OCTET_STREAM;
 		}
 
+		//获取参数的容器类
 		Class<?> contextClass = parameter.getContainingClass();
 		Class<T> targetClass = (targetType instanceof Class ? (Class<T>) targetType : null);
 		if (targetClass == null) {
@@ -186,27 +200,38 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			targetClass = (Class<T>) resolvableType.resolve();
 		}
 
+		//获取 HttpMethod
 		HttpMethod httpMethod = (inputMessage instanceof HttpRequest ? ((HttpRequest) inputMessage).getMethod() : null);
 		Object body = NO_VALUE;
 
 		EmptyBodyCheckingHttpInputMessage message;
 		try {
+			//创建用于检测空请求体的代理
 			message = new EmptyBodyCheckingHttpInputMessage(inputMessage);
 
+			//遍历 HttpMessageConverter
 			for (HttpMessageConverter<?> converter : this.messageConverters) {
+				//获取转换器类型
 				Class<HttpMessageConverter<?>> converterType = (Class<HttpMessageConverter<?>>) converter.getClass();
+				//如果是 GenericHttpMessageConverter 则强转
 				GenericHttpMessageConverter<?> genericConverter =
 						(converter instanceof GenericHttpMessageConverter ? (GenericHttpMessageConverter<?>) converter : null);
+				// 如果 genericConverter 不为 null, 则用 genericConverter 判断是否可读, 否则直接用 converter
 				if (genericConverter != null ? genericConverter.canRead(targetType, contextClass, contentType) :
 						(targetClass != null && converter.canRead(targetClass, contentType))) {
+					//如果有消息体
 					if (message.hasBody()) {
+						//前置处理
 						HttpInputMessage msgToUse =
 								getAdvice().beforeBodyRead(message, parameter, targetType, converterType);
+						//转换
 						body = (genericConverter != null ? genericConverter.read(targetType, contextClass, msgToUse) :
 								((HttpMessageConverter<T>) converter).read(targetClass, msgToUse));
+						//后置处理
 						body = getAdvice().afterBodyRead(body, msgToUse, parameter, targetType, converterType);
 					}
 					else {
+						//空 body 的处理
 						body = getAdvice().handleEmptyBody(null, message, parameter, targetType, converterType);
 					}
 					break;
@@ -217,7 +242,11 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			throw new HttpMessageNotReadableException("I/O error while reading input message", ex, inputMessage);
 		}
 
+		//如果 body 没值
 		if (body == NO_VALUE) {
+			// httpMethod 为 null
+			// 不支持的 httpMethod
+			// 没有内容类型且没有 body
 			if (httpMethod == null || !SUPPORTED_METHODS.contains(httpMethod) ||
 					(noContentType && !message.hasBody())) {
 				return null;
@@ -225,6 +254,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			throw new HttpMediaTypeNotSupportedException(contentType, this.allSupportedMediaTypes);
 		}
 
+		//日志处理
 		MediaType selectedContentType = contentType;
 		Object theBody = body;
 		LogFormatUtils.traceDebug(logger, traceOn -> {
@@ -232,6 +262,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 			return "Read \"" + selectedContentType + "\" to [" + formatted + "]";
 		});
 
+		//返回 body
 		return body;
 	}
 
@@ -284,6 +315,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	}
 
 	/**
+	 * 处理 Optional 的参数
 	 * Adapt the given argument against the method parameter, if necessary.
 	 * @param arg the resolved argument
 	 * @param parameter the method parameter descriptor
@@ -305,6 +337,9 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	}
 
 
+	/**
+	 * 空请求体检测
+	 */
 	private static class EmptyBodyCheckingHttpInputMessage implements HttpInputMessage {
 
 		private final HttpHeaders headers;
@@ -313,20 +348,30 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 		private final InputStream body;
 
 		public EmptyBodyCheckingHttpInputMessage(HttpInputMessage inputMessage) throws IOException {
+			//设置请求头
 			this.headers = inputMessage.getHeaders();
+			//获取 body 的输入流
 			InputStream inputStream = inputMessage.getBody();
+			//如果支持标记的
 			if (inputStream.markSupported()) {
+				//标记
 				inputStream.mark(1);
+				//读一个字节
 				this.body = (inputStream.read() != -1 ? inputStream : null);
+				//复位
 				inputStream.reset();
 			}
 			else {
+				//用 PushbackInputStream 包装
 				PushbackInputStream pushbackInputStream = new PushbackInputStream(inputStream);
+				//读一个字节
 				int b = pushbackInputStream.read();
+				//如果是 -1 则置空
 				if (b == -1) {
 					this.body = null;
 				}
 				else {
+					//重置
 					this.body = pushbackInputStream;
 					pushbackInputStream.unread(b);
 				}

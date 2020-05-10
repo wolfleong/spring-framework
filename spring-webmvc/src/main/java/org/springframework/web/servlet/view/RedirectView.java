@@ -48,6 +48,7 @@ import org.springframework.web.util.UriUtils;
 import org.springframework.web.util.WebUtils;
 
 /**
+ * 重定向  view
  * View that redirects to an absolute, context relative, or current request
  * relative URL. The URL may be a URI template in which case the URI template
  * variables will be replaced with values available in the model. By default
@@ -304,12 +305,14 @@ public class RedirectView extends AbstractUrlBasedView implements SmartView {
 	protected void renderMergedOutputModel(Map<String, Object> model, HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 
+		//创建重定向的地址
 		String targetUrl = createTargetUrl(model, request);
 		targetUrl = updateTargetUrl(targetUrl, model, request, response);
 
 		// Save flash attributes
 		RequestContextUtils.saveOutputFlashMap(targetUrl, request, response);
 
+		//重定向
 		// Redirect
 		sendRedirect(request, response, targetUrl, this.http10Compatible);
 	}

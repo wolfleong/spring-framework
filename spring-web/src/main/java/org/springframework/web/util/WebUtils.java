@@ -416,6 +416,7 @@ public abstract class WebUtils {
 	}
 
 	/**
+	 * 获得用来锁的对象
 	 * Return the best available mutex for the given session:
 	 * that is, an object to synchronize on for the given session.
 	 * <p>Returns the session mutex attribute if available; usually,

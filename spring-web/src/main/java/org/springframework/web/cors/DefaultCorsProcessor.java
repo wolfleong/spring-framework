@@ -64,30 +64,38 @@ public class DefaultCorsProcessor implements CorsProcessor {
 		response.addHeader(HttpHeaders.VARY, HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
 		response.addHeader(HttpHeaders.VARY, HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
 
+		//不是跨域请求, 通过
 		if (!CorsUtils.isCorsRequest(request)) {
 			return true;
 		}
 
+		//如果响应头有 ACCESS_CONTROL_ALLOW_ORIGIN, 则通过
 		if (response.getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN) != null) {
 			logger.trace("Skip: response already contains \"Access-Control-Allow-Origin\"");
 			return true;
 		}
 
+		//是否是预请求
 		boolean preFlightRequest = CorsUtils.isPreFlightRequest(request);
+		//如果没有跨域配置
 		if (config == null) {
+			//是预请求, 则直接拒绝
 			if (preFlightRequest) {
 				rejectRequest(new ServletServerHttpResponse(response));
 				return false;
 			}
 			else {
+				//没有跨域配置且不是预请求, 直接通过
 				return true;
 			}
 		}
 
+		//有配置且是跨域请求, 则根据配置处理响应
 		return handleInternal(new ServletServerHttpRequest(request), new ServletServerHttpResponse(response), config, preFlightRequest);
 	}
 
 	/**
+	 * 拒绝请求
 	 * Invoked when one of the CORS checks failed.
 	 * The default implementation sets the response status to 403 and writes
 	 * "Invalid CORS request" to the response.
@@ -107,6 +115,8 @@ public class DefaultCorsProcessor implements CorsProcessor {
 		String requestOrigin = request.getHeaders().getOrigin();
 		String allowOrigin = checkOrigin(config, requestOrigin);
 		HttpHeaders responseHeaders = response.getHeaders();
+
+		//各种拒绝条件
 
 		if (allowOrigin == null) {
 			logger.debug("Reject: '" + requestOrigin + "' origin is not allowed");

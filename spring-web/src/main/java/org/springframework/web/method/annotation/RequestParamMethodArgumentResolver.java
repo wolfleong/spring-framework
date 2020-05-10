@@ -50,6 +50,9 @@ import org.springframework.web.multipart.support.MultipartResolutionDelegate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
+ * 实现 UriComponentsContributor 接口，继承 AbstractNamedValueMethodArgumentResolver 抽象类，
+ * 请求参数的 HandlerMethodArgumentResolver 实现类，处理普通的请求参数
+ *
  * Resolves method arguments annotated with @{@link RequestParam}, arguments of
  * type {@link MultipartFile} in conjunction with Spring's {@link MultipartResolver}
  * abstraction, and arguments of type {@code javax.servlet.http.Part} in conjunction
@@ -80,6 +83,11 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 
 	private static final TypeDescriptor STRING_TYPE_DESCRIPTOR = TypeDescriptor.valueOf(String.class);
 
+	/**
+	 * 是否使用默认解决。
+	 *
+	 * 这个变量有点绕，见 {@link #supportsParameter(MethodParameter)} 方法
+	 */
 	private final boolean useDefaultResolution;
 
 
@@ -125,27 +133,37 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	 */
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
+		// 有 @RequestParam 注解的情况
 		if (parameter.hasParameterAnnotation(RequestParam.class)) {
+			//如果是 Map 类型，则 @RequestParam 注解必须要有 name 属性
 			if (Map.class.isAssignableFrom(parameter.nestedIfOptional().getNestedParameterType())) {
 				RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
+				//public String hello5(@RequestParam(name = "map") Map<String, Object> map)
+				//GET /hello4?map={"name": "yyyy", age: 20} 的 map 参数，就会都添加到 map 中
 				return (requestParam != null && StringUtils.hasText(requestParam.name()));
 			}
+			// 其它，默认支持
 			else {
 				return true;
 			}
 		}
 		else {
+			// 如果有 @RequestPart 注解，返回 false 。即 @RequestPart 的优先级 > @RequestParam
 			if (parameter.hasParameterAnnotation(RequestPart.class)) {
 				return false;
 			}
+			// 获得参数，如果存在内嵌的情况
 			parameter = parameter.nestedIfOptional();
+			//如果 Multipart 参数。则返回 true ，表示支持
 			if (MultipartResolutionDelegate.isMultipartArgument(parameter)) {
 				return true;
 			}
+			//如果开启 useDefaultResolution 功能，则判断是否为普通类型
 			else if (this.useDefaultResolution) {
 				return BeanUtils.isSimpleProperty(parameter.getNestedParameterType());
 			}
 			else {
+				// 其它，不支持
 				return false;
 			}
 		}
@@ -154,12 +172,14 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	@Override
 	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
 		RequestParam ann = parameter.getParameterAnnotation(RequestParam.class);
+		//在无 @RequestParam 时，返回的 RequestParamNamedValueInfo 对象的 name 属性为 ""
 		return (ann != null ? new RequestParamNamedValueInfo(ann) : new RequestParamNamedValueInfo());
 	}
 
 	@Override
 	@Nullable
 	protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
+		// 情况一，HttpServletRequest 情况下的 MultipartFile 和 Part 的情况
 		HttpServletRequest servletRequest = request.getNativeRequest(HttpServletRequest.class);
 
 		if (servletRequest != null) {
@@ -170,6 +190,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 		}
 
 		Object arg = null;
+		// 情况二，MultipartHttpServletRequest 情况下的 MultipartFile 的情况
 		MultipartRequest multipartRequest = request.getNativeRequest(MultipartRequest.class);
 		if (multipartRequest != null) {
 			List<MultipartFile> files = multipartRequest.getFiles(name);
@@ -177,6 +198,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 				arg = (files.size() == 1 ? files.get(0) : files);
 			}
 		}
+		// 情况三，普通参数的获取
 		if (arg == null) {
 			String[] paramValues = request.getParameterValues(name);
 			if (paramValues != null) {
@@ -190,6 +212,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	protected void handleMissingValue(String name, MethodParameter parameter, NativeWebRequest request)
 			throws Exception {
 
+		//根据参数的类型，做更详细的异常抛出
 		HttpServletRequest servletRequest = request.getNativeRequest(HttpServletRequest.class);
 		if (MultipartResolutionDelegate.isMultipartArgument(parameter)) {
 			if (servletRequest == null || !MultipartResolutionDelegate.isMultipartRequest(servletRequest)) {

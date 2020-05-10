@@ -61,6 +61,14 @@ import org.springframework.util.CollectionUtils;
  */
 public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 
+	//<bean   class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+	//             <property name="mappings">
+	//                  <props>
+	//                       <prop key="/hello.form“>helloController</prop>
+	//                  </props>
+	//             </property>
+	//</bean>
+
 	/**
 	 * 配置的 URL 与处理器的映射
 	 *
