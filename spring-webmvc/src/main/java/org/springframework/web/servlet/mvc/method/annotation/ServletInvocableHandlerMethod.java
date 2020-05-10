@@ -46,7 +46,7 @@ import org.springframework.web.servlet.View;
 import org.springframework.web.util.NestedServletException;
 
 /**
- * 继承 InvocableHandlerMethod 类，考虑 Servlet 的 InvocableHandlerMethod 实现类
+ * 继承 InvocableHandlerMethod 类，考虑 Servlet 的 InvocableHandlerMethod 实现类, 这个类主要处理返回值的通用逻辑
  *
  * Extends {@link InvocableHandlerMethod} with the ability to handle return
  * values through a registered {@link HandlerMethodReturnValueHandler} and

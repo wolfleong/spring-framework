@@ -33,7 +33,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.HandlerMethod;
 
 /**
- * 继承 HandlerMethod 类，可 invoke 调用的 HandlerMethod 实现类
+ * 继承 HandlerMethod 类，可 invoke 调用的 HandlerMethod 实现类, 这个类主要处理的参数的解析的通用逻辑
  * Extension of {@link HandlerMethod} that invokes the underlying method with
  * argument values resolved from the current HTTP request through a list of
  * {@link HandlerMethodArgumentResolver}.
