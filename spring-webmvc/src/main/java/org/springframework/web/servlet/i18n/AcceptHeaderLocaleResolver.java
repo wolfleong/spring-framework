@@ -110,18 +110,19 @@ public class AcceptHeaderLocaleResolver implements LocaleResolver {
 			//不存在则用默认的
 			return defaultLocale;
 		}
-		//获取请求头的 Locale
+		//获取请求头的一个 Locale
 		Locale requestLocale = request.getLocale();
-		//获取支持的
+		//获取支持的 Locales, 如果有则直接返回
 		List<Locale> supportedLocales = getSupportedLocales();
 		if (supportedLocales.isEmpty() || supportedLocales.contains(requestLocale)) {
 			return requestLocale;
 		}
-		//从中 request 中获取支持的 Locale
+		//尝试从 request 中获取更多的 Locale 来判断是否支持
 		Locale supportedLocale = findSupportedLocale(request, supportedLocales);
 		if (supportedLocale != null) {
 			return supportedLocale;
 		}
+		//没有就返回默认
 		return (defaultLocale != null ? defaultLocale : requestLocale);
 	}
 

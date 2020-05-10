@@ -53,8 +53,7 @@ public class SimpleMappingExceptionResolver extends AbstractHandlerExceptionReso
 	/**
 	 * 异常的视图映射
 	 *
-	 * KEY：异常的全类名
-	 * VALUE：视图名
+	 * 异常的全类名 -> 视图名
 	 */
 	@Nullable
 	private Properties exceptionMappings;
