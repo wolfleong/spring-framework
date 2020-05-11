@@ -36,6 +36,7 @@ package org.springframework.context;
 public interface ApplicationEventPublisher {
 
 	/**
+	 * 发布 ApplicationEvent 事件
 	 * Notify all <strong>matching</strong> listeners registered with this
 	 * application of an application event. Events may be framework events
 	 * (such as ContextRefreshedEvent) or application-specific events.
@@ -54,6 +55,7 @@ public interface ApplicationEventPublisher {
 	}
 
 	/**
+	 * 发布所有类型的事件
 	 * Notify all <strong>matching</strong> listeners registered with this
 	 * application of an event.
 	 * <p>If the specified {@code event} is not an {@link ApplicationEvent},

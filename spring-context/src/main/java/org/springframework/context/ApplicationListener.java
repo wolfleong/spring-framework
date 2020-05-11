@@ -19,6 +19,7 @@ package org.springframework.context;
 import java.util.EventListener;
 
 /**
+ * ApplicationListener是所有事件监听器的父接口，事件监听器监听某个事件必须要实现该接口
  * Interface to be implemented by application event listeners.
  *
  * <p>Based on the standard {@code java.util.EventListener} interface

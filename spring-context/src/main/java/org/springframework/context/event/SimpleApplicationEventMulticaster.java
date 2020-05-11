@@ -29,6 +29,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ErrorHandler;
 
 /**
+ * SimpleApplicationEventMulticaster是ApplicationEventMulticaster的实现类，承担广播所有事件给注册的spring监听器
+ *
  * Simple implementation of the {@link ApplicationEventMulticaster} interface.
  *
  * <p>Multicasts all events to all registered listeners, leaving it up to
@@ -48,9 +50,15 @@ import org.springframework.util.ErrorHandler;
  */
 public class SimpleApplicationEventMulticaster extends AbstractApplicationEventMulticaster {
 
+	/**
+	 * 执行广播异步事件的执行器
+	 */
 	@Nullable
 	private Executor taskExecutor;
 
+	/**
+	 * 广播异步事件出现异常时的处理器
+	 */
 	@Nullable
 	private ErrorHandler errorHandler;
 
@@ -129,13 +137,18 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 
 	@Override
 	public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
+		//解析 ApplicationEvent 泛型类型
 		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+		// 获取执行异步任务的线程池，这里异步要外部指定一个线程池，注入进来
 		Executor executor = getTaskExecutor();
+		// 获取事件所有的监听器, 并遍历
 		for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+			//异步执行
 			if (executor != null) {
 				executor.execute(() -> invokeListener(listener, event));
 			}
 			else {
+				//当前线程执行
 				invokeListener(listener, event);
 			}
 		}
@@ -153,14 +166,18 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	 */
 	protected void invokeListener(ApplicationListener<?> listener, ApplicationEvent event) {
 		ErrorHandler errorHandler = getErrorHandler();
+		// errorHandler不为空的情况下，则会进入try...catch..代码块，这里会对异步广播事件发生的异常进行处理
 		if (errorHandler != null) {
 			try {
+				// 这里真正执行广播事件的逻辑
 				doInvokeListener(listener, event);
 			}
 			catch (Throwable err) {
+				// 处理异常
 				errorHandler.handleError(err);
 			}
 		}
+		// errorHandler为空的情况下，则不对出现的异常进行处理
 		else {
 			doInvokeListener(listener, event);
 		}
@@ -169,6 +186,7 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
 		try {
+			// 回调监听器onApplicationEvent方法，执行监听逻辑
 			listener.onApplicationEvent(event);
 		}
 		catch (ClassCastException ex) {

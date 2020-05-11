@@ -19,6 +19,7 @@ package org.springframework.context.event;
 import org.springframework.context.ApplicationContext;
 
 /**
+ * 当spring容器context关闭时触发，容器被关闭时，其管理的所有单例Bean都被销毁
  * Event raised when an {@code ApplicationContext} gets closed.
  *
  * @author Juergen Hoeller

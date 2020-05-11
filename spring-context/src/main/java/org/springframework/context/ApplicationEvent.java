@@ -19,6 +19,8 @@ package org.springframework.context;
 import java.util.EventObject;
 
 /**
+ * 该抽象类是所有Spring事件的父类，可携带数据比如事件发生时间timestamp
+ *
  * Class to be extended by all application events. Abstract as it
  * doesn't make sense for generic events to be published directly.
  *
@@ -32,6 +34,7 @@ public abstract class ApplicationEvent extends EventObject {
 	/** use serialVersionUID from Spring 1.2 for interoperability. */
 	private static final long serialVersionUID = 7099057708183571937L;
 
+	//时间
 	/** System time when the event happened. */
 	private final long timestamp;
 

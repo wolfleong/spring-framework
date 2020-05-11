@@ -21,6 +21,7 @@ import org.springframework.core.ResolvableTypeProvider;
 import org.springframework.util.Assert;
 
 /**
+ * 适配任意事件类型的 ApplicationEvent
  * An {@link ApplicationEvent} that carries an arbitrary payload.
  *
  * <p>Mainly intended for internal use within the framework.

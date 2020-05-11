@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 
 /**
+ * ApplicationContextEvent 是 spring 容器 Context 生命周期事件的基类
  * Base class for events raised for an {@code ApplicationContext}.
  *
  * @author Juergen Hoeller

@@ -22,6 +22,8 @@ import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 
 /**
+ * 主要用来广播事件给所有listener，主要定义了增删改监听器和广播事件的接口方法
+ *
  * Interface to be implemented by objects that can manage a number of
  * {@link ApplicationListener} objects and publish events to them.
  *

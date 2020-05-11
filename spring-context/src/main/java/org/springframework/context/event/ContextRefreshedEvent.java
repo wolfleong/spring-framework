@@ -19,6 +19,7 @@ package org.springframework.context.event;
 import org.springframework.context.ApplicationContext;
 
 /**
+ * 当spring容器context刷新时触发
  * Event raised when an {@code ApplicationContext} gets initialized or refreshed.
  *
  * @author Juergen Hoeller
