@@ -88,11 +88,13 @@ abstract class ConfigurationClassUtils {
 			BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
 
 		String className = beanDef.getBeanClassName();
+		//没有类名, 且有工厂方法, 非配置类
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
 		}
 
 		AnnotationMetadata metadata;
+		//如果是 AnnotatedBeanDefinition , 获取元数据
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
@@ -101,6 +103,7 @@ abstract class ConfigurationClassUtils {
 		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
+			//过滤掉特殊类
 			Class<?> beanClass = ((AbstractBeanDefinition) beanDef).getBeanClass();
 			if (BeanFactoryPostProcessor.class.isAssignableFrom(beanClass) ||
 					BeanPostProcessor.class.isAssignableFrom(beanClass) ||
@@ -108,10 +111,12 @@ abstract class ConfigurationClassUtils {
 					EventListenerFactory.class.isAssignableFrom(beanClass)) {
 				return false;
 			}
+			//获取元数据
 			metadata = AnnotationMetadata.introspect(beanClass);
 		}
 		else {
 			try {
+				//获取不了元数据, 非配置类
 				MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(className);
 				metadata = metadataReader.getAnnotationMetadata();
 			}
@@ -124,14 +129,18 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
+		//获取 @Configuration 注解
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+		//有注解且 proxyBeanMethods 为 true
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		//没有 @Configuration , 但是有 @Component,@ComponentScan,@Import,@ImportResource这四个注解 或 @Bean 方法
 		else if (config != null || isConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
 		else {
+			//没有配置注解, 非配置类
 			return false;
 		}
 
@@ -145,6 +154,7 @@ abstract class ConfigurationClassUtils {
 	}
 
 	/**
+	 * 判断是否配置候选类
 	 * Check the given metadata for a configuration class candidate
 	 * (or nested component class declared within a configuration/component class).
 	 * @param metadata the metadata of the annotated class

@@ -62,6 +62,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
+ * 主要的功能是, 默认扫描带有 @Component 注解的类
  * A component provider that provides candidate components from a base package. Can
  * use {@link CandidateComponentsIndex the index} if it is available of scans the
  * classpath otherwise. Candidate components are identified by applying exclude and
@@ -222,6 +223,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 */
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
+		//注册 @Component 过滤器
 		this.includeFilters.add(new AnnotationTypeFilter(Component.class));
 		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader();
 		try {
