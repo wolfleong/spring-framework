@@ -92,21 +92,39 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	/**
+	 * 资源的匹配模式
+	 */
 	private String resourcePattern = DEFAULT_RESOURCE_PATTERN;
 
+	/**
+	 * 包括的类型过滤器
+	 */
 	private final List<TypeFilter> includeFilters = new LinkedList<>();
 
+	/**
+	 * 排序的类型过滤器
+	 */
 	private final List<TypeFilter> excludeFilters = new LinkedList<>();
 
+	/**
+	 * 环境配置
+	 */
 	@Nullable
 	private Environment environment;
 
 	@Nullable
 	private ConditionEvaluator conditionEvaluator;
 
+	/**
+	 * 资源匹配解析器
+	 */
 	@Nullable
 	private ResourcePatternResolver resourcePatternResolver;
 
+	/**
+	 * 元数据工厂
+	 */
 	@Nullable
 	private MetadataReaderFactory metadataReaderFactory;
 
@@ -309,10 +327,12 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return a corresponding Set of autodetected bean definitions
 	 */
 	public Set<BeanDefinition> findCandidateComponents(String basePackage) {
+		//判断是否使用Filter指定忽略包不扫描
 		if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			//扫描包
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -416,19 +436,26 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			//组装扫描路径（组装完成后是这种格式：classpath*:cn/shiyujun/config/**/*.class）
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			//根据路径获取资源对象
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
+			//遍历
 			for (Resource resource : resources) {
 				if (traceEnabled) {
 					logger.trace("Scanning " + resource);
 				}
+				//如果可读
 				if (resource.isReadable()) {
 					try {
+						//获取类相关元数据
 						MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
+						//查看配置类是否有@Conditional一系列的注解，然后是否满足注册Bean的条件
 						if (isCandidateComponent(metadataReader)) {
+							//创建 ScannedGenericBeanDefinition
 							ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 							sbd.setResource(resource);
 							sbd.setSource(resource);
@@ -488,11 +515,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return whether the class qualifies as a candidate component
 	 */
 	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
+		//处理排除的类
 		for (TypeFilter tf : this.excludeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return false;
 			}
 		}
+		//处理包括的类
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return isConditionMatch(metadataReader);

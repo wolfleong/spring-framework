@@ -21,6 +21,7 @@ import java.lang.annotation.Annotation;
 import org.springframework.lang.Nullable;
 
 /**
+ * 用于处理注解的回调接口
  * Callback interface used to process annotations.
  *
  * @param <C> the context type

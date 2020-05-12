@@ -26,6 +26,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * MergedAnnotation 接口的基础实现
  * Abstract base class for {@link MergedAnnotation} implementations.
  *
  * @author Phillip Webb

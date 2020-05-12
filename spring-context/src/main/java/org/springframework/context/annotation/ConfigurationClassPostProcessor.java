@@ -66,6 +66,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
+ * ConfigurationClassPostProcessor这个后置处理器专门处理带有 @Configuration 注解的类
  * {@link BeanFactoryPostProcessor} used for bootstrapping processing of
  * {@link Configuration @Configuration} classes.
  *

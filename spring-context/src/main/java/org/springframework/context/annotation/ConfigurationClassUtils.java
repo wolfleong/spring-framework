@@ -63,6 +63,9 @@ abstract class ConfigurationClassUtils {
 
 	private static final Log logger = LogFactory.getLog(ConfigurationClassUtils.class);
 
+	/**
+	 * 候选的注解名称
+	 */
 	private static final Set<String> candidateIndicators = new HashSet<>(8);
 
 	static {
@@ -150,11 +153,13 @@ abstract class ConfigurationClassUtils {
 	 */
 	public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
 		// Do not consider an interface or an annotation...
+		//接口不是候选类
 		if (metadata.isInterface()) {
 			return false;
 		}
 
 		// Any of the typical annotations found?
+		//是否有给定的注解
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;
@@ -163,6 +168,7 @@ abstract class ConfigurationClassUtils {
 
 		// Finally, let's look for @Bean methods...
 		try {
+			//是否有 bean 注解
 			return metadata.hasAnnotatedMethods(Bean.class.getName());
 		}
 		catch (Throwable ex) {

@@ -33,6 +33,7 @@ import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
 import org.springframework.lang.Nullable;
 
 /**
+ * 已经合并的注解, 为什么有合并的操作呢, 主要是注解上面可以有注解, 称为元注解
  * A single merged annotation returned from a {@link MergedAnnotations}
  * collection. Presents a view onto an annotation where attribute values may
  * have been "merged" from different source values.
@@ -85,7 +86,7 @@ public interface MergedAnnotation<A extends Annotation> {
 	boolean isPresent();
 
 	/**
-	 * 注解是否直接存在于源代码中
+	 * 注解是否直接出现在源代码中
 	 * Determine if the annotation is directly present on the source. A directly
 	 * present annotation is one that the user has explicitly declared and not
 	 * one that is {@linkplain #isMetaPresent() meta-present} or
@@ -104,6 +105,7 @@ public interface MergedAnnotation<A extends Annotation> {
 	boolean isMetaPresent();
 
 	/**
+	 *
 	 * Get the distance of this annotation related to its use as a
 	 * meta-annotation. A directly declared annotation has a distance of {@code 0},
 	 * a meta-annotation has a distance of {@code 1}, a meta-annotation on a

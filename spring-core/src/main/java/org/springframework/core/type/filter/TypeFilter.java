@@ -22,6 +22,7 @@ import org.springframework.core.type.classreading.MetadataReader;
 import org.springframework.core.type.classreading.MetadataReaderFactory;
 
 /**
+ * 类型过滤器, 基于 MetadataReader
  * Base interface for type filters using a
  * {@link org.springframework.core.type.classreading.MetadataReader}.
  *

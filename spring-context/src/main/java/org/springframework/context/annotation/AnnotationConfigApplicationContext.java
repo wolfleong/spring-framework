@@ -52,8 +52,14 @@ import org.springframework.util.Assert;
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
 
+	/**
+	 * Bean 读取器
+	 */
 	private final AnnotatedBeanDefinitionReader reader;
 
+	/**
+	 * bean 扫描器
+	 */
 	private final ClassPathBeanDefinitionScanner scanner;
 
 
@@ -62,7 +68,9 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
 	 */
 	public AnnotationConfigApplicationContext() {
+		//注解bean读取器
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+		//注解bean扫描器
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -89,6 +97,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	}
 
 	/**
+	 * 指定扫描的包创建
 	 * Create a new AnnotationConfigApplicationContext, scanning for bean definitions
 	 * in the given packages and automatically refreshing the context.
 	 * @param basePackages the packages to check for annotated classes
@@ -169,6 +178,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	@Override
 	public void scan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
+		//扫描指定的包
 		this.scanner.scan(basePackages);
 	}
 

@@ -50,6 +50,9 @@ final class TypeMappedAnnotations implements MergedAnnotations {
 	@Nullable
 	private final Object source;
 
+	/**
+	 * java 原生的注解元素(类, 方法, 字段)
+	 */
 	@Nullable
 	private final AnnotatedElement element;
 

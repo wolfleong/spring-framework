@@ -23,6 +23,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * 包的注解过滤器, 以包前缀作过滤
  * {@link AnnotationFilter} implementation used for
  * {@link AnnotationFilter#packages(String...)}.
  *

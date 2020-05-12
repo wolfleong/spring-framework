@@ -29,6 +29,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * 可重复注解容器基础类
  * Strategy used to determine annotations that act as containers for other
  * annotations. The {@link #standardRepeatables()} method provides a default
  * strategy that respects Java's {@link Repeatable @Repeatable} support and
@@ -129,15 +130,25 @@ public abstract class RepeatableContainers {
 
 
 	/**
+	 * 标准的可重复注解容器
 	 * Standard {@link RepeatableContainers} implementation that searches using
 	 * Java's {@link Repeatable @Repeatable} annotation.
 	 */
 	private static class StandardRepeatableContainers extends RepeatableContainers {
 
+		/**
+		 * 缓存, 容器注解类型 -> 返回多注解的 value 属性方法
+		 */
 		private static final Map<Class<? extends Annotation>, Object> cache = new ConcurrentReferenceHashMap<>();
 
+		/**
+		 * 代表 null
+		 */
 		private static final Object NONE = new Object();
 
+		/**
+		 * 单例
+		 */
 		private static StandardRepeatableContainers INSTANCE = new StandardRepeatableContainers();
 
 		StandardRepeatableContainers() {
@@ -147,8 +158,10 @@ public abstract class RepeatableContainers {
 		@Override
 		@Nullable
 		Annotation[] findRepeatedAnnotations(Annotation annotation) {
+			//获取返回值是有 @Repeatable 的注解的 value 属性方法
 			Method method = getRepeatedAnnotationsMethod(annotation.annotationType());
 			if (method != null) {
+				//返回获取属性方法的注解数组
 				return (Annotation[]) ReflectionUtils.invokeMethod(method, annotation);
 			}
 			return super.findRepeatedAnnotations(annotation);
@@ -156,20 +169,32 @@ public abstract class RepeatableContainers {
 
 		@Nullable
 		private static Method getRepeatedAnnotationsMethod(Class<? extends Annotation> annotationType) {
+			//缓存中获取, 没有则计算出来
 			Object result = cache.computeIfAbsent(annotationType,
 					StandardRepeatableContainers::computeRepeatedAnnotationsMethod);
+			//有则返回, 没有则返回 null
 			return (result != NONE ? (Method) result : null);
 		}
 
+		/**
+		 * 获取返回值是有 @Repeatable 的注解的方法
+		 */
 		private static Object computeRepeatedAnnotationsMethod(Class<? extends Annotation> annotationType) {
+			//获取注解的所有属性方法
 			AttributeMethods methods = AttributeMethods.forAnnotationType(annotationType);
+			//如果只有一个 value 方法属性
 			if (methods.hasOnlyValueAttribute()) {
+				//获取属性方法
 				Method method = methods.get(0);
+				//获取返回值
 				Class<?> returnType = method.getReturnType();
+				//如果是数组类型
 				if (returnType.isArray()) {
+					//获取数组的元素类型, 并判断元素是注解类型, 且注解上有 @Repeatable 元注解
 					Class<?> componentType = returnType.getComponentType();
 					if (Annotation.class.isAssignableFrom(componentType) &&
 							componentType.isAnnotationPresent(Repeatable.class)) {
+						//返回获取 @Repeatable 注解的方法
 						return method;
 					}
 				}
@@ -180,14 +205,24 @@ public abstract class RepeatableContainers {
 
 
 	/**
+	 * 封装着一个明显的可重复注解容器映射, 也就是已知注解容器, 重复注解, value 属性方法
 	 * A single explicit mapping.
 	 */
 	private static class ExplicitRepeatableContainer extends RepeatableContainers {
 
+		/**
+		 * 可重复的注解
+		 */
 		private final Class<? extends Annotation> repeatable;
 
+		/**
+		 * 可以返回多个注解的容器注解
+		 */
 		private final Class<? extends Annotation> container;
 
+		/**
+		 * 容器注解的 value 属性方法
+		 */
 		private final Method valueMethod;
 
 		ExplicitRepeatableContainer(@Nullable RepeatableContainers parent,
@@ -195,15 +230,20 @@ public abstract class RepeatableContainers {
 
 			super(parent);
 			Assert.notNull(repeatable, "Repeatable must not be null");
+			//计算出容器注解
 			if (container == null) {
 				container = deduceContainer(repeatable);
 			}
+			//获取属性方法
 			Method valueMethod = AttributeMethods.forAnnotationType(container).get(MergedAnnotation.VALUE);
 			try {
+				//value 属性方法不能为 null
 				if (valueMethod == null) {
 					throw new NoSuchMethodException("No value method found");
 				}
+				//获取返回值
 				Class<?> returnType = valueMethod.getReturnType();
+				//返回值必须是数组, 且元素是可重复的注解
 				if (!returnType.isArray() || returnType.getComponentType() != repeatable) {
 					throw new AnnotationConfigurationException("Container type [" +
 							container.getName() +
@@ -225,19 +265,27 @@ public abstract class RepeatableContainers {
 			this.valueMethod = valueMethod;
 		}
 
+		/**
+		 * 推算出容器注解
+		 * @param repeatable 可重复的注解
+		 */
 		private Class<? extends Annotation> deduceContainer(Class<? extends Annotation> repeatable) {
+			//从可重复的注解中获取 @Repeatable 注解
 			Repeatable annotation = repeatable.getAnnotation(Repeatable.class);
 			Assert.notNull(annotation, () -> "Annotation type must be a repeatable annotation: " +
 						"failed to resolve container type for " + repeatable.getName());
+			//获取 @Repeatable 的注解的值, 也就是返回多注解的容器注解
 			return annotation.value();
 		}
 
 		@Override
 		@Nullable
 		Annotation[] findRepeatedAnnotations(Annotation annotation) {
+			//如果是对应的容器注解, 则反射获取 value 的值
 			if (this.container.isAssignableFrom(annotation.annotationType())) {
 				return (Annotation[]) ReflectionUtils.invokeMethod(this.valueMethod, annotation);
 			}
+			//没获取到, 调用父类获取
 			return super.findRepeatedAnnotations(annotation);
 		}
 
@@ -261,6 +309,7 @@ public abstract class RepeatableContainers {
 
 
 	/**
+	 * 没有可重复注解容器
 	 * No repeatable containers.
 	 */
 	private static class NoRepeatableContainers extends RepeatableContainers {

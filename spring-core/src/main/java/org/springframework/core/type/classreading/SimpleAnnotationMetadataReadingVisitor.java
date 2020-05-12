@@ -35,6 +35,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * ASM 类访问器的简单实现, 用于创建 SimpleAnnotationMetadata
  * ASM class visitor that creates {@link SimpleAnnotationMetadata}.
  *
  * @author Phillip Webb

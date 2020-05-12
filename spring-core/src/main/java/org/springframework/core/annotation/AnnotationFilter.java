@@ -19,6 +19,7 @@ package org.springframework.core.annotation;
 import java.lang.annotation.Annotation;
 
 /**
+ * 注解实例过滤器
  * Callback interface that can be used to filter specific annotation types.
  *
  * @author Phillip Webb
@@ -28,6 +29,7 @@ import java.lang.annotation.Annotation;
 public interface AnnotationFilter {
 
 	/**
+	 * 内部注解
 	 * {@link AnnotationFilter} that matches annotations in the
 	 * {@code java.lang} and {@code org.springframework.lang} packages
 	 * and their subpackages.
@@ -35,12 +37,14 @@ public interface AnnotationFilter {
 	AnnotationFilter PLAIN = packages("java.lang", "org.springframework.lang");
 
 	/**
+	 * java 原生注解
 	 * {@link AnnotationFilter} that matches annotations in the
 	 * {@code java} and {@code javax} packages and their subpackages.
 	 */
 	AnnotationFilter JAVA = packages("java", "javax");
 
 	/**
+	 * 全部满足的过滤器
 	 * {@link AnnotationFilter} that always matches and can be used when no
 	 * relevant annotation types are expected to be present at all.
 	 */
@@ -114,6 +118,7 @@ public interface AnnotationFilter {
 
 
 	/**
+	 * 获取包过滤器
 	 * Create a new {@link AnnotationFilter} that matches annotations in the
 	 * specified packages.
 	 * @param packages the annotation packages that should match

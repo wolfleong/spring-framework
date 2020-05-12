@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentReferenceHashMap;
 
 /**
+ * 注解上的属性方法列表
  * Provides a quick way to access the attribute methods of an {@link Annotation}
  * with consistent ordering as well as a few useful utility methods.
  *
@@ -35,12 +36,21 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  */
 final class AttributeMethods {
 
+	/**
+	 * 没有属性方法
+	 */
 	static final AttributeMethods NONE = new AttributeMethods(null, new Method[0]);
 
 
+	/**
+	 * 缓存
+	 */
 	private static final Map<Class<? extends Annotation>, AttributeMethods> cache =
 			new ConcurrentReferenceHashMap<>();
 
+	/**
+	 * 属性方法比较器
+	 */
 	private static final Comparator<Method> methodComparator = (m1, m2) -> {
 		if (m1 != null && m2 != null) {
 			return m1.getName().compareTo(m2.getName());
@@ -49,15 +59,27 @@ final class AttributeMethods {
 	};
 
 
+	/**
+	 * 注解类
+	 */
 	@Nullable
 	private final Class<? extends Annotation> annotationType;
 
+	/**
+	 * 属性方法列表
+	 */
 	private final Method[] attributeMethods;
 
 	private final boolean[] canThrowTypeNotPresentException;
 
+	/**
+	 * 是否有默认值的属性方法
+	 */
 	private final boolean hasDefaultValueMethod;
 
+	/**
+	 * 是否有嵌套注解
+	 */
 	private final boolean hasNestedAnnotation;
 
 
@@ -65,18 +87,25 @@ final class AttributeMethods {
 		this.annotationType = annotationType;
 		this.attributeMethods = attributeMethods;
 		this.canThrowTypeNotPresentException = new boolean[attributeMethods.length];
+		//是否有默认值的属性方法
 		boolean foundDefaultValueMethod = false;
+		//是否有嵌套注解
 		boolean foundNestedAnnotation = false;
+		//遍历属性方法列表
 		for (int i = 0; i < attributeMethods.length; i++) {
 			Method method = this.attributeMethods[i];
+			//获取返回值类型
 			Class<?> type = method.getReturnType();
+			//记录是否有默认值
 			if (method.getDefaultValue() != null) {
 				foundDefaultValueMethod = true;
 			}
+			//返回值是注解或注解数组
 			if (type.isAnnotation() ||
 					(type.isArray() && type.getComponentType().isAnnotation())) {
 				foundNestedAnnotation = true;
 			}
+			//设置可访问
 			method.setAccessible(true);
 			this.canThrowTypeNotPresentException[i] =
 					type == Class.class ||
@@ -89,6 +118,7 @@ final class AttributeMethods {
 
 
 	/**
+	 * 是否只有一个 value 方法属性
 	 * Determine if this instance only contains a single attribute named
 	 * {@code value}.
 	 * @return {@code true} if there is only a value attribute
@@ -244,35 +274,49 @@ final class AttributeMethods {
 
 
 	/**
+	 * 获取注解类型的所有属性方法
 	 * Get the attribute methods for the given annotation type.
 	 * @param annotationType the annotation type
 	 * @return the attribute methods for the annotation type
 	 */
 	static AttributeMethods forAnnotationType(@Nullable Class<? extends Annotation> annotationType) {
+		//没有注解类型, 返回 NONE
 		if (annotationType == null) {
 			return NONE;
 		}
+		//缓存中获取, 没有则计算出来
 		return cache.computeIfAbsent(annotationType, AttributeMethods::compute);
 	}
 
 	private static AttributeMethods compute(Class<? extends Annotation> annotationType) {
+		//获取注解声明的方法
 		Method[] methods = annotationType.getDeclaredMethods();
 		int size = methods.length;
+		//遍历
 		for (int i = 0; i < methods.length; i++) {
+			//如果非属性方法, 则置 null
 			if (!isAttributeMethod(methods[i])) {
 				methods[i] = null;
 				size--;
 			}
 		}
+		//如果没有属性方法, 则返回 null
 		if (size == 0) {
 			return NONE;
 		}
+		//排序, 空的排后面去
 		Arrays.sort(methods, methodComparator);
+		//复制属性方法数组
 		Method[] attributeMethods = Arrays.copyOf(methods, size);
+		//创建 AttributeMethods
 		return new AttributeMethods(annotationType, attributeMethods);
 	}
 
+	/**
+	 * 判断是否为属性方法
+	 */
 	private static boolean isAttributeMethod(Method method) {
+		//没有参数且有返回值
 		return (method.getParameterCount() == 0 && method.getReturnType() != void.class);
 	}
 

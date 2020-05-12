@@ -26,6 +26,7 @@ import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
 
 /**
+ * 类上的注解元数据接口
  * Interface that defines abstract access to the annotations of a specific
  * class, in a form that does not require that class to be loaded yet.
  *
@@ -41,6 +42,7 @@ import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
 public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata {
 
 	/**
+	 * 拿到 Class 上标注的所有注解，依赖于 Class#getAnnotations
 	 * Get the fully qualified class names of all annotation types that
 	 * are <em>present</em> on the underlying class.
 	 * @return the annotation type names
@@ -53,6 +55,8 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	}
 
 	/**
+	 * 拿到所有的元注解信息 AnnotatedElementUtils#getMetaAnnotationTypes
+	 * 	annotationName:注解类型的全类名
 	 * Get the fully qualified class names of all meta-annotation types that
 	 * are <em>present</em> on the given annotation type on the underlying class.
 	 * @param annotationName the fully qualified class name of the meta-annotation
@@ -70,6 +74,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	}
 
 	/**
+	 *  是否包含指定注解 （annotationName：全类名）
 	 * Determine whether an annotation of the given type is <em>present</em> on
 	 * the underlying class.
 	 * @param annotationName the fully qualified class name of the annotation
@@ -81,6 +86,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	}
 
 	/**
+	 * 依赖于AnnotatedElementUtils#hasMetaAnnotationTypes
 	 * Determine whether the underlying class has an annotation that is itself
 	 * annotated with the meta-annotation of the given type.
 	 * @param metaAnnotationName the fully qualified class name of the
@@ -93,6 +99,8 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	}
 
 	/**
+	 * 类里面只有有一个方法标注有指定注解，就返回true
+	 * getDeclaredMethods获得所有方法， AnnotatedElementUtils.isAnnotated是否标注有指定注解
 	 * Determine whether the underlying class has any methods that are
 	 * annotated (or meta-annotated) with the given annotation type.
 	 * @param annotationName the fully qualified class name of the annotation
@@ -103,6 +111,7 @@ public interface AnnotationMetadata extends ClassMetadata, AnnotatedTypeMetadata
 	}
 
 	/**
+	 * 注意返回的是 MethodMetadata
 	 * Retrieve the method metadata for all methods that are annotated
 	 * (or meta-annotated) with the given annotation type.
 	 * <p>For any returned method, {@link MethodMetadata#isAnnotated} will

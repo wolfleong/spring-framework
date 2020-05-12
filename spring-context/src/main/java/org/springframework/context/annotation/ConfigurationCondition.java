@@ -17,6 +17,8 @@
 package org.springframework.context.annotation;
 
 /**
+ * 这个子接口是一种特殊的条件接口，多了一个 getConfigurationPhase 方法，也就是条件注解的生效阶段。只有在 ConfigurationPhase 中定义的两种阶段下才会生效
+ * 与@Configuration一起使用时提供更精细控制的条件，允许某些Condition在匹配时根据配置阶段进行调整
  * A {@link Condition} that offers more fine-grained control when used with
  * {@code @Configuration}. Allows certain {@link Condition Conditions} to adapt when they match
  * based on the configuration phase. For example, a condition that checks if a bean
@@ -30,17 +32,20 @@ package org.springframework.context.annotation;
 public interface ConfigurationCondition extends Condition {
 
 	/**
+	 * 生效阶段
 	 * Return the {@link ConfigurationPhase} in which the condition should be evaluated.
 	 */
 	ConfigurationPhase getConfigurationPhase();
 
 
 	/**
+	 * 可以判断Condition的不同配置阶段
 	 * The various configuration phases where the condition could be evaluated.
 	 */
 	enum ConfigurationPhase {
 
 		/**
+		 * 在 @Configuration 注解的类解析的阶段判断 Condition 如果 Condition 不匹配，则@Configuration注解的类不会加载
 		 * The {@link Condition} should be evaluated as a {@code @Configuration}
 		 * class is being parsed.
 		 * <p>If the condition does not match at this point, the {@code @Configuration}
@@ -49,6 +54,7 @@ public interface ConfigurationCondition extends Condition {
 		PARSE_CONFIGURATION,
 
 		/**
+		 * 在 @Configuration 注解的类实例化为 bean 的阶段判断Condition, 无论 Condition 是否匹配，@Configuration 注解的类都会加载，且类加载先于Condition判断
 		 * The {@link Condition} should be evaluated when adding a regular
 		 * (non {@code @Configuration}) bean. The condition will not prevent
 		 * {@code @Configuration} classes from being added.

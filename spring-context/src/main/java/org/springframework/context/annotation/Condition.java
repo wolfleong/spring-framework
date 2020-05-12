@@ -20,6 +20,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
+ * 接口用于匹配组件是否有资格被容器注册
  * A single {@code condition} that must be {@linkplain #matches matched} in order
  * for a component to be registered.
  *
@@ -42,8 +43,9 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public interface Condition {
 
 	/**
+	 * 是否匹配
 	 * Determine if the condition matches.
-	 * @param context the condition context
+	 * @param context the condition context ( 内部会存储 Spring容器、应用程序环境信息、资源加载器、类加载器 )
 	 * @param metadata metadata of the {@link org.springframework.core.type.AnnotationMetadata class}
 	 * or {@link org.springframework.core.type.MethodMetadata method} being checked
 	 * @return {@code true} if the condition matches and the component can be registered,

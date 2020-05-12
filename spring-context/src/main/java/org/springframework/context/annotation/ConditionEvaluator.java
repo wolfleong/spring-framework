@@ -39,6 +39,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * 内部类, 用于计算 @Conditional 的相关的条件
  * Internal class used to evaluate {@link Conditional} annotations.
  *
  * @author Phillip Webb
@@ -47,6 +48,9 @@ import org.springframework.util.MultiValueMap;
  */
 class ConditionEvaluator {
 
+	/**
+	 * 上下文的包装
+	 */
 	private final ConditionContextImpl context;
 
 
@@ -56,6 +60,7 @@ class ConditionEvaluator {
 	public ConditionEvaluator(@Nullable BeanDefinitionRegistry registry,
 			@Nullable Environment environment, @Nullable ResourceLoader resourceLoader) {
 
+		//创建 ConditionContextImpl
 		this.context = new ConditionContextImpl(registry, environment, resourceLoader);
 	}
 
@@ -72,12 +77,14 @@ class ConditionEvaluator {
 	}
 
 	/**
+	 * 判断是否跳过
 	 * Determine if an item should be skipped based on {@code @Conditional} annotations.
 	 * @param metadata the meta data
 	 * @param phase the phase of the call
 	 * @return if the item should be skipped
 	 */
 	public boolean shouldSkip(@Nullable AnnotatedTypeMetadata metadata, @Nullable ConfigurationPhase phase) {
+		//没有注解或注解中没有 @Conditional , 则不用跳过
 		if (metadata == null || !metadata.isAnnotated(Conditional.class.getName())) {
 			return false;
 		}
@@ -87,6 +94,7 @@ class ConditionEvaluator {
 					ConfigurationClassUtils.isConfigurationCandidate((AnnotationMetadata) metadata)) {
 				return shouldSkip(metadata, ConfigurationPhase.PARSE_CONFIGURATION);
 			}
+			//没有配置生效阶段, 则默认是 ConfigurationPhase.REGISTER_BEAN
 			return shouldSkip(metadata, ConfigurationPhase.REGISTER_BEAN);
 		}
 
@@ -127,6 +135,7 @@ class ConditionEvaluator {
 
 
 	/**
+	 * ConditionContext 接口的默认实现, 各种上下文
 	 * Implementation of a {@link ConditionContext}.
 	 */
 	private static class ConditionContextImpl implements ConditionContext {

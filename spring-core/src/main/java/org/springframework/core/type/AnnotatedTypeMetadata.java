@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.MultiValueMap;
 
 /**
+ * 对于方法注解元数据(MethodMetadata)或类注解元数据(AnnotationMetadata)封装的统一接口, 类不一定需要已经加载
  * Defines access to the annotations of a specific type ({@link AnnotationMetadata class}
  * or {@link MethodMetadata method}), in a form that does not necessarily require the
  * class-loading.
@@ -46,6 +47,7 @@ import org.springframework.util.MultiValueMap;
 public interface AnnotatedTypeMetadata {
 
 	/**
+	 * 获取元素相关的注解, 合并后的
 	 * Return annotation details based on the direct annotations of the
 	 * underlying element.
 	 * @return merged annotations based on the direct annotations
@@ -54,6 +56,7 @@ public interface AnnotatedTypeMetadata {
 	MergedAnnotations getAnnotations();
 
 	/**
+	 * 判断是否存在给定的注解
 	 * Determine whether the underlying element has an annotation or meta-annotation
 	 * of the given type defined.
 	 * <p>If this method returns {@code true}, then
@@ -67,6 +70,7 @@ public interface AnnotatedTypeMetadata {
 	}
 
 	/**
+	 * 获取给定注解的所有属性
 	 * Retrieve the attributes of the annotation of the given type, if any (i.e. if
 	 * defined on the underlying element, as direct annotation or meta-annotation),
 	 * also taking attribute overrides on composed annotations into account.

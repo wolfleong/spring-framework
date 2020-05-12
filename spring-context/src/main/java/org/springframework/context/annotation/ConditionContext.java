@@ -23,6 +23,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.lang.Nullable;
 
 /**
+ * Condition 接口的上下文
  * Context information for use by {@link Condition Conditions}.
  *
  * @author Phillip Webb
@@ -53,6 +54,7 @@ public interface ConditionContext {
 	Environment getEnvironment();
 
 	/**
+	 * 资源加载器
 	 * Return the {@link ResourceLoader} currently being used.
 	 */
 	ResourceLoader getResourceLoader();

@@ -35,6 +35,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * 注解扫描器
  * Scanner to search for relevant annotations in the annotation hierarchy of an
  * {@link AnnotatedElement}.
  *
@@ -45,6 +46,9 @@ import org.springframework.util.ReflectionUtils;
  */
 abstract class AnnotationsScanner {
 
+	/**
+	 * 没有注解, 空数组
+	 */
 	private static final Annotation[] NO_ANNOTATIONS = {};
 
 	private static final Method[] NO_METHODS = {};
@@ -439,11 +443,17 @@ abstract class AnnotationsScanner {
 		return getDeclaredAnnotations(source, copy);
 	}
 
+	/**
+	 * 在元素 source 上获取 annotationType 类型的注解
+	 */
 	@SuppressWarnings("unchecked")
 	@Nullable
 	static <A extends Annotation> A getDeclaredAnnotation(AnnotatedElement source, Class<A> annotationType) {
+		//获取元素所有注解实例
 		Annotation[] annotations = getDeclaredAnnotations(source, false);
+		//遍历
 		for (Annotation annotation : annotations) {
+			//类型一样则返回
 			if (annotation != null && annotationType == annotation.annotationType()) {
 				return (A) annotation;
 			}
@@ -453,16 +463,20 @@ abstract class AnnotationsScanner {
 
 	static Annotation[] getDeclaredAnnotations(AnnotatedElement source, boolean defensive) {
 		boolean cached = false;
+		//缓存上获取
 		Annotation[] annotations = declaredAnnotationCache.get(source);
 		if (annotations != null) {
 			cached = true;
 		}
 		else {
+			//反射获取
 			annotations = source.getDeclaredAnnotations();
 			if (annotations.length != 0) {
 				boolean allIgnored = true;
+				//遍历
 				for (int i = 0; i < annotations.length; i++) {
 					Annotation annotation = annotations[i];
+					//忽略或非法, 则置 null todo wolfleong 合法判断是什么鬼
 					if (isIgnorable(annotation.annotationType()) ||
 							!AttributeMethods.forAnnotationType(annotation.annotationType()).isValid(annotation)) {
 						annotations[i] = null;
@@ -471,7 +485,9 @@ abstract class AnnotationsScanner {
 						allIgnored = false;
 					}
 				}
+				//没有注解则返回 NO_ANNOTATIONS
 				annotations = (allIgnored ? NO_ANNOTATIONS : annotations);
+				//添加到缓存
 				if (source instanceof Class || source instanceof Member) {
 					declaredAnnotationCache.put(source, annotations);
 					cached = true;
@@ -481,6 +497,7 @@ abstract class AnnotationsScanner {
 		if (!defensive || annotations.length == 0 || !cached) {
 			return annotations;
 		}
+		//缓存的, 则复制一份返回
 		return annotations.clone();
 	}
 
@@ -490,6 +507,9 @@ abstract class AnnotationsScanner {
 		return (classFilter != null && classFilter.test(context, sourceClass));
 	}
 
+	/**
+	 * 是否是可忽略的注解
+	 */
 	private static boolean isIgnorable(Class<?> annotationType) {
 		return AnnotationFilter.PLAIN.matches(annotationType);
 	}
