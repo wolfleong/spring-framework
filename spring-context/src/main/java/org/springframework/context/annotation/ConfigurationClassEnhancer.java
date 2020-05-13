@@ -74,7 +74,9 @@ class ConfigurationClassEnhancer {
 
 	// The callbacks to use. Note that these callbacks must be stateless.
 	private static final Callback[] CALLBACKS = new Callback[] {
+			//处理 bean 方法的代理
 			new BeanMethodInterceptor(),
+			// 拦截 BeanFactoryAware 定义的方法 setBeanFactory
 			new BeanFactoryAwareMethodInterceptor(),
 			NoOp.INSTANCE
 	};
@@ -120,11 +122,18 @@ class ConfigurationClassEnhancer {
 	 */
 	private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
 		Enhancer enhancer = new Enhancer();
+		// CGLIB的动态代理基于继承
 		enhancer.setSuperclass(configSuperClass);
+		// 为新创建的代理对象设置一个父接口
 		enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
 		enhancer.setUseFactory(false);
 		enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 		enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
+		// 添加了两个MethodInterceptor。(BeanMethodInterceptor和BeanFactoryAwareMethodInterceptor)
+		// 通过这两个类的名称，可以猜出，前者是对加了@Bean注解的方法进行增强，后者是为代理对象的beanFactory属性进行增强
+		// 被代理的对象，如何对方法进行增强呢？就是通过MethodInterceptor拦截器实现的
+		// 类似于SpringMVC中的拦截器，每次执行请求时，都会对经过拦截器。
+		// 同样，加了MethodInterceptor，那么在每次代理对象的方法时，都会先经过MethodInterceptor中的方法
 		enhancer.setCallbackFilter(CALLBACK_FILTER);
 		enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
 		return enhancer;
@@ -144,6 +153,7 @@ class ConfigurationClassEnhancer {
 
 
 	/**
+	 * 准备这个接口用于增强配置类，增强之后的类实现该接口
 	 * Marker interface to be implemented by all @Configuration CGLIB subclasses.
 	 * Facilitates idempotent behavior for {@link ConfigurationClassEnhancer#enhance}
 	 * through checking to see if candidate classes are already assignable to it, e.g.
@@ -263,6 +273,7 @@ class ConfigurationClassEnhancer {
 
 
 	/**
+	 * 这个拦截器的作用是, 将 BeanFactory 对象保存到代理对象的特定字段中, 方便使用
 	 * Intercepts the invocation of any {@link BeanFactoryAware#setBeanFactory(BeanFactory)} on
 	 * {@code @Configuration} class instances for the purpose of recording the {@link BeanFactory}.
 	 * @see EnhancedConfiguration
@@ -272,12 +283,15 @@ class ConfigurationClassEnhancer {
 		@Override
 		@Nullable
 		public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+			//获取 BEAN_FACTORY_FIELD 字段, 这个字段是用来存 BeanFactory 的, 方法便增强的 @Bean 方法获取
 			Field field = ReflectionUtils.findField(obj.getClass(), BEAN_FACTORY_FIELD);
 			Assert.state(field != null, "Unable to find generated BeanFactory field");
+			//设置值到字段中
 			field.set(obj, args[0]);
 
 			// Does the actual (non-CGLIB) superclass implement BeanFactoryAware?
 			// If so, call its setBeanFactory() method. If not, just exit.
+			//如果默认的配置类有实现 BeanFactoryAware , 则调用它的 setFactoryBean 方法
 			if (BeanFactoryAware.class.isAssignableFrom(ClassUtils.getUserClass(obj.getClass().getSuperclass()))) {
 				return proxy.invokeSuper(obj, args);
 			}
@@ -289,6 +303,9 @@ class ConfigurationClassEnhancer {
 			return isSetBeanFactory(candidateMethod);
 		}
 
+		/**
+		 * 判断方法是不是 setBeanFactory
+		 */
 		public static boolean isSetBeanFactory(Method candidateMethod) {
 			return (candidateMethod.getName().equals("setBeanFactory") &&
 					candidateMethod.getParameterCount() == 1 &&
@@ -299,6 +316,7 @@ class ConfigurationClassEnhancer {
 
 
 	/**
+	 * 拦截器, 挂截 @Bean 方法
 	 * Intercepts the invocation of any {@link Bean}-annotated methods in order to ensure proper
 	 * handling of bean semantics such as scoping and AOP proxying.
 	 * @see Bean
@@ -317,7 +335,9 @@ class ConfigurationClassEnhancer {
 		public Object intercept(Object enhancedConfigInstance, Method beanMethod, Object[] beanMethodArgs,
 					MethodProxy cglibMethodProxy) throws Throwable {
 
+			//获取 BeanFactory
 			ConfigurableBeanFactory beanFactory = getBeanFactory(enhancedConfigInstance);
+			//获取 beanName
 			String beanName = BeanAnnotationHelper.determineBeanNameFor(beanMethod);
 
 			// Determine whether this bean is a scoped-proxy
@@ -364,6 +384,7 @@ class ConfigurationClassEnhancer {
 				return cglibMethodProxy.invokeSuper(enhancedConfigInstance, beanMethodArgs);
 			}
 
+			//解析出 bean 实例
 			return resolveBeanReference(beanMethod, beanMethodArgs, beanFactory, beanName);
 		}
 
@@ -441,6 +462,7 @@ class ConfigurationClassEnhancer {
 		}
 
 		private ConfigurableBeanFactory getBeanFactory(Object enhancedConfigInstance) {
+			//反射获取字段中的 BeanFactory
 			Field field = ReflectionUtils.findField(enhancedConfigInstance.getClass(), BEAN_FACTORY_FIELD);
 			Assert.state(field != null, "Unable to find generated bean factory field");
 			Object beanFactory = ReflectionUtils.getField(field, enhancedConfigInstance);
