@@ -45,7 +45,7 @@ public interface ConfigurationCondition extends Condition {
 	enum ConfigurationPhase {
 
 		/**
-		 * 在 @Configuration 注解的类解析的阶段判断 Condition 如果 Condition 不匹配，则@Configuration注解的类不会加载
+		 * 在 @Configuration 注解的类解析的阶段判断 Condition 如果 Condition 不匹配，则 @Configuration 注解的类不会加载
 		 * The {@link Condition} should be evaluated as a {@code @Configuration}
 		 * class is being parsed.
 		 * <p>If the condition does not match at this point, the {@code @Configuration}

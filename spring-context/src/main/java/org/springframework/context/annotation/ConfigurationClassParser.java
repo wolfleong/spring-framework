@@ -161,6 +161,7 @@ class ConfigurationClassParser {
 		this.registry = registry;
 		this.componentScanParser = new ComponentScanAnnotationParser(
 				environment, resourceLoader, componentScanBeanNameGenerator, registry);
+		// 构造ConditionEvaluator用于处理 @Conditional 注解
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, resourceLoader);
 	}
 
@@ -306,7 +307,7 @@ class ConfigurationClassParser {
 		//获取 ComponentScan 相关注解属性
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
-		//存在 @ComponentScan 注解 且没有跳过
+		//存在 @ComponentScan 注解 且没有 skip , 则进行扫描
 		if (!componentScans.isEmpty() &&
 				!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
 			//遍历
