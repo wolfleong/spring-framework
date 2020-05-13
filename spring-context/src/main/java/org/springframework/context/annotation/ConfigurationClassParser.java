@@ -138,6 +138,9 @@ class ConfigurationClassParser {
 
 	private final ImportStack importStack = new ImportStack();
 
+	/**
+	 * DeferredImportSelector 处理器
+	 */
 	private final DeferredImportSelectorHandler deferredImportSelectorHandler = new DeferredImportSelectorHandler();
 
 	private final SourceClass objectSourceClass = new SourceClass(Object.class);
@@ -829,12 +832,19 @@ class ConfigurationClassParser {
 	}
 
 
+	/**
+	 * DeferredImportSelector 处理器
+	 */
 	private class DeferredImportSelectorHandler {
 
+		/**
+		 * DeferredImportSelectorHolder 列表
+		 */
 		@Nullable
 		private List<DeferredImportSelectorHolder> deferredImportSelectors = new ArrayList<>();
 
 		/**
+		 * 添加 DeferredImportSelector 实例
 		 * Handle the specified {@link DeferredImportSelector}. If deferred import
 		 * selectors are being collected, this registers this instance to the list. If
 		 * they are being processed, the {@link DeferredImportSelector} is also processed
@@ -843,26 +853,40 @@ class ConfigurationClassParser {
 		 * @param importSelector the selector to handle
 		 */
 		public void handle(ConfigurationClass configClass, DeferredImportSelector importSelector) {
+			//创建 DeferredImportSelectorHolder
 			DeferredImportSelectorHolder holder = new DeferredImportSelectorHolder(
 					configClass, importSelector);
+			//如果没有列表, 则表示列表的内容已经被处理, 可以直接处理
 			if (this.deferredImportSelectors == null) {
+				//创建 DeferredImportSelectorGroupingHandler
 				DeferredImportSelectorGroupingHandler handler = new DeferredImportSelectorGroupingHandler();
+				//注册
 				handler.register(holder);
+				//处理
 				handler.processGroupImports();
 			}
 			else {
+				//直接添加到列表
 				this.deferredImportSelectors.add(holder);
 			}
 		}
 
+		/**
+		 * 处理
+		 */
 		public void process() {
+			//获取 DeferredImportSelectorHolder 列表
 			List<DeferredImportSelectorHolder> deferredImports = this.deferredImportSelectors;
 			this.deferredImportSelectors = null;
 			try {
 				if (deferredImports != null) {
+					//创建 DeferredImportSelectorGroupingHandler
 					DeferredImportSelectorGroupingHandler handler = new DeferredImportSelectorGroupingHandler();
+					//排序
 					deferredImports.sort(DEFERRED_IMPORT_COMPARATOR);
+					//遍历处理注册
 					deferredImports.forEach(handler::register);
+					//处理
 					handler.processGroupImports();
 				}
 			}
@@ -874,29 +898,46 @@ class ConfigurationClassParser {
 	}
 
 
+	/**
+	 * DeferredImportSelectorGrouping 处理器
+	 */
 	private class DeferredImportSelectorGroupingHandler {
 
+		/**
+		 * 缓存所有分组
+		 */
 		private final Map<Object, DeferredImportSelectorGrouping> groupings = new LinkedHashMap<>();
 
+		/**
+		 * AnnotationMetadata -> ConfigurationClass 的缓存
+		 */
 		private final Map<AnnotationMetadata, ConfigurationClass> configurationClasses = new HashMap<>();
 
 		public void register(DeferredImportSelectorHolder deferredImport) {
+			//获取 Group 实现类
 			Class<? extends Group> group = deferredImport.getImportSelector()
 					.getImportGroup();
+			//添加到缓存中
 			DeferredImportSelectorGrouping grouping = this.groupings.computeIfAbsent(
 					(group != null ? group : deferredImport),
 					key -> new DeferredImportSelectorGrouping(createGroup(group)));
+			//添加 DeferredImportSelectorHolder
 			grouping.add(deferredImport);
+			//添加
 			this.configurationClasses.put(deferredImport.getConfigurationClass().getMetadata(),
 					deferredImport.getConfigurationClass());
 		}
 
 		public void processGroupImports() {
+			//遍历分组
 			for (DeferredImportSelectorGrouping grouping : this.groupings.values()) {
+				//遍历每个组的 Imports
 				grouping.getImports().forEach(entry -> {
+					//获取 configurationClass
 					ConfigurationClass configurationClass = this.configurationClasses.get(
 							entry.getMetadata());
 					try {
+						//调用 processImports 进行处理
 						processImports(configurationClass, asSourceClass(configurationClass),
 								asSourceClasses(entry.getImportClassName()), false);
 					}
@@ -912,10 +953,16 @@ class ConfigurationClassParser {
 			}
 		}
 
+		/**
+		 * 创建 Group 实例
+		 */
 		private Group createGroup(@Nullable Class<? extends Group> type) {
+			//如果类型不为 null, 则使用, 否则使用默认的 DefaultDeferredImportSelectorGroup
 			Class<? extends Group> effectiveType = (type != null ? type
 					: DefaultDeferredImportSelectorGroup.class);
+			//反射创建对象
 			Group group = BeanUtils.instantiateClass(effectiveType);
+			//注入相关对象
 			ParserStrategyUtils.invokeAwareMethods(group,
 					ConfigurationClassParser.this.environment,
 					ConfigurationClassParser.this.resourceLoader,
@@ -926,6 +973,9 @@ class ConfigurationClassParser {
 	}
 
 
+	/**
+	 * DeferredImportSelector 实例相关的封装
+	 */
 	private static class DeferredImportSelectorHolder {
 
 		private final ConfigurationClass configurationClass;
@@ -947,10 +997,19 @@ class ConfigurationClassParser {
 	}
 
 
+	/**
+	 * 分组
+	 */
 	private static class DeferredImportSelectorGrouping {
 
+		/**
+		 * Group 实例
+		 */
 		private final DeferredImportSelector.Group group;
 
+		/**
+		 * 组内的 DeferredImportSelectorHolder
+		 */
 		private final List<DeferredImportSelectorHolder> deferredImports = new ArrayList<>();
 
 		DeferredImportSelectorGrouping(Group group) {
@@ -962,14 +1021,18 @@ class ConfigurationClassParser {
 		}
 
 		/**
+		 * 获取所有的 Import
 		 * Return the imports defined by the group.
 		 * @return each import with its associated configuration class
 		 */
 		public Iterable<Group.Entry> getImports() {
+			//遍历
 			for (DeferredImportSelectorHolder deferredImport : this.deferredImports) {
+				//group 进行处理
 				this.group.process(deferredImport.getConfigurationClass().getMetadata(),
 						deferredImport.getImportSelector());
 			}
+			//返回所有 Entry
 			return this.group.selectImports();
 		}
 	}

@@ -52,6 +52,7 @@ public interface DeferredImportSelector extends ImportSelector {
 
 
 	/**
+	 * 分组接口
 	 * Interface used to group results from different import selectors.
 	 */
 	interface Group {
