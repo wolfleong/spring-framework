@@ -144,7 +144,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 				RootBeanDefinition advisorDef = new RootBeanDefinition(BeanFactoryTransactionAttributeSourceAdvisor.class);
 				advisorDef.setSource(eleSource);
 				advisorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-				//设置 AnnotationTransactionAttributeSource
+				//设置 AnnotationTransactionAttributeSource 到 advisor 中
 				advisorDef.getPropertyValues().add("transactionAttributeSource", new RuntimeBeanReference(sourceName));
 				//设置 TransactionInterceptor 类到 AnnotationTransactionAttributeSource 的 adviceBeanName 属性中
 				advisorDef.getPropertyValues().add("adviceBeanName", interceptorName);
