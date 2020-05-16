@@ -36,6 +36,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
+ * 处理 @Lazy 注解，重写了 getLazyResolutionProxyIfNecessary 方法
  * Complete implementation of the
  * {@link org.springframework.beans.factory.support.AutowireCandidateResolver} strategy
  * interface, providing support for qualifier annotations as well as for lazy resolution
@@ -49,9 +50,14 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 	@Override
 	@Nullable
 	public Object getLazyResolutionProxyIfNecessary(DependencyDescriptor descriptor, @Nullable String beanName) {
+		//首先，判断注入点是否有 @Lazy 注解。和 @Value 、@Autowire 、@Qualifier 一样，也是先查找注入点（字段，参数），再查找方法上。
+		//生成代理对象。只有使用到该对象时才会真正调用 beanFactory#doResolveDependency 查找依赖，其实和 ObjectProvider 延迟注入的原理都差不多
 		return (isLazy(descriptor) ? buildLazyResolutionProxy(descriptor, beanName) : null);
 	}
 
+	/**
+	 * 判断字段或方法参数是否存在 @Lazy
+	 */
 	protected boolean isLazy(DependencyDescriptor descriptor) {
 		for (Annotation ann : descriptor.getAnnotations()) {
 			Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);
@@ -72,6 +78,9 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		return false;
 	}
 
+	/**
+	 * 创建一个延迟加载的代理对象
+	 */
 	protected Object buildLazyResolutionProxy(final DependencyDescriptor descriptor, final @Nullable String beanName) {
 		Assert.state(getBeanFactory() instanceof DefaultListableBeanFactory,
 				"BeanFactory needs to be a DefaultListableBeanFactory");

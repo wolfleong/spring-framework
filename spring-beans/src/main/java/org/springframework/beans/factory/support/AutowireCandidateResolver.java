@@ -21,6 +21,9 @@ import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.lang.Nullable;
 
 /**
+ * AutowireCandidateResolver 用来判断一个给定的 bean 是否可以注入，最主要的方法是 isAutowireCandidate。
+ * 简单来说 isAutowireCandidate 就根据 @Qualifier 添加过滤规则来判断 bean 是否合法
+ *
  * Strategy interface for determining whether a specific bean definition
  * qualifies as an autowire candidate for a specific dependency.
  *
@@ -31,6 +34,8 @@ import org.springframework.lang.Nullable;
 public interface AutowireCandidateResolver {
 
 	/**
+	 * // 判断给定的 bdHolder 是否可以注入 descriptor，BeanDefinition#autowireCandidate 默认为 true
+	 * // DependencyDescriptor 是对字段、方法、参数的封装，便于统一处理，这里一般是对属性写方法参数的封装
 	 * Determine whether the given bean definition qualifies as an
 	 * autowire candidate for the given dependency.
 	 * <p>The default implementation checks
@@ -45,6 +50,7 @@ public interface AutowireCandidateResolver {
 	}
 
 	/**
+	 * 判断是否必须注入，如果是字段类型是 Optional 或有 @Null 注解时为 false
 	 * Determine whether the given descriptor is effectively required.
 	 * <p>The default implementation checks {@link DependencyDescriptor#isRequired()}.
 	 * @param descriptor the descriptor for the target method parameter or field
@@ -58,6 +64,7 @@ public interface AutowireCandidateResolver {
 	}
 
 	/**
+	 * 判断是否有 @Qualifier(Spring 或 JDK) 或自定义的注解
 	 * Determine whether the given descriptor declares a qualifier beyond the type
 	 * (typically - but not necessarily - a specific kind of annotation).
 	 * <p>The default implementation returns {@code false}.
@@ -72,6 +79,7 @@ public interface AutowireCandidateResolver {
 	}
 
 	/**
+	 * 有 @Value 时直接返回
 	 * Determine whether a default value is suggested for the given dependency.
 	 * <p>The default implementation simply returns {@code null}.
 	 * @param descriptor the descriptor for the target method parameter or field
@@ -85,6 +93,7 @@ public interface AutowireCandidateResolver {
 	}
 
 	/**
+	 * 获取延迟的代理对象, 默认为 null
 	 * Build a proxy for lazy resolution of the actual dependency target,
 	 * if demanded by the injection point.
 	 * <p>The default implementation simply returns {@code null}.
